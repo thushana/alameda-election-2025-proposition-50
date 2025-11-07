@@ -1,3 +1,58 @@
+// ============================================================================
+// CONSTANTS
+// ============================================================================
+
+// Colors
+var COLORS = {
+    // Map colors
+    NO_DATA: '#d3d3d3',
+    RED_SHADE: '#fc9272',
+    GREEN_100: '#006d2c',
+    GREEN_95: '#238b45',
+    GREEN_90: '#41ab5d',
+    GREEN_85: '#74c476',
+    GREEN_80: '#a1d99b',
+    GREEN_75: '#c7e9c0',
+    GREEN_50: '#d4e8d0',
+    BORDER_NO_DATA: '#999999',
+    BORDER_DEFAULT: 'white',
+    BORDER_HOVER: '#666',
+    BORDER_SELECTED: '#000000',
+    
+    // Bar graph colors
+    YES: '#41ab5d',
+    NO: '#e74c3c',
+    METHOD_MAIL_IN: '#78909C',
+    METHOD_IN_PERSON: '#CFD8DC'
+};
+
+// Sizes and spacing
+var SIZES = {
+    BAR_GRAPH_HEIGHT: '12px',
+    BAR_GRAPH_BORDER_RADIUS: '6px',
+    PERCENTAGE_FONT_SIZE: '13px',
+    LABEL_FONT_SIZE: '11px',
+    SECTION_FONT_SIZE: '12px',
+    MARGIN_BOTTOM_SMALL: '2px',
+    MARGIN_BOTTOM_MEDIUM: '12px',
+    MARGIN_TOP_SECTION: '16px'
+};
+
+// Opacity values
+var OPACITY = {
+    FILL_DEFAULT: 0.7,
+    FILL_HOVER: 0.9,
+    FILL_SELECTED: 0.8,
+    BACKGROUND_LIGHT: 'rgba(0, 0, 0, 0.1)',
+    TEXT_PRIMARY: 'rgba(0, 0, 0, 0.87)',
+    TEXT_SECONDARY: 'rgba(0, 0, 0, 0.6)',
+    BORDER_LIGHT: 'rgba(0, 0, 0, 0.12)'
+};
+
+// ============================================================================
+// MAP INITIALIZATION
+// ============================================================================
+
 // Initialize map centered on Alameda County
 var map = L.map('map', { zoomControl: false }).setView([37.8044, -122.2712], 10);
 
@@ -12,34 +67,33 @@ L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
 // 0-50% as red shades, 50-100% as green shades
 function getColor(yesPct) {
     if (yesPct === null || yesPct === undefined || yesPct === 0) {
-        return '#d3d3d3'; // Light grey for no data or 0%
+        return COLORS.NO_DATA;
     }
     // 1-50% as single red shade
     if (yesPct <= 50) {
-        return '#fc9272'; // Light red shade for 1-50%
+        return COLORS.RED_SHADE;
     }
     // Split 50-100% into 6 green steps
-    return yesPct >= 100 ? '#006d2c' :  // Darkest green for 100%
-           yesPct >= 95 ? '#238b45' :  // Very dark green for 95-100%
-           yesPct >= 90 ? '#41ab5d' :  // Dark green for 90-95%
-           yesPct >= 85 ? '#74c476' :  // Medium green for 85-90%
-           yesPct >= 80 ? '#a1d99b' :  // Light green for 80-85%
-           yesPct >= 75 ? '#c7e9c0' :  // Very light green for 75-80%
-           '#d4e8d0';                   // Light green for 50-75%
+    return yesPct >= 100 ? COLORS.GREEN_100 :
+           yesPct >= 95 ? COLORS.GREEN_95 :
+           yesPct >= 90 ? COLORS.GREEN_90 :
+           yesPct >= 85 ? COLORS.GREEN_85 :
+           yesPct >= 80 ? COLORS.GREEN_80 :
+           yesPct >= 75 ? COLORS.GREEN_75 :
+           COLORS.GREEN_50;
 }
 
 // Style function
 function style(feature) {
     var props = feature.properties;
-    var yesPct = props.percentage && props.percentage.yes !== undefined ? 
-                 props.percentage.yes : null;
+    var yesPct = (props.percentage && props.percentage.yes !== undefined) ? props.percentage.yes : null;
     return {
         fillColor: getColor(yesPct),
         weight: 1,
         opacity: 1,
-        color: yesPct === null ? '#999999' : 'white',
+        color: yesPct === null ? COLORS.BORDER_NO_DATA : COLORS.BORDER_DEFAULT,
         dashArray: yesPct === null ? '5,5' : '3',
-        fillOpacity: 0.7
+        fillOpacity: OPACITY.FILL_DEFAULT
     };
 }
 
@@ -60,9 +114,9 @@ function highlightFeature(e) {
         // For polygons
         layer.setStyle({
             weight: 3,
-            color: '#666',
+            color: COLORS.BORDER_HOVER,
             dashArray: '',
-            fillOpacity: 0.9
+            fillOpacity: OPACITY.FILL_HOVER
         });
     }
     
@@ -88,20 +142,20 @@ function resetHighlight(e) {
         
         if (isCircle) {
             // For circles, keep black border
-            var voteCount = layer.feature.properties.votes ? layer.feature.properties.votes.total : 0;
+            var voteCount = (layer.feature && layer.feature.properties && layer.feature.properties.votes) ? layer.feature.properties.votes.total : 0;
             layer.setStyle({
                 radius: getCircleRadius(voteCount),
                 fillColor: getColor(yesPct),
-                color: '#000000',
+                color: COLORS.BORDER_SELECTED,
                 weight: 3,
-                fillOpacity: 0.8
+                fillOpacity: OPACITY.FILL_SELECTED
             });
         } else {
             // For polygons
             layer.setStyle({
                 weight: 4,
-                color: '#000000',
-                fillOpacity: 0.8,
+                color: COLORS.BORDER_SELECTED,
+                fillOpacity: OPACITY.FILL_SELECTED,
                 dashArray: '',
                 fillColor: getColor(yesPct)
             });
@@ -991,30 +1045,66 @@ Promise.all([
         countyTotals.inPersonYes = 0;
         countyTotals.inPersonNo = 0;
         
-        // Calculate county totals from results.json
-        resultsData.forEach(function(result) {
-            if (result.votes) {
-                var votes = result.votes;
-                if (votes.yes) countyTotals.yes += votes.yes;
-                if (votes.no) countyTotals.no += votes.no;
-                if (votes.total) countyTotals.total += votes.total;
-            }
-            // Calculate county-level vote method totals
-            if (result.vote_method) {
-                if (result.vote_method.mail_in && result.vote_method.mail_in.votes) {
-                    var mailInVotes = result.vote_method.mail_in.votes;
-                    if (mailInVotes.total) countyTotals.mailInTotal += mailInVotes.total;
-                    if (mailInVotes.yes) countyTotals.mailInYes += mailInVotes.yes;
-                    if (mailInVotes.no) countyTotals.mailInNo += mailInVotes.no;
+        // Calculate county totals from results.json with error handling
+        try {
+            resultsData.forEach(function(result) {
+                if (!result) return;
+                
+                // Calculate overall vote totals
+                if (result.votes && typeof result.votes === 'object') {
+                    var votes = result.votes;
+                    if (typeof votes.yes === 'number' && votes.yes > 0) {
+                        countyTotals.yes += votes.yes;
+                    }
+                    if (typeof votes.no === 'number' && votes.no > 0) {
+                        countyTotals.no += votes.no;
+                    }
+                    if (typeof votes.total === 'number' && votes.total > 0) {
+                        countyTotals.total += votes.total;
+                    }
                 }
-                if (result.vote_method.in_person && result.vote_method.in_person.votes) {
-                    var inPersonVotes = result.vote_method.in_person.votes;
-                    if (inPersonVotes.total) countyTotals.inPersonTotal += inPersonVotes.total;
-                    if (inPersonVotes.yes) countyTotals.inPersonYes += inPersonVotes.yes;
-                    if (inPersonVotes.no) countyTotals.inPersonNo += inPersonVotes.no;
+                
+                // Calculate county-level vote method totals
+                if (result.vote_method && typeof result.vote_method === 'object') {
+                    if (result.vote_method.mail_in && result.vote_method.mail_in.votes && typeof result.vote_method.mail_in.votes === 'object') {
+                        var mailInVotes = result.vote_method.mail_in.votes;
+                        if (typeof mailInVotes.total === 'number' && mailInVotes.total > 0) {
+                            countyTotals.mailInTotal += mailInVotes.total;
+                        }
+                        if (typeof mailInVotes.yes === 'number' && mailInVotes.yes > 0) {
+                            countyTotals.mailInYes += mailInVotes.yes;
+                        }
+                        if (typeof mailInVotes.no === 'number' && mailInVotes.no > 0) {
+                            countyTotals.mailInNo += mailInVotes.no;
+                        }
+                    }
+                    if (result.vote_method.in_person && result.vote_method.in_person.votes && typeof result.vote_method.in_person.votes === 'object') {
+                        var inPersonVotes = result.vote_method.in_person.votes;
+                        if (typeof inPersonVotes.total === 'number' && inPersonVotes.total > 0) {
+                            countyTotals.inPersonTotal += inPersonVotes.total;
+                        }
+                        if (typeof inPersonVotes.yes === 'number' && inPersonVotes.yes > 0) {
+                            countyTotals.inPersonYes += inPersonVotes.yes;
+                        }
+                        if (typeof inPersonVotes.no === 'number' && inPersonVotes.no > 0) {
+                            countyTotals.inPersonNo += inPersonVotes.no;
+                        }
+                    }
                 }
-            }
-        });
+            });
+        } catch (error) {
+            console.error('Error calculating county totals:', error);
+            // Reset to safe defaults on error
+            countyTotals.yes = 0;
+            countyTotals.no = 0;
+            countyTotals.total = 0;
+            countyTotals.mailInTotal = 0;
+            countyTotals.mailInYes = 0;
+            countyTotals.mailInNo = 0;
+            countyTotals.inPersonTotal = 0;
+            countyTotals.inPersonYes = 0;
+            countyTotals.inPersonNo = 0;
+        }
         
         // Calculate percentages
         if (countyTotals.total > 0) {
@@ -1133,21 +1223,21 @@ function generateVoteMethodBarGraph(config) {
     var totalVotes = config.totalVotes || 0;
     var label = config.label || '';
     var countyAvgPct = config.countyAvgPct;
-    var yesColor = config.yesColor || '#41ab5d';
-    var noColor = config.noColor || '#e74c3c';
+    var yesColor = config.yesColor || COLORS.YES;
+    var noColor = config.noColor || COLORS.NO;
     
     if (totalVotes === 0) {
         return '';
     }
     
     var html = `
-        <div style="margin-bottom: 12px;">
-            <div style="display: flex; justify-content: space-between; align-items: center; position: relative; margin-bottom: 2px; font-size: 13px; font-weight: 500; color: rgba(0, 0, 0, 0.87);">
+        <div style="margin-bottom: ${SIZES.MARGIN_BOTTOM_MEDIUM};">
+            <div style="display: flex; justify-content: space-between; align-items: center; position: relative; margin-bottom: ${SIZES.MARGIN_BOTTOM_SMALL}; font-size: ${SIZES.PERCENTAGE_FONT_SIZE}; font-weight: 500; color: ${OPACITY.TEXT_PRIMARY};">
                 <span>${yesPct.toFixed(1)}%</span>
-                <span style="position: absolute; left: 50%; transform: translateX(-50%); font-size: 11px; color: rgba(0, 0, 0, 0.6); font-weight: normal;">${label} – ${totalVotes.toLocaleString()} votes</span>
+                <span style="position: absolute; left: 50%; transform: translateX(-50%); font-size: ${SIZES.LABEL_FONT_SIZE}; color: ${OPACITY.TEXT_SECONDARY}; font-weight: normal;">${label} – ${totalVotes.toLocaleString()} votes</span>
                 <span>${noPct.toFixed(1)}%</span>
             </div>
-            <div class="bar-graph" style="height: 12px; position: relative; display: flex; overflow: hidden; border-radius: 6px; background: rgba(0, 0, 0, 0.1);">
+            <div class="bar-graph" style="height: ${SIZES.BAR_GRAPH_HEIGHT}; position: relative; display: flex; overflow: hidden; border-radius: ${SIZES.BAR_GRAPH_BORDER_RADIUS}; background: ${OPACITY.BACKGROUND_LIGHT};">
                 <div class="bar-graph-yes" style="width: ${yesPct}%; height: 100%; background: ${yesColor}; flex-shrink: 0;"></div>
                 <div class="bar-graph-no" style="width: ${noPct}%; height: 100%; background: ${noColor}; flex-shrink: 0;"></div>
                 ${countyAvgPct !== undefined ? `
@@ -1169,8 +1259,8 @@ function generateMethodBreakdownBarGraph(config) {
     var inPersonPct = config.inPersonPct || 0;
     var totalVotes = config.totalVotes || 0;
     var countyAvgPct = config.countyAvgPct;
-    var mailInColor = config.mailInColor || '#78909C';
-    var inPersonColor = config.inPersonColor || '#CFD8DC';
+    var mailInColor = config.mailInColor || COLORS.METHOD_MAIL_IN;
+    var inPersonColor = config.inPersonColor || COLORS.METHOD_IN_PERSON;
     
     if (mailInPct === 0 && inPersonPct === 0) {
         return '';
@@ -1178,12 +1268,12 @@ function generateMethodBreakdownBarGraph(config) {
     
     var html = `
         <div>
-            <div style="display: flex; justify-content: space-between; align-items: center; position: relative; margin-bottom: 2px; font-size: 13px; font-weight: 500; color: rgba(0, 0, 0, 0.87);">
+            <div style="display: flex; justify-content: space-between; align-items: center; position: relative; margin-bottom: ${SIZES.MARGIN_BOTTOM_SMALL}; font-size: ${SIZES.PERCENTAGE_FONT_SIZE}; font-weight: 500; color: ${OPACITY.TEXT_PRIMARY};">
                 <span>${mailInPct.toFixed(1)}% – MAIL IN</span>
-                <span style="position: absolute; left: 50%; transform: translateX(-50%); font-size: 11px; color: rgba(0, 0, 0, 0.6); font-weight: normal;">METHOD BREAKDOWN – ${totalVotes.toLocaleString()} votes</span>
+                <span style="position: absolute; left: 50%; transform: translateX(-50%); font-size: ${SIZES.LABEL_FONT_SIZE}; color: ${OPACITY.TEXT_SECONDARY}; font-weight: normal;">METHOD BREAKDOWN – ${totalVotes.toLocaleString()} votes</span>
                 <span>IN PERSON – ${inPersonPct.toFixed(1)}%</span>
             </div>
-            <div class="bar-graph" style="height: 12px; position: relative; display: flex; overflow: hidden; border-radius: 6px; background: rgba(0, 0, 0, 0.1);">
+            <div class="bar-graph" style="height: ${SIZES.BAR_GRAPH_HEIGHT}; position: relative; display: flex; overflow: hidden; border-radius: ${SIZES.BAR_GRAPH_BORDER_RADIUS}; background: ${OPACITY.BACKGROUND_LIGHT};">
                 <div style="width: ${mailInPct}%; height: 100%; background: ${mailInColor}; flex-shrink: 0;"></div>
                 <div style="width: ${inPersonPct}%; height: 100%; background: ${inPersonColor}; flex-shrink: 0;"></div>
                 ${countyAvgPct !== undefined ? `
@@ -1199,6 +1289,191 @@ function generateMethodBreakdownBarGraph(config) {
     return html;
 }
 
+// Helper function to safely get a value or return default
+function safeGet(obj, path, defaultValue) {
+    if (!obj || typeof obj !== 'object') return defaultValue;
+    var keys = path.split('.');
+    var current = obj;
+    for (var i = 0; i < keys.length; i++) {
+        if (current === null || current === undefined || typeof current !== 'object') {
+            return defaultValue;
+        }
+        current = current[keys[i]];
+        if (current === null || current === undefined) {
+            return defaultValue;
+        }
+    }
+    return current;
+}
+
+// Helper function to generate county totals HTML
+function generateCountyTotalsHTML() {
+    return `
+        <div class="precinct-name">Alameda County</div>
+        <div class="data-columns">
+            <div class="data-column">
+                <div class="data-column-header">YES</div>
+                <div class="data-column-votes">${countyTotals.yes.toLocaleString()} votes</div>
+                <div class="data-column-percent">${countyTotals.yesPct.toFixed(1)}%</div>
+            </div>
+            <div class="data-column">
+                <div class="data-column-header">Total</div>
+                <div class="data-column-votes">${countyTotals.total.toLocaleString()} votes</div>
+                <div class="data-column-percent">—</div>
+            </div>
+            <div class="data-column">
+                <div class="data-column-header">NO</div>
+                <div class="data-column-votes">${countyTotals.no.toLocaleString()} votes</div>
+                <div class="data-column-percent">${countyTotals.noPct.toFixed(1)}%</div>
+            </div>
+        </div>
+        <div class="bar-graph">
+            <div class="bar-graph-yes" style="width: ${countyTotals.yesPct}%;"></div>
+            <div class="bar-graph-no" style="width: ${countyTotals.noPct}%;"></div>
+        </div>
+    `;
+}
+
+// Helper function to get title from props
+function getTitleFromProps(props) {
+    if (props.aggregated) {
+        if (props.cityName) {
+            return 'City of ' + props.cityName.charAt(0).toUpperCase() + props.cityName.slice(1);
+        }
+        return (props.count || 0) + ' Precincts Selected';
+    }
+    
+    var precinctName = safeGet(props, 'Precinct_ID', null) ||
+                      safeGet(props, 'precinct', null) ||
+                      safeGet(props, 'ID', null) ||
+                      'N/A';
+    return 'Precinct ' + precinctName;
+}
+
+// Helper function to extract vote data from props
+function extractVoteData(props) {
+    var hasVotes = !!(props && props.votes && typeof props.votes.total === 'number' && props.votes.total > 0);
+    
+    if (!hasVotes) {
+        return {
+            hasVotes: false,
+            yesPct: 0,
+            yesVotes: 0,
+            noPct: 0,
+            noVotes: 0,
+            totalVotes: 0
+        };
+    }
+    
+    return {
+        hasVotes: true,
+        yesPct: safeGet(props, 'percentage.yes', 0),
+        yesVotes: safeGet(props, 'votes.yes', 0),
+        noPct: safeGet(props, 'percentage.no', 0),
+        noVotes: safeGet(props, 'votes.no', 0),
+        totalVotes: safeGet(props, 'votes.total', 0)
+    };
+}
+
+// Helper function to generate main bar graph HTML
+function generateMainBarGraphHTML(voteData) {
+    if (!voteData.hasVotes || voteData.totalVotes === 0) {
+        return '';
+    }
+    
+    var countyMarker = (countyTotals.yesPct !== undefined) ? `
+        <div class="bar-graph-county-marker" style="left: ${countyTotals.yesPct}%;">
+            <div class="bar-graph-county-line"></div>
+            <div class="bar-graph-county-label">County</div>
+        </div>
+    ` : '';
+    
+    return `
+        <div class="bar-graph">
+            <div class="bar-graph-yes" style="width: ${voteData.yesPct}%;"></div>
+            <div class="bar-graph-no" style="width: ${voteData.noPct}%;"></div>
+            ${countyMarker}
+        </div>
+    `;
+}
+
+// Helper function to generate data columns HTML
+function generateDataColumnsHTML(voteData) {
+    var yesDisplay = voteData.hasVotes ? voteData.yesVotes.toLocaleString() + ' votes' : '&nbsp;';
+    var yesPctDisplay = voteData.hasVotes ? voteData.yesPct.toFixed(1) + '%' : '&nbsp;';
+    var totalDisplay = voteData.hasVotes ? voteData.totalVotes.toLocaleString() + ' votes' : '&nbsp;';
+    var noDisplay = voteData.hasVotes ? voteData.noVotes.toLocaleString() + ' votes' : '&nbsp;';
+    var noPctDisplay = voteData.hasVotes ? voteData.noPct.toFixed(1) + '%' : '&nbsp;';
+    
+    return `
+        <div class="data-columns">
+            <div class="data-column">
+                <div class="data-column-header">YES</div>
+                <div class="data-column-votes">${yesDisplay}</div>
+                <div class="data-column-percent">${yesPctDisplay}</div>
+            </div>
+            <div class="data-column">
+                <div class="data-column-header">Total</div>
+                <div class="data-column-votes">${totalDisplay}</div>
+                <div class="data-column-percent">—</div>
+            </div>
+            <div class="data-column">
+                <div class="data-column-header">NO</div>
+                <div class="data-column-votes">${noDisplay}</div>
+                <div class="data-column-percent">${noPctDisplay}</div>
+            </div>
+        </div>
+    `;
+}
+
+// Helper function to generate vote method breakdown HTML
+function generateVoteMethodBreakdownHTML(props, voteData) {
+    if (!voteData.hasVotes || !props.vote_method || typeof props.vote_method !== 'object') {
+        return '';
+    }
+    
+    var mailIn = safeGet(props, 'vote_method.mail_in', {});
+    var inPerson = safeGet(props, 'vote_method.in_person', {});
+    var mailInVotes = safeGet(mailIn, 'votes', {});
+    var inPersonVotes = safeGet(inPerson, 'votes', {});
+    var mailInPct = safeGet(mailIn, 'percentage', {});
+    var inPersonPct = safeGet(inPerson, 'percentage', {});
+    
+    var mailInYesPct = safeGet(mailInPct, 'yes', 0);
+    var mailInNoPct = safeGet(mailInPct, 'no', 0);
+    var inPersonYesPct = safeGet(inPersonPct, 'yes', 0);
+    var inPersonNoPct = safeGet(inPersonPct, 'no', 0);
+    var mailInPctOfTotal = safeGet(mailIn, 'percentage_of_total', 0);
+    var inPersonPctOfTotal = safeGet(inPerson, 'percentage_of_total', 0);
+    var methodBreakdownTotal = (safeGet(mailInVotes, 'total', 0) || 0) + (safeGet(inPersonVotes, 'total', 0) || 0);
+    
+    return `
+        <div class="vote-method-breakdown" style="margin-top: ${SIZES.MARGIN_TOP_SECTION}; padding-top: ${SIZES.MARGIN_TOP_SECTION}; border-top: 1px solid ${OPACITY.BORDER_LIGHT};">
+            <div style="font-size: ${SIZES.SECTION_FONT_SIZE}; font-weight: 500; color: ${OPACITY.TEXT_SECONDARY}; margin-bottom: ${SIZES.MARGIN_BOTTOM_MEDIUM}; text-transform: uppercase; letter-spacing: 0.5px;">Vote Method</div>
+            ${generateVoteMethodBarGraph({
+                yesPct: mailInYesPct,
+                noPct: mailInNoPct,
+                totalVotes: safeGet(mailInVotes, 'total', 0) || 0,
+                label: 'MAIL IN',
+                countyAvgPct: countyTotals.mailInYesPct
+            })}
+            ${generateVoteMethodBarGraph({
+                yesPct: inPersonYesPct,
+                noPct: inPersonNoPct,
+                totalVotes: safeGet(inPersonVotes, 'total', 0) || 0,
+                label: 'IN PERSON',
+                countyAvgPct: countyTotals.inPersonYesPct
+            })}
+            ${generateMethodBreakdownBarGraph({
+                mailInPct: mailInPctOfTotal,
+                inPersonPct: inPersonPctOfTotal,
+                totalVotes: methodBreakdownTotal,
+                countyAvgPct: countyTotals.mailInPctOfTotal
+            })}
+        </div>
+    `;
+}
+
 // Update info section in bottom panel
 function updateInfoSection(props) {
     var infoSection = document.getElementById('info-section');
@@ -1212,153 +1487,22 @@ function updateInfoSection(props) {
     infoSection.style.opacity = '0';
     
     setTimeout(function() {
+        var content;
+        
         if (!props) {
             // Show county totals
-            var content = `
-                <div class="precinct-name">Alameda County</div>
-                <div class="data-columns">
-                    <div class="data-column">
-                        <div class="data-column-header">YES</div>
-                        <div class="data-column-votes">${countyTotals.yes.toLocaleString()} votes</div>
-                        <div class="data-column-percent">${countyTotals.yesPct.toFixed(1)}%</div>
-                    </div>
-                    <div class="data-column">
-                        <div class="data-column-header">Total</div>
-                        <div class="data-column-votes">${countyTotals.total.toLocaleString()} votes</div>
-                        <div class="data-column-percent">—</div>
-                    </div>
-                    <div class="data-column">
-                        <div class="data-column-header">NO</div>
-                        <div class="data-column-votes">${countyTotals.no.toLocaleString()} votes</div>
-                        <div class="data-column-percent">${countyTotals.noPct.toFixed(1)}%</div>
-                    </div>
-                </div>
-                <div class="bar-graph">
-                    <div class="bar-graph-yes" style="width: ${countyTotals.yesPct}%;"></div>
-                    <div class="bar-graph-no" style="width: ${countyTotals.noPct}%;"></div>
-                </div>
-            `;
-            
-            infoSection.innerHTML = content;
-            
-            // Get new height and transition
-            setTimeout(function() {
-                var newHeight = bottomPanelContent.scrollHeight;
-                bottomPanelContent.style.height = newHeight + 'px';
-                
-                // Fade in
-                infoSection.style.opacity = '1';
-                
-                // Remove height constraint after transition
-                setTimeout(function() {
-                    bottomPanelContent.style.height = 'auto';
-                }, 400);
-            }, 10);
-            return;
-        }
-    
-        // Check if this is aggregated data
-        var title, hasVotes;
-        if (props.aggregated) {
-            title = props.cityName ? 'City of ' + props.cityName.charAt(0).toUpperCase() + props.cityName.slice(1) : props.count + ' Precincts Selected';
-            hasVotes = props.votes && props.votes.total !== undefined;
+            content = generateCountyTotalsHTML();
         } else {
-            // Try multiple ways to get the precinct name
-            var precinctName = props.Precinct_ID || 
-                              props['Precinct_ID'] || 
-                              props.precinct || 
-                              props['precinct'] ||
-                              props.ID || 
-                              props['ID'] || 
-                              'N/A';
+            // Generate content for precinct or aggregated data
+            var title = getTitleFromProps(props);
+            var voteData = extractVoteData(props);
             
-            hasVotes = props.votes && props.votes.total !== undefined;
-            title = 'Precinct ' + precinctName;
-        }
-        
-        var yesPct = hasVotes && props.votes.total > 0 ? (props.percentage ? props.percentage.yes : 0) : 0;
-        var yesVotes = hasVotes && props.votes.total > 0 ? (props.votes.yes || 0) : 0;
-        var noPct = hasVotes && props.votes.total > 0 ? (props.percentage ? props.percentage.no : 0) : 0;
-        var noVotes = hasVotes && props.votes.total > 0 ? (props.votes.no || 0) : 0;
-        var totalVotes = hasVotes && props.votes.total > 0 ? (props.votes.total || 0) : 0;
-        
-        var content = `
-            <div class="precinct-name">${title}</div>
-            <div class="data-columns">
-                <div class="data-column">
-                    <div class="data-column-header">YES</div>
-                    <div class="data-column-votes">${hasVotes && props.votes.total > 0 ? yesVotes.toLocaleString() + ' votes' : '&nbsp;'}</div>
-                    <div class="data-column-percent">${hasVotes && props.votes.total > 0 ? yesPct.toFixed(1) + '%' : '&nbsp;'}</div>
-                </div>
-                <div class="data-column">
-                    <div class="data-column-header">Total</div>
-                    <div class="data-column-votes">${hasVotes && props.votes.total > 0 ? totalVotes.toLocaleString() + ' votes' : '&nbsp;'}</div>
-                    <div class="data-column-percent">—</div>
-                </div>
-                <div class="data-column">
-                    <div class="data-column-header">NO</div>
-                    <div class="data-column-votes">${hasVotes && props.votes.total > 0 ? noVotes.toLocaleString() + ' votes' : '&nbsp;'}</div>
-                    <div class="data-column-percent">${hasVotes && props.votes.total > 0 ? noPct.toFixed(1) + '%' : '&nbsp;'}</div>
-                </div>
-            </div>
-            ${hasVotes && props.votes.total > 0 ? `
-            <div class="bar-graph">
-                <div class="bar-graph-yes" style="width: ${yesPct}%;"></div>
-                <div class="bar-graph-no" style="width: ${noPct}%;"></div>
-                ${countyTotals.yesPct !== undefined ? `
-                <div class="bar-graph-county-marker" style="left: ${countyTotals.yesPct}%;">
-                    <div class="bar-graph-county-line"></div>
-                    <div class="bar-graph-county-label">County</div>
-                </div>
-                ` : ''}
-            </div>
-            ` : ''}
-        `;
-        
-        // Add vote method bar graphs if available (below the main bar graph)
-        if (hasVotes && props.votes.total > 0 && props.vote_method) {
-            var mailIn = props.vote_method.mail_in || {};
-            var inPerson = props.vote_method.in_person || {};
-            var mailInVotes = mailIn.votes || {};
-            var inPersonVotes = inPerson.votes || {};
-            var mailInPct = mailIn.percentage || {};
-            var inPersonPct = inPerson.percentage || {};
-            
-            var mailInYesPct = mailInPct.yes || 0;
-            var mailInNoPct = mailInPct.no || 0;
-            var inPersonYesPct = inPersonPct.yes || 0;
-            var inPersonNoPct = inPersonPct.no || 0;
-            var mailInPctOfTotal = mailIn.percentage_of_total || 0;
-            var inPersonPctOfTotal = inPerson.percentage_of_total || 0;
-            var methodBreakdownTotal = (mailInVotes.total || 0) + (inPersonVotes.total || 0);
-            
-            var voteMethodHtml = `
-                <div class="vote-method-breakdown" style="margin-top: 16px; padding-top: 16px; border-top: 1px solid rgba(0, 0, 0, 0.12);">
-                    <div style="font-size: 12px; font-weight: 500; color: rgba(0, 0, 0, 0.6); margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Vote Method</div>
-                    ${generateVoteMethodBarGraph({
-                        yesPct: mailInYesPct,
-                        noPct: mailInNoPct,
-                        totalVotes: mailInVotes.total || 0,
-                        label: 'MAIL IN',
-                        countyAvgPct: countyTotals.mailInYesPct
-                    })}
-                    ${generateVoteMethodBarGraph({
-                        yesPct: inPersonYesPct,
-                        noPct: inPersonNoPct,
-                        totalVotes: inPersonVotes.total || 0,
-                        label: 'IN PERSON',
-                        countyAvgPct: countyTotals.inPersonYesPct
-                    })}
-                    ${generateMethodBreakdownBarGraph({
-                        mailInPct: mailInPctOfTotal,
-                        inPersonPct: inPersonPctOfTotal,
-                        totalVotes: methodBreakdownTotal,
-                        countyAvgPct: countyTotals.mailInPctOfTotal
-                    })}
-                </div>
+            content = `
+                <div class="precinct-name">${title}</div>
+                ${generateDataColumnsHTML(voteData)}
+                ${generateMainBarGraphHTML(voteData)}
+                ${generateVoteMethodBreakdownHTML(props, voteData)}
             `;
-            
-            content += voteMethodHtml;
         }
         
         infoSection.innerHTML = content;
