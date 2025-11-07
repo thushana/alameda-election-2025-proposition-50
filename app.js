@@ -864,10 +864,29 @@ fetch('precincts_consolidated.geojson')
         
         // Fit bounds
         if (mapMode === 'proportional' && circleLayer) {
-            if (circleLayer.getBounds().isValid()) {
-                map.fitBounds(circleLayer.getBounds());
+            try {
+                // Check if circleLayer has layers and getBounds method
+                if (circleLayer.getLayers && circleLayer.getLayers().length > 0 && 
+                    typeof circleLayer.getBounds === 'function') {
+                    var bounds = circleLayer.getBounds();
+                    if (bounds && bounds.isValid && bounds.isValid()) {
+                        map.fitBounds(bounds);
+                    } else if (geojsonLayer.getBounds && geojsonLayer.getBounds().isValid()) {
+                        // Fallback to geojsonLayer bounds if circleLayer bounds not valid
+                        map.fitBounds(geojsonLayer.getBounds());
+                    }
+                } else if (geojsonLayer.getBounds && geojsonLayer.getBounds().isValid()) {
+                    // Fallback to geojsonLayer bounds if circleLayer not ready
+                    map.fitBounds(geojsonLayer.getBounds());
+                }
+            } catch (e) {
+                console.error('Error getting circleLayer bounds:', e);
+                // Fallback to geojsonLayer bounds
+                if (geojsonLayer.getBounds && geojsonLayer.getBounds().isValid()) {
+                    map.fitBounds(geojsonLayer.getBounds());
+                }
             }
-        } else if (geojsonLayer.getBounds().isValid()) {
+        } else if (geojsonLayer.getBounds && geojsonLayer.getBounds().isValid()) {
             map.fitBounds(geojsonLayer.getBounds());
         } else {
             console.error('Invalid bounds');
