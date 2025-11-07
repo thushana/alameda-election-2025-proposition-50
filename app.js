@@ -46,12 +46,26 @@ function style(feature) {
 // Highlight on hover
 function highlightFeature(e) {
     var layer = e.target;
-    layer.setStyle({
-        weight: 3,
-        color: '#666',
-        dashArray: '',
-        fillOpacity: 0.9
-    });
+    var isCircle = layer instanceof L.CircleMarker;
+    
+    if (isCircle) {
+        // For circles, increase size and opacity
+        var currentRadius = layer.options.radius || 10;
+        layer.setStyle({
+            radius: currentRadius * 1.2,
+            fillOpacity: 0.9,
+            weight: 2
+        });
+    } else {
+        // For polygons
+        layer.setStyle({
+            weight: 3,
+            color: '#666',
+            dashArray: '',
+            fillOpacity: 0.9
+        });
+    }
+    
     if (!L.Browser.ie && !L.Browser.opera && !L.Browser.edge) {
         layer.bringToFront();
     }
@@ -61,6 +75,8 @@ function highlightFeature(e) {
 // Reset highlight
 function resetHighlight(e) {
     var layer = e.target;
+    var isCircle = layer instanceof L.CircleMarker;
+    
     // Check if this layer is selected - if so, keep the black border
     var isSelected = selectedPrecincts.some(function(item) {
         return item.layer === layer;
@@ -69,15 +85,42 @@ function resetHighlight(e) {
     if (isSelected) {
         // Keep selected style
         var yesPct = layer.feature.properties.percentage ? layer.feature.properties.percentage.yes : null;
-        layer.setStyle({
-            weight: 4,
-            color: '#000000',
-            fillOpacity: 0.8,
-            dashArray: '',
-            fillColor: getColor(yesPct)
-        });
+        
+        if (isCircle) {
+            // For circles, keep black border
+            var voteCount = layer.feature.properties.votes ? layer.feature.properties.votes.total : 0;
+            layer.setStyle({
+                radius: getCircleRadius(voteCount),
+                fillColor: getColor(yesPct),
+                color: '#000000',
+                weight: 3,
+                fillOpacity: 0.8
+            });
+        } else {
+            // For polygons
+            layer.setStyle({
+                weight: 4,
+                color: '#000000',
+                fillOpacity: 0.8,
+                dashArray: '',
+                fillColor: getColor(yesPct)
+            });
+        }
     } else {
-        geojsonLayer.resetStyle(layer);
+        if (isCircle) {
+            // Reset circle to original style
+            var yesPct = layer.feature.properties.percentage ? layer.feature.properties.percentage.yes : null;
+            var voteCount = layer.feature.properties.votes ? layer.feature.properties.votes.total : 0;
+            layer.setStyle({
+                radius: getCircleRadius(voteCount),
+                fillColor: getColor(yesPct),
+                color: '#fff',
+                weight: 1,
+                fillOpacity: 0.7
+            });
+        } else {
+            geojsonLayer.resetStyle(layer);
+        }
     }
     
     // If precincts are selected, show aggregated totals; otherwise show county totals
@@ -97,6 +140,242 @@ function zoomToFeature(e) {
 var selectedPrecincts = [];
 var isSelectionMode = false;
 var currentCityName = null;
+
+// Hash-based URL parsing and building (works with static file servers)
+function parseHashParams() {
+    var hash = window.location.hash;
+    if (!hash || hash.length <= 1) {
+        return { mode: null, city: null, precincts: null };
+    }
+    
+    // Remove # from hash, handle both #/mode/... and #mode/...
+    var path = hash.substring(1);
+    // Remove leading slash if present
+    if (path.charAt(0) === '/') {
+        path = path.substring(1);
+    }
+    var parts = path.split('/').filter(function(p) { return p.length > 0; });
+    var params = {
+        mode: null,
+        city: null,
+        precincts: null
+    };
+    
+    // Mode synonyms: choropleth -> shaded, bubble -> proportional
+    function normalizeMode(mode) {
+        if (!mode) return null;
+        mode = mode.toLowerCase();
+        if (mode === 'choropleth') return 'shaded';
+        if (mode === 'bubble' || mode === 'bubbles') return 'proportional';
+        return mode; // Return as-is if not a synonym
+    }
+    
+    for (var i = 0; i < parts.length; i++) {
+        if (parts[i] === 'mode' && i + 1 < parts.length) {
+            params.mode = normalizeMode(parts[i + 1]);
+            i++;
+        } else if (parts[i] === 'city' && i + 1 < parts.length) {
+            params.city = parts[i + 1];
+            i++;
+        } else if (parts[i] === 'precincts' && i + 1 < parts.length) {
+            params.precincts = parts[i + 1];
+            i++;
+        }
+    }
+    
+    return params;
+}
+
+function buildHashParams(params) {
+    var pathParts = [];
+    
+    // Always include mode
+    if (params.mode) {
+        pathParts.push('mode', params.mode);
+    } else {
+        pathParts.push('mode', 'shaded'); // Default
+    }
+    
+    // Add city if present
+    if (params.city) {
+        pathParts.push('city', params.city);
+    }
+    
+    // Add precincts if present
+    if (params.precincts) {
+        pathParts.push('precincts', params.precincts);
+    }
+    
+    return '#' + pathParts.join('/');
+}
+
+// Map visualization mode: 'shaded' or 'proportional'
+// Read from URL hash if present, default to 'shaded'
+var hashParams = parseHashParams();
+var mapMode = (hashParams.mode === 'proportional') ? 'proportional' : 'shaded';
+var circleLayer = null;
+var maxVotes = 0; // Will be calculated from data
+
+// Calculate circle radius based on vote count
+function getCircleRadius(voteCount) {
+    if (!voteCount || voteCount === 0 || maxVotes === 0) {
+        return 2; // Minimum radius
+    }
+    // Scale from 2px to 30px based on vote count
+    var minRadius = 2;
+    var maxRadius = 30;
+    var ratio = voteCount / maxVotes;
+    return minRadius + (maxRadius - minRadius) * Math.sqrt(ratio); // Use sqrt for better visual scaling
+}
+
+// Get centroid of a feature
+function getCentroid(feature) {
+    // Use Leaflet's built-in method if available, otherwise calculate manually
+    if (feature.geometry && feature.geometry.coordinates) {
+        var coords = feature.geometry.coordinates;
+        var lng = 0, lat = 0, count = 0;
+        
+        function processCoordinates(coords) {
+            if (Array.isArray(coords[0]) && typeof coords[0][0] === 'number') {
+                // Array of coordinates
+                coords.forEach(function(coord) {
+                    if (Array.isArray(coord[0])) {
+                        processCoordinates(coord);
+                    } else {
+                        // GeoJSON format: [lng, lat]
+                        lng += coord[0];
+                        lat += coord[1];
+                        count++;
+                    }
+                });
+            } else if (typeof coords[0] === 'number') {
+                // Single coordinate [lng, lat]
+                lng += coords[0];
+                lat += coords[1];
+                count++;
+            }
+        }
+        
+        if (feature.geometry.type === 'Polygon') {
+            processCoordinates(coords[0]); // Use outer ring
+        } else if (feature.geometry.type === 'MultiPolygon') {
+            coords.forEach(function(polygon) {
+                processCoordinates(polygon[0]); // Use outer ring of each polygon
+            });
+        }
+        
+        // Return as [lat, lng] for Leaflet
+        return count > 0 ? [lat / count, lng / count] : null;
+    }
+    return null;
+}
+
+// Create proportional symbol circles
+function createProportionalSymbols(data) {
+    // Remove existing circle layer
+    if (circleLayer) {
+        map.removeLayer(circleLayer);
+    }
+    
+    // Calculate max votes for scaling
+    maxVotes = 0;
+    data.features.forEach(function(feature) {
+        if (feature.properties && feature.properties.votes && feature.properties.votes.total) {
+            maxVotes = Math.max(maxVotes, feature.properties.votes.total);
+        }
+    });
+    
+    // Create circle markers
+    var circles = [];
+    data.features.forEach(function(feature) {
+        var props = feature.properties;
+        var votes = props.votes || {};
+        var voteCount = votes.total || 0;
+        var yesPct = props.percentage && props.percentage.yes !== undefined ? props.percentage.yes : null;
+        
+        var centroid = getCentroid(feature);
+        if (centroid && voteCount > 0) {
+            var radius = getCircleRadius(voteCount);
+            var color = getColor(yesPct);
+            
+            var circle = L.circleMarker([centroid[0], centroid[1]], {
+                radius: radius,
+                fillColor: color,
+                color: '#fff',
+                weight: 1,
+                opacity: 0.8,
+                fillOpacity: 0.7
+            });
+            
+            // Store feature properties for hover/click
+            circle.feature = feature;
+            
+            // Add event listeners
+            circle.on({
+                mouseover: highlightFeature,
+                mouseout: resetHighlight,
+                click: togglePrecinctSelection
+            });
+            
+            circles.push(circle);
+        }
+    });
+    
+    circleLayer = L.layerGroup(circles).addTo(map);
+}
+
+// Toggle map mode
+function toggleMapMode() {
+    // Toggle the mode
+    mapMode = mapMode === 'shaded' ? 'proportional' : 'shaded';
+    
+    // Update URL parameter
+    updateModeURL();
+    
+    // Update button text (show what you'll switch TO next time)
+    var btn = document.getElementById('toggle-mode-btn');
+    if (btn) {
+        // If currently in proportional, button says "Switch to Shaded"
+        // If currently in shaded, button says "Switch to Proportional Symbols"
+        btn.textContent = mapMode === 'proportional' ? 'Switch to Shaded' : 'Switch to Proportional Symbols';
+    }
+    
+    if (mapMode === 'proportional') {
+        // Hide polygon layer, show circles
+        if (geojsonLayer) {
+            map.removeLayer(geojsonLayer);
+        }
+        // Circles will be created when data loads
+    } else {
+        // Hide circles, show polygon layer (shaded mode)
+        if (circleLayer) {
+            map.removeLayer(circleLayer);
+        }
+        if (geojsonLayer) {
+            map.addLayer(geojsonLayer);
+        }
+    }
+    
+    // Reload data to apply mode
+    if (geojsonLayer && geojsonLayer.getLayers().length > 0) {
+        // Get current data and recreate visualization
+        var currentData = { features: [] };
+        geojsonLayer.eachLayer(function(layer) {
+            if (layer.feature) {
+                currentData.features.push(layer.feature);
+            }
+        });
+        
+        if (mapMode === 'proportional') {
+            createProportionalSymbols(currentData);
+        } else {
+            geojsonLayer.addTo(map);
+        }
+    }
+}
+
+// Make toggleMapMode globally accessible
+window.toggleMapMode = toggleMapMode;
 
 // Toggle precinct selection on command-click
 function togglePrecinctSelection(e) {
@@ -118,13 +397,29 @@ function togglePrecinctSelection(e) {
             // Add to selection
             selectedPrecincts.push({ feature: feature, layer: layer });
             var yesPct = feature.properties.percentage ? feature.properties.percentage.yes : null;
-            layer.setStyle({
-                weight: 4,
-                color: '#000000',
-                fillOpacity: 0.8,
-                dashArray: '',
-                fillColor: getColor(yesPct)
-            });
+            var isCircle = layer instanceof L.CircleMarker;
+            
+            if (isCircle) {
+                // For circles, add black border
+                var voteCount = feature.properties.votes ? feature.properties.votes.total : 0;
+                layer.setStyle({
+                    radius: getCircleRadius(voteCount),
+                    fillColor: getColor(yesPct),
+                    color: '#000000',
+                    weight: 3,
+                    fillOpacity: 0.8
+                });
+            } else {
+                // For polygons
+                layer.setStyle({
+                    weight: 4,
+                    color: '#000000',
+                    fillOpacity: 0.8,
+                    dashArray: '',
+                    fillColor: getColor(yesPct)
+                });
+            }
+            
             // Bring to front to ensure visibility
             if (!L.Browser.ie && !L.Browser.opera && !L.Browser.edge) {
                 layer.bringToFront();
@@ -132,7 +427,22 @@ function togglePrecinctSelection(e) {
         } else {
             // Remove from selection
             selectedPrecincts.splice(index, 1);
-            geojsonLayer.resetStyle(layer);
+            var isCircle = layer instanceof L.CircleMarker;
+            
+            if (isCircle) {
+                // Reset circle to original style
+                var yesPct = feature.properties.percentage ? feature.properties.percentage.yes : null;
+                var voteCount = feature.properties.votes ? feature.properties.votes.total : 0;
+                layer.setStyle({
+                    radius: getCircleRadius(voteCount),
+                    fillColor: getColor(yesPct),
+                    color: '#fff',
+                    weight: 1,
+                    fillOpacity: 0.7
+                });
+            } else {
+                geojsonLayer.resetStyle(layer);
+            }
         }
         
         // Update URL with selected precincts
@@ -197,8 +507,52 @@ function updateAggregatedTotals() {
     updateInfoSection(aggregatedProps);
 }
 
+// Update URL with map mode parameter
+function updateModeURL() {
+    var hashParams = parseHashParams();
+    hashParams.mode = mapMode;
+    
+    // Preserve city from URL if it exists, or use currentCityName
+    if (hashParams.city) {
+        // Keep city from URL
+    } else if (currentCityName) {
+        hashParams.city = currentCityName;
+    }
+    
+    // Preserve precincts from URL if they exist, or use selectedPrecincts
+    if (hashParams.precincts) {
+        // Keep precincts from URL
+    } else if (selectedPrecincts.length > 0) {
+        var precinctIds = selectedPrecincts.map(function(item) {
+            var props = item.feature.properties;
+            return props.Precinct_ID || 
+                   props['Precinct_ID'] || 
+                   props.precinct || 
+                   props['precinct'] ||
+                   props.ID || 
+                   props['ID'] || 
+                   'N/A';
+        }).join('+');
+        if (precinctIds) {
+            hashParams.precincts = precinctIds;
+        }
+    }
+    
+    // Don't remove city or precincts that are in the URL - preserve them
+    // Only remove precincts if they're not in the URL and not selected
+    // (City from URL will be handled by restoreSelectionFromURL)
+    
+    var newHash = buildHashParams(hashParams);
+    window.location.hash = newHash;
+}
+
 // Update URL with selected precinct numbers
 function updateURL() {
+    var hashParams = parseHashParams();
+    
+    // Preserve mode
+    hashParams.mode = mapMode;
+    
     // Get precinct IDs
     var precinctIds = selectedPrecincts.map(function(item) {
         var props = item.feature.properties;
@@ -211,25 +565,25 @@ function updateURL() {
                'N/A';
     }).join('+');
     
-    // Manually construct URL to preserve + signs
-    var url = new URL(window.location);
-    var baseUrl = url.protocol + '//' + url.host + url.pathname;
-    var params = new URLSearchParams(url.search);
-    
-    if (precinctIds) {
-        // Manually add precincts parameter with + signs
-        params.delete('precincts');
-        var queryString = params.toString();
-        var separator = queryString ? '&' : '?';
-        var newUrl = baseUrl + (queryString ? '?' + queryString + '&' : '?') + 'precincts=' + precinctIds;
-        window.history.replaceState({}, '', newUrl);
+    if (precinctIds && selectedPrecincts.length > 0) {
+        hashParams.precincts = precinctIds;
+        // Clear city when manually selecting precincts
+        if (hashParams.city && !currentCityName) {
+            delete hashParams.city;
+        }
     } else {
-        // Remove precinct parameter if no selection
-        params.delete('precincts');
-        var queryString = params.toString();
-        var newUrl = baseUrl + (queryString ? '?' + queryString : '');
-        window.history.replaceState({}, '', newUrl);
+        delete hashParams.precincts;
     }
+    
+    // Preserve city if it exists
+    if (currentCityName) {
+        hashParams.city = currentCityName;
+    } else if (!currentCityName && hashParams.city) {
+        // Keep city if it was in URL but not cleared
+    }
+    
+    var newHash = buildHashParams(hashParams);
+    window.location.hash = newHash;
 }
 
 // City to precinct mapping
@@ -240,42 +594,53 @@ var cityPrecinctMap = {
 // Restore selection from URL on page load
 function restoreSelectionFromURL() {
     if (!geojsonLayer) {
+        console.log('restoreSelectionFromURL: geojsonLayer not ready');
         return;
     }
     
     var precinctIds = [];
+    var hashParams = parseHashParams();
+    console.log('restoreSelectionFromURL: hashParams =', hashParams);
     
     // Check for city parameter first
-    var urlParams = new URLSearchParams(window.location.search);
-    var cityParam = urlParams.get('city');
-    
-    if (cityParam && cityPrecinctMap[cityParam.toLowerCase()]) {
+    if (hashParams.city && cityPrecinctMap[hashParams.city.toLowerCase()]) {
         // Use city mapping
-        precinctIds = cityPrecinctMap[cityParam.toLowerCase()];
-        currentCityName = cityParam.toLowerCase();
+        precinctIds = cityPrecinctMap[hashParams.city.toLowerCase()];
+        currentCityName = hashParams.city.toLowerCase();
+        console.log('restoreSelectionFromURL: Found city', hashParams.city, 'with', precinctIds.length, 'precincts');
     } else {
         currentCityName = null;
-        // Read raw query string to preserve + signs
-        var search = window.location.search;
-        var match = search.match(/[?&]precincts=([^&]*)/);
         
-        if (!match) {
+        // Check for precincts in hash
+        if (hashParams.precincts) {
+            // Handle both + and , for backwards compatibility
+            precinctIds = hashParams.precincts.split(/[+,]/);
+            console.log('restoreSelectionFromURL: Found precincts in URL:', precinctIds.length);
+        } else {
+            console.log('restoreSelectionFromURL: No city or precincts found');
             return;
         }
-        
-        // Handle both + and , for backwards compatibility
-        precinctIds = match[1].split(/[+,]/);
     }
     
     if (precinctIds.length === 0) {
+        console.log('restoreSelectionFromURL: No precinct IDs to restore');
         return;
     }
     
-    // Wait for geojsonLayer to be populated
+    // Wait for layers to be populated
     setTimeout(function() {
         var foundCount = 0;
-        geojsonLayer.eachLayer(function(layer) {
-            var props = layer.feature.properties;
+        var layerSource = mapMode === 'proportional' && circleLayer ? circleLayer : geojsonLayer;
+        
+        if (!layerSource) {
+            return;
+        }
+        
+        layerSource.eachLayer(function(layer) {
+            var feature = layer.feature;
+            if (!feature) return;
+            
+            var props = feature.properties;
             var precinctId = props.Precinct_ID || 
                             props['Precinct_ID'] || 
                             props.precinct || 
@@ -289,16 +654,33 @@ function restoreSelectionFromURL() {
             
             if (precinctIdStr && precinctIds.indexOf(precinctIdStr) !== -1) {
                 foundCount++;
-                selectedPrecincts.push({ feature: layer.feature, layer: layer });
+                selectedPrecincts.push({ feature: feature, layer: layer });
+                
                 // Set style with black border
-                var yesPct = layer.feature.properties.percentage ? layer.feature.properties.percentage.yes : null;
-                layer.setStyle({
-                    weight: 4,
-                    color: '#000000',
-                    fillOpacity: 0.8,
-                    dashArray: '',
-                    fillColor: getColor(yesPct)
-                });
+                var yesPct = feature.properties.percentage ? feature.properties.percentage.yes : null;
+                var isCircle = layer instanceof L.CircleMarker;
+                
+                if (isCircle) {
+                    // For circles, add black border
+                    var voteCount = feature.properties.votes ? feature.properties.votes.total : 0;
+                    layer.setStyle({
+                        radius: getCircleRadius(voteCount),
+                        fillColor: getColor(yesPct),
+                        color: '#000000',
+                        weight: 3,
+                        fillOpacity: 0.8
+                    });
+                } else {
+                    // For polygons
+                    layer.setStyle({
+                        weight: 4,
+                        color: '#000000',
+                        fillOpacity: 0.8,
+                        dashArray: '',
+                        fillColor: getColor(yesPct)
+                    });
+                }
+                
                 // Bring to front to ensure visibility
                 if (!L.Browser.ie && !L.Browser.opera && !L.Browser.edge) {
                     layer.bringToFront();
@@ -315,11 +697,19 @@ function restoreSelectionFromURL() {
             // Calculate bounds of selected precincts and center/zoom map
             var bounds = L.latLngBounds([]);
             selectedPrecincts.forEach(function(item) {
-                if (item.layer && item.layer.getBounds) {
+                if (item.layer) {
                     try {
-                        var layerBounds = item.layer.getBounds();
-                        if (layerBounds.isValid()) {
-                            bounds.extend(layerBounds);
+                        var isCircle = item.layer instanceof L.CircleMarker;
+                        if (isCircle && item.layer.getLatLng) {
+                            // For circles, use the center point
+                            var latlng = item.layer.getLatLng();
+                            bounds.extend(latlng);
+                        } else if (item.layer.getBounds) {
+                            // For polygons, use bounds
+                            var layerBounds = item.layer.getBounds();
+                            if (layerBounds.isValid()) {
+                                bounds.extend(layerBounds);
+                            }
                         }
                     } catch (e) {
                         // Skip if bounds can't be calculated
@@ -327,15 +717,23 @@ function restoreSelectionFromURL() {
                 }
             });
             
-            if (bounds.isValid() && bounds.getNorth() !== bounds.getSouth() && bounds.getEast() !== bounds.getWest()) {
-                // Add padding to bounds (10% on each side)
-                var padding = 0.1;
+            if (bounds.isValid()) {
+                // If bounds are too small (same point), add padding
                 var north = bounds.getNorth();
                 var south = bounds.getSouth();
                 var east = bounds.getEast();
                 var west = bounds.getWest();
                 var latDiff = north - south;
                 var lngDiff = east - west;
+                
+                // If bounds are too small, add minimum padding
+                if (latDiff === 0 || lngDiff === 0) {
+                    latDiff = 0.01; // ~1km
+                    lngDiff = 0.01;
+                }
+                
+                // Add padding to bounds (10% on each side)
+                var padding = 0.1;
                 
                 // Shift center north to account for bottom panel (add more padding to south)
                 var isMobile = window.innerWidth <= 768;
@@ -359,18 +757,41 @@ function restoreSelectionFromURL() {
     }, 1000);
 }
 
-// Clear selection on Escape
+// Clear selection on Escape, toggle map mode on 'M'
 document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape' && isSelectionMode) {
         // Reset all selected precincts
         selectedPrecincts.forEach(function(item) {
-            geojsonLayer.resetStyle(item.layer);
+            if (mapMode === 'shaded') {
+                geojsonLayer.resetStyle(item.layer);
+            } else {
+                // Reset circle style
+                if (item.layer && item.layer.setStyle) {
+                    var yesPct = item.layer.feature && item.layer.feature.properties.percentage ? 
+                                item.layer.feature.properties.percentage.yes : null;
+                    var voteCount = item.layer.feature && item.layer.feature.properties.votes ? 
+                                   item.layer.feature.properties.votes.total : 0;
+                    item.layer.setStyle({
+                        radius: getCircleRadius(voteCount),
+                        fillColor: getColor(yesPct),
+                        color: '#fff',
+                        weight: 1
+                    });
+                }
+            }
         });
         selectedPrecincts = [];
         isSelectionMode = false;
         currentCityName = null;
         updateURL();
-        updateInfoSection(null);
+        if (selectedPrecincts.length > 0) {
+            updateAggregatedTotals();
+        } else {
+            updateInfoSection(null);
+        }
+    } else if (e.key === 'm' || e.key === 'M') {
+        // Toggle map mode
+        toggleMapMode();
     }
 });
 
@@ -387,7 +808,12 @@ function onEachFeature(feature, layer) {
 var geojsonLayer = L.geoJSON(null, {
     style: style,
     onEachFeature: onEachFeature
-}).addTo(map);
+});
+
+// Only add to map if in shaded mode (default is shaded)
+if (mapMode === 'shaded') {
+    geojsonLayer.addTo(map);
+}
 
 // County totals (will be calculated from data)
 var countyTotals = {
@@ -400,7 +826,7 @@ var countyTotals = {
 fetch('precincts_consolidated.geojson')
     .then(response => {
         if (!response.ok) {
-            throw new Error('Network response was not ok');
+            throw new Error('Network response was not ok: ' + response.status + ' ' + response.statusText);
         }
         return response.json();
     })
@@ -426,8 +852,22 @@ fetch('precincts_consolidated.geojson')
             countyTotals.noPct = 0;
         }
         
-        geojsonLayer.addData(data);
-        if (geojsonLayer.getBounds().isValid()) {
+        // Add data based on current mode
+        if (mapMode === 'proportional') {
+            createProportionalSymbols(data);
+            // Also add to geojsonLayer for selection/restore functionality
+            geojsonLayer.addData(data);
+            geojsonLayer.removeFrom(map); // Hide polygons, show circles
+        } else {
+            geojsonLayer.addData(data);
+        }
+        
+        // Fit bounds
+        if (mapMode === 'proportional' && circleLayer) {
+            if (circleLayer.getBounds().isValid()) {
+                map.fitBounds(circleLayer.getBounds());
+            }
+        } else if (geojsonLayer.getBounds().isValid()) {
             map.fitBounds(geojsonLayer.getBounds());
         } else {
             console.error('Invalid bounds');
@@ -436,12 +876,41 @@ fetch('precincts_consolidated.geojson')
         // Update info section with county totals
         updateInfoSection(null);
         
-        // Restore selection from URL if present
+        // Update button text based on initial mode
+        var btn = document.getElementById('toggle-mode-btn');
+        if (btn) {
+            btn.textContent = mapMode === 'proportional' ? 'Switch to Shaded' : 'Switch to Proportional Symbols';
+        }
+        
+        // Restore selection from URL if present (do this first to set currentCityName)
         restoreSelectionFromURL();
+        
+        // Set initial hash if not present (but preserve city/precincts if they exist)
+        var hashParams = parseHashParams();
+        if (!hashParams.mode) {
+            // Only update if mode is missing, preserve city and precincts
+            updateModeURL();
+        }
+        
+        // Listen for hash changes (back/forward navigation)
+        window.addEventListener('hashchange', function() {
+            var hashParams = parseHashParams();
+            var newMode = (hashParams.mode === 'proportional') ? 'proportional' : 'shaded';
+            
+            // Update mode if changed
+            if (newMode !== mapMode) {
+                mapMode = newMode;
+                toggleMapMode();
+            }
+            
+            // Restore selection
+            restoreSelectionFromURL();
+        });
     })
     .catch(error => {
         console.error('Error loading GeoJSON:', error);
-        alert('Error loading map data. Make sure precincts_consolidated.geojson is in the same directory as this HTML file.');
+        console.error('Error details:', error.message, error.stack);
+        alert('Error loading map data: ' + error.message + '\n\nMake sure precincts_consolidated.geojson is in the same directory as this HTML file and that you are accessing the page through a web server (not file://).');
     });
 
 // Update info section in bottom panel
