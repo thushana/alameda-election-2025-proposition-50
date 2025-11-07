@@ -6,8 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <!-- Material Design Fonts -->
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" />
+    <!-- Stack Sans Font -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Stack+Sans+Headline:wght@400;500;600;700&display=swap" />
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons" />
     <style>
         * {
@@ -16,7 +16,7 @@
         body {
             margin: 0;
             padding: 0;
-            font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+            font-family: 'Stack Sans Headline', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
         }
@@ -24,9 +24,40 @@
             height: 100vh;
             width: 100%;
         }
+        #top-header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            padding: 40px 20px 60px;
+            background: linear-gradient(to bottom, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0.7) 50%, rgba(255, 255, 255, 0) 100%);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0.8) 30%, rgba(0, 0, 0, 0.4) 60%, rgba(0, 0, 0, 0) 100%);
+            -webkit-mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0.8) 30%, rgba(0, 0, 0, 0.4) 60%, rgba(0, 0, 0, 0) 100%);
+            text-align: center;
+            pointer-events: none;
+        }
+        #top-header h1 {
+            margin: 0;
+            font-family: 'Stack Sans Headline', sans-serif;
+            font-size: 24px;
+            font-weight: 600;
+            color: rgba(0, 0, 0, 0.87);
+            letter-spacing: 0.15px;
+        }
+        #top-header h2 {
+            margin: 8px 0 0;
+            font-family: 'Stack Sans Headline', sans-serif;
+            font-size: 18px;
+            font-weight: 500;
+            color: rgba(0, 0, 0, 0.87);
+            letter-spacing: 0.15px;
+        }
         .info {
             padding: 16px;
-            font: 14px/20px 'Roboto', sans-serif;
+            font: 14px/20px 'Stack Sans Headline', sans-serif;
             background: white;
             background: rgba(255,255,255,0.95);
             box-shadow: 0px 2px 4px -1px rgba(0,0,0,0.2), 0px 4px 5px 0px rgba(0,0,0,0.14), 0px 1px 10px 0px rgba(0,0,0,0.12);
@@ -76,10 +107,236 @@
             clear: both;
             margin-bottom: 4px;
         }
+        #bottom-panel {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: fit-content;
+            max-width: 90%;
+            z-index: 1000;
+        }
+        .bottom-panel-content {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.66);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-radius: 12px;
+            box-shadow: 0px 4px 6px -1px rgba(0,0,0,0.2), 0px 2px 4px -1px rgba(0,0,0,0.14), 0px 1px 3px 0px rgba(0,0,0,0.12);
+            transition: height 0.4s ease;
+            overflow: hidden;
+        }
+        .info-section {
+            font: 14px/20px 'Stack Sans Headline', sans-serif;
+            text-align: center;
+            transition: opacity 0.3s ease, max-height 0.4s ease;
+            overflow: hidden;
+        }
+        .info-section h4 {
+            margin: 0 0 8px;
+            color: rgba(0, 0, 0, 0.87);
+            font-weight: 500;
+            font-size: 16px;
+            letter-spacing: 0.15px;
+        }
+        .info-section b {
+            color: rgba(0, 0, 0, 0.87);
+            font-weight: 500;
+            display: block;
+            margin-bottom: 8px;
+        }
+        .info-section i {
+            color: rgba(0, 0, 0, 0.6);
+            font-style: normal;
+            font-size: 13px;
+        }
+        .info-section .precinct-name {
+            font-family: 'Stack Sans Headline', sans-serif;
+            font-weight: 500;
+            font-size: 16px;
+            color: rgba(0, 0, 0, 0.87);
+            margin-bottom: 16px;
+            transition: opacity 0.3s ease;
+        }
+        .info-section .instruction-text {
+            font-family: 'Stack Sans Headline', sans-serif;
+            font-weight: 400;
+            font-size: 14px;
+            color: rgba(0, 0, 0, 0.6);
+            margin-bottom: 16px;
+        }
+        .info-section .data-columns {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 16px;
+            margin-top: 12px;
+            transition: opacity 0.3s ease, max-height 0.4s ease;
+            overflow: hidden;
+        }
+        .info-section .data-column {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .info-section .data-column-header {
+            font-size: 14px;
+            font-weight: 500;
+            color: rgba(0, 0, 0, 0.87);
+            margin-bottom: 8px;
+        }
+        .info-section .data-column-votes {
+            font-size: 14px;
+            color: rgba(0, 0, 0, 0.6);
+            margin-bottom: 8px;
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+        .info-section .data-column-percent {
+            font-size: 24px;
+            font-weight: 700;
+            color: rgba(0, 0, 0, 0.87);
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+        .info-section .bar-graph {
+            margin-top: 16px;
+            width: 100%;
+            height: 24px;
+            background: rgba(0, 0, 0, 0.1);
+            border-radius: 12px;
+            overflow: hidden;
+            display: flex;
+            position: relative;
+        }
+        .info-section .bar-graph-yes {
+            height: 100%;
+            background: #41ab5d;
+            border-radius: 12px 0 0 12px;
+            transition: width 0.3s ease;
+            flex-shrink: 0;
+        }
+        .info-section .bar-graph-no {
+            height: 100%;
+            background: #e74c3c;
+            border-radius: 0 12px 12px 0;
+            transition: width 0.3s ease;
+            flex-shrink: 0;
+        }
+        .info-section .bar-graph-county-marker {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 0;
+            height: 100%;
+            z-index: 10;
+            pointer-events: none;
+            transition: left 0.3s ease;
+        }
+        .info-section .bar-graph-county-line {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 2px;
+            background: #000;
+        }
+        .info-section .bar-graph-county-label {
+            position: absolute;
+            bottom: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 11px;
+            font-weight: 500;
+            color: #000;
+            white-space: nowrap;
+        }
+        .legend-section {
+            border-top: 1px solid rgba(0, 0, 0, 0.12);
+            padding-top: 16px;
+        }
+        .legend-section h4 {
+            margin: 0 0 12px;
+            color: rgba(0, 0, 0, 0.87);
+            font-weight: 500;
+            font-size: 16px;
+            letter-spacing: 0.15px;
+            text-align: center;
+        }
+        .legend-horizontal {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            align-items: center;
+            justify-content: center;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 14px;
+            color: rgba(0, 0, 0, 0.87);
+            white-space: nowrap;
+        }
+        .legend-color {
+            width: 18px;
+            height: 18px;
+            border-radius: 2px;
+            flex-shrink: 0;
+        }
+        @media (max-width: 768px) {
+            #bottom-panel {
+                width: 95%;
+                bottom: 10px;
+            }
+            .bottom-panel-content {
+                padding: 16px;
+            }
+            .legend-horizontal {
+                gap: 8px;
+            }
+            .legend-item {
+                font-size: 12px;
+                gap: 4px;
+            }
+            .legend-color {
+                width: 16px;
+                height: 16px;
+            }
+            .info-section .data-columns {
+                gap: 8px;
+            }
+            .info-section .data-column-header {
+                font-size: 12px;
+            }
+            .info-section .data-column-votes {
+                font-size: 12px;
+            }
+            .info-section .data-column-percent {
+                font-size: 20px;
+            }
+        }
     </style>
 </head>
 <body>
+    <div id="top-header">
+        <h1>Alameda County - November 2025 Election Results</h1>
+        <h2>Proposition 50 – Consolidated Precincts</h2>
+    </div>
     <div id="map"></div>
+    <div id="bottom-panel">
+        <div class="bottom-panel-content">
+            <div class="info-section" id="info-section">
+                <h4>Proposition 50 Results</h4>
+                <span>Hover over a precinct</span>
+            </div>
+            <div class="legend-section">
+                <h4>Yes % – Key</h4>
+                <div class="legend-horizontal" id="legend-horizontal"></div>
+            </div>
+        </div>
+    </div>
     <script>
         // Initialize map centered on Alameda County
         var map = L.map('map').setView([37.8044, -122.2712], 10);
@@ -92,16 +349,16 @@
         }).addTo(map);
 
         // Color scale for YES percentage
-        // 0-50% as one key, then split 50-100%
+        // 0-50% as red shades, 50-100% as green shades
         function getColor(yesPct) {
-            if (yesPct === null || yesPct === undefined) {
-                return '#d3d3d3'; // Light grey for no data
+            if (yesPct === null || yesPct === undefined || yesPct === 0) {
+                return '#d3d3d3'; // Light grey for no data or 0%
             }
-            // 0-50% as one color (lightest)
+            // 1-50% as single red shade
             if (yesPct <= 50) {
-                return '#e5f5e0'; // Lightest green for 0-50%
+                return '#fc9272'; // Light red shade for 1-50%
             }
-            // Split 50-100% into multiple steps
+            // Split 50-100% into 6 green steps
             return yesPct >= 100 ? '#006d2c' :  // Darkest green for 100%
                    yesPct >= 95 ? '#238b45' :  // Very dark green for 95-100%
                    yesPct >= 90 ? '#41ab5d' :  // Dark green for 90-95%
@@ -138,13 +395,13 @@
             if (!L.Browser.ie && !L.Browser.opera && !L.Browser.edge) {
                 layer.bringToFront();
             }
-            info.update(layer.feature.properties);
+            updateInfoSection(layer.feature.properties);
         }
 
         // Reset highlight
         function resetHighlight(e) {
             geojsonLayer.resetStyle(e.target);
-            info.update();
+            updateInfoSection(null);
         }
 
         // Zoom to feature on click
@@ -167,6 +424,13 @@
             onEachFeature: onEachFeature
         }).addTo(map);
 
+        // County totals (will be calculated from data)
+        var countyTotals = {
+            yes: 0,
+            no: 0,
+            total: 0
+        };
+
         // Load GeoJSON data
         fetch('precincts_consolidated.geojson')
             .then(response => {
@@ -177,85 +441,257 @@
             })
             .then(data => {
                 console.log('Loaded GeoJSON with', data.features.length, 'features');
+                
+                // Calculate county totals
+                data.features.forEach(function(feature) {
+                    if (feature.properties && feature.properties.votes) {
+                        var votes = feature.properties.votes;
+                        if (votes.yes) countyTotals.yes += votes.yes;
+                        if (votes.no) countyTotals.no += votes.no;
+                        if (votes.total) countyTotals.total += votes.total;
+                    }
+                });
+                
+                // Calculate percentages
+                if (countyTotals.total > 0) {
+                    countyTotals.yesPct = (countyTotals.yes / countyTotals.total) * 100;
+                    countyTotals.noPct = (countyTotals.no / countyTotals.total) * 100;
+                } else {
+                    countyTotals.yesPct = 0;
+                    countyTotals.noPct = 0;
+                }
+                
                 geojsonLayer.addData(data);
                 if (geojsonLayer.getBounds().isValid()) {
                     map.fitBounds(geojsonLayer.getBounds());
                 } else {
                     console.error('Invalid bounds');
                 }
+                
+                // Update info section with county totals
+                updateInfoSection(null);
             })
             .catch(error => {
                 console.error('Error loading GeoJSON:', error);
                 alert('Error loading map data. Make sure precincts_consolidated.geojson is in the same directory as this HTML file.');
             });
 
-        // Info control
-        var info = L.control();
-        info.onAdd = function (map) {
-            this._div = L.DomUtil.create('div', 'info');
-            this.update();
-            return this._div;
-        };
-        info.update = function (props) {
-            if (!props) {
-                this._div.innerHTML = '<h4>Proposition 50 Results</h4>Hover over a precinct';
-                return;
-            }
+        // Update info section in bottom panel
+        function updateInfoSection(props) {
+            var infoSection = document.getElementById('info-section');
+            var bottomPanelContent = infoSection.parentElement;
             
-            // Try multiple ways to get the precinct name
-            var precinctName = props.Precinct_ID || 
-                              props['Precinct_ID'] || 
-                              props.precinct || 
-                              props['precinct'] ||
-                              props.ID || 
-                              props['ID'] || 
-                              'N/A';
+            // Get current height
+            var currentHeight = bottomPanelContent.offsetHeight;
+            bottomPanelContent.style.height = currentHeight + 'px';
             
-            var hasVotes = props.votes && props.votes.total !== undefined;
+            // Fade out
+            infoSection.style.opacity = '0';
             
-            var content = '<h4>Proposition 50 Results</h4>';
-            content += '<b>Precinct ' + precinctName + '</b><br />';
+            setTimeout(function() {
+                if (!props) {
+                    // Show county totals
+                    var content = '<div class="precinct-name">Alameda County</div>';
+                    content += '<div class="data-columns">';
+                    
+                    // YES column
+                    content += '<div class="data-column">';
+                    content += '<div class="data-column-header">YES</div>';
+                    content += '<div class="data-column-votes">' + countyTotals.yes.toLocaleString() + ' votes</div>';
+                    content += '<div class="data-column-percent">' + countyTotals.yesPct.toFixed(1) + '%</div>';
+                    content += '</div>';
+                    // Total column
+                    content += '<div class="data-column">';
+                    content += '<div class="data-column-header">Total</div>';
+                    content += '<div class="data-column-votes">' + countyTotals.total.toLocaleString() + ' votes</div>';
+                    content += '<div class="data-column-percent">—</div>';
+                    content += '</div>';
+                    // NO column
+                    content += '<div class="data-column">';
+                    content += '<div class="data-column-header">NO</div>';
+                    content += '<div class="data-column-votes">' + countyTotals.no.toLocaleString() + ' votes</div>';
+                    content += '<div class="data-column-percent">' + countyTotals.noPct.toFixed(1) + '%</div>';
+                    content += '</div>';
+                    content += '</div>';
+                    
+                    // Add bar graph
+                    content += '<div class="bar-graph">';
+                    content += '<div class="bar-graph-yes" style="width: ' + countyTotals.yesPct + '%;"></div>';
+                    content += '<div class="bar-graph-no" style="width: ' + countyTotals.noPct + '%;"></div>';
+                    content += '</div>';
+                    
+                    infoSection.innerHTML = content;
+                    
+                    // Get new height and transition
+                    setTimeout(function() {
+                        var newHeight = bottomPanelContent.scrollHeight;
+                        bottomPanelContent.style.height = newHeight + 'px';
+                        
+                        // Fade in
+                        infoSection.style.opacity = '1';
+                        
+                        // Remove height constraint after transition
+                        setTimeout(function() {
+                            bottomPanelContent.style.height = 'auto';
+                        }, 400);
+                    }, 10);
+                    return;
+                }
             
-            if (hasVotes && props.votes.total > 0) {
-                var yesPct = props.percentage ? props.percentage.yes : 0;
-                var yesVotes = props.votes.yes || 0;
-                var noPct = props.percentage ? props.percentage.no : 0;
-                var noVotes = props.votes.no || 0;
-                var totalVotes = props.votes.total || 0;
+                // Try multiple ways to get the precinct name
+                var precinctName = props.Precinct_ID || 
+                                  props['Precinct_ID'] || 
+                                  props.precinct || 
+                                  props['precinct'] ||
+                                  props.ID || 
+                                  props['ID'] || 
+                                  'N/A';
                 
-                content += 'YES: ' + yesPct.toFixed(1) + '% (' + yesVotes + ' votes)<br />';
-                content += 'NO: ' + noPct.toFixed(1) + '% (' + noVotes + ' votes)<br />';
-                content += 'Total: ' + totalVotes + ' votes';
-            } else {
-                content += '<i style="color: #666;">No vote data available<br />(Precinct may not have had Proposition 50 on ballot)</i>';
-            }
-            
-            this._div.innerHTML = content;
-        };
-        info.addTo(map);
+                var hasVotes = props.votes && props.votes.total !== undefined;
+                
+                var content = '<div class="precinct-name">Precinct ' + precinctName + '</div>';
+                
+                content += '<div class="data-columns">';
+                
+                if (hasVotes && props.votes.total > 0) {
+                    var yesPct = props.percentage ? props.percentage.yes : 0;
+                    var yesVotes = props.votes.yes || 0;
+                    var noPct = props.percentage ? props.percentage.no : 0;
+                    var noVotes = props.votes.no || 0;
+                    var totalVotes = props.votes.total || 0;
+                    
+                    // YES column
+                    content += '<div class="data-column">';
+                    content += '<div class="data-column-header">YES</div>';
+                    content += '<div class="data-column-votes">' + yesVotes + ' votes</div>';
+                    content += '<div class="data-column-percent">' + yesPct.toFixed(1) + '%</div>';
+                    content += '</div>';
+                    // Total column
+                    content += '<div class="data-column">';
+                    content += '<div class="data-column-header">Total</div>';
+                    content += '<div class="data-column-votes">' + totalVotes + ' votes</div>';
+                    content += '<div class="data-column-percent">—</div>';
+                    content += '</div>';
+                    // NO column
+                    content += '<div class="data-column">';
+                    content += '<div class="data-column-header">NO</div>';
+                    content += '<div class="data-column-votes">' + noVotes + ' votes</div>';
+                    content += '<div class="data-column-percent">' + noPct.toFixed(1) + '%</div>';
+                    content += '</div>';
+                } else {
+                    // YES column - empty
+                    content += '<div class="data-column">';
+                    content += '<div class="data-column-header">YES</div>';
+                    content += '<div class="data-column-votes">&nbsp;</div>';
+                    content += '<div class="data-column-percent">&nbsp;</div>';
+                    content += '</div>';
+                    // Total column - empty
+                    content += '<div class="data-column">';
+                    content += '<div class="data-column-header">Total</div>';
+                    content += '<div class="data-column-votes">&nbsp;</div>';
+                    content += '<div class="data-column-percent">&nbsp;</div>';
+                    content += '</div>';
+                    // NO column - empty
+                    content += '<div class="data-column">';
+                    content += '<div class="data-column-header">NO</div>';
+                    content += '<div class="data-column-votes">&nbsp;</div>';
+                    content += '<div class="data-column-percent">&nbsp;</div>';
+                    content += '</div>';
+                }
+                
+                content += '</div>';
+                
+                // Add bar graph - always show structure to maintain bounding box
+                var yesPct = (hasVotes && props.votes.total > 0 && props.percentage) ? props.percentage.yes : 0;
+                var noPct = (hasVotes && props.votes.total > 0 && props.percentage) ? props.percentage.no : 0;
+                content += '<div class="bar-graph">';
+                content += '<div class="bar-graph-yes" style="width: ' + yesPct + '%;"></div>';
+                content += '<div class="bar-graph-no" style="width: ' + noPct + '%;"></div>';
+                // Add county average line for precinct data
+                if (hasVotes && props.votes.total > 0 && countyTotals.yesPct !== undefined) {
+                    content += '<div class="bar-graph-county-marker" style="left: ' + countyTotals.yesPct + '%;">';
+                    content += '<div class="bar-graph-county-line"></div>';
+                    content += '<div class="bar-graph-county-label">County</div>';
+                    content += '</div>';
+                }
+                content += '</div>';
+                
+                infoSection.innerHTML = content;
+                
+                // Get new height and transition
+                setTimeout(function() {
+                    var newHeight = bottomPanelContent.scrollHeight;
+                    bottomPanelContent.style.height = newHeight + 'px';
+                    
+                    // Fade in
+                    infoSection.style.opacity = '1';
+                    
+                    // Remove height constraint after transition
+                    setTimeout(function() {
+                        bottomPanelContent.style.height = 'auto';
+                    }, 400);
+                }, 10);
+            }, 150);
+        }
 
-        // Legend
-        var legend = L.control({position: 'bottomright'});
-        legend.onAdd = function (map) {
-            var div = L.DomUtil.create('div', 'info legend'),
-                grades = [50, 75, 80, 85, 90, 95, 100],
-                labels = [];
+        // Initialize info section (will show county totals after data loads)
+        // updateInfoSection(null); // Called after data loads
+
+        // Create horizontal legend
+        function createHorizontalLegend() {
+            var legendContainer = document.getElementById('legend-horizontal');
             
-            div.innerHTML = '<h4>YES %</h4>';
-            // First key: 0-50%
-            div.innerHTML += '<i style="background:' + getColor(25) + '"></i> 0&ndash;50%<br>';
+            // Single red key for 0-50% (with detailed shading but simplified legend)
+            var itemRed = document.createElement('div');
+            itemRed.className = 'legend-item';
+            itemRed.innerHTML = '<div class="legend-color" style="background:' + getColor(25) + '"></div><span>0&ndash;50%</span>';
+            legendContainer.appendChild(itemRed);
+            
+            // Green shades for 50-100%
             // 50-75%
-            div.innerHTML += '<i style="background:' + getColor(62.5) + '"></i> 50&ndash;75%<br>';
-            // Rest: 75-100%
-            for (var i = 1; i < grades.length; i++) {
-                div.innerHTML +=
-                    '<i style="background:' + getColor(grades[i] + 0.1) + '"></i> ' +
-                    grades[i] + (grades[i + 1] ? '&ndash;' + (grades[i + 1] - 0.1).toFixed(0) + '<br>' : '+');
-            }
-            div.innerHTML += '<br><i style="background:#d3d3d3"></i> No data';
-            return div;
-        };
-        legend.addTo(map);
+            var item50 = document.createElement('div');
+            item50.className = 'legend-item';
+            item50.innerHTML = '<div class="legend-color" style="background:' + getColor(62.5) + '"></div><span>50&ndash;75%</span>';
+            legendContainer.appendChild(item50);
+            
+            // 75-80%
+            var item75 = document.createElement('div');
+            item75.className = 'legend-item';
+            item75.innerHTML = '<div class="legend-color" style="background:' + getColor(77.5) + '"></div><span>75&ndash;80%</span>';
+            legendContainer.appendChild(item75);
+            
+            // 80-85%
+            var item80 = document.createElement('div');
+            item80.className = 'legend-item';
+            item80.innerHTML = '<div class="legend-color" style="background:' + getColor(82.5) + '"></div><span>80&ndash;85%</span>';
+            legendContainer.appendChild(item80);
+            
+            // 85-90%
+            var item85 = document.createElement('div');
+            item85.className = 'legend-item';
+            item85.innerHTML = '<div class="legend-color" style="background:' + getColor(87.5) + '"></div><span>85&ndash;90%</span>';
+            legendContainer.appendChild(item85);
+            
+            // 90-95%
+            var item90 = document.createElement('div');
+            item90.className = 'legend-item';
+            item90.innerHTML = '<div class="legend-color" style="background:' + getColor(92.5) + '"></div><span>90&ndash;95%</span>';
+            legendContainer.appendChild(item90);
+            
+            // 95-100%
+            var item95 = document.createElement('div');
+            item95.className = 'legend-item';
+            item95.innerHTML = '<div class="legend-color" style="background:' + getColor(97.5) + '"></div><span>95&ndash;100%</span>';
+            legendContainer.appendChild(item95);
+            
+            // No data
+            var noDataItem = document.createElement('div');
+            noDataItem.className = 'legend-item';
+            noDataItem.innerHTML = '<div class="legend-color" style="background:#d3d3d3"></div><span>No data</span>';
+            legendContainer.appendChild(noDataItem);
+        }
+        
+        createHorizontalLegend();
     </script>
 </body>
 </html>
