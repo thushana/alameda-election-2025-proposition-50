@@ -204,6 +204,7 @@ function zoomToFeature(e) {
                     paddingTopLeft: L.point(20, 20),
                     paddingBottomRight: L.point(20, bottomPadding)
                 });
+                applyMobileVerticalBias();
                 return;
             }
         } catch (err) {
@@ -219,6 +220,7 @@ function zoomToFeature(e) {
             paddingTopLeft: L.point(20, 20),
             paddingBottomRight: L.point(20, bottomPaddingFB)
         });
+        applyMobileVerticalBias();
     } else if (target && typeof target.getLatLng === 'function') {
         map.setView(target.getLatLng());
     }
@@ -922,6 +924,7 @@ function restoreSelectionFromURL() {
                     paddingTopLeft: L.point(20, 20),
                     paddingBottomRight: L.point(20, bottomPadding)
                 }); // asymmetric padding to shift view up
+                applyMobileVerticalBias();
             }
         }
     }, 1000);
@@ -1187,6 +1190,7 @@ Promise.all([
                 paddingTopLeft: L.point(sidePaddingInit, topPaddingInit),
                 paddingBottomRight: L.point(sidePaddingInit, bottomPaddingInit)
             });
+            applyMobileVerticalBias();
         } else if (geojsonLayer.getBounds && geojsonLayer.getBounds().isValid()) {
             var isMobileInitB = window.innerWidth <= 768;
             var bottomPanelInitB = document.getElementById('bottom-panel');
@@ -1197,6 +1201,7 @@ Promise.all([
                 paddingTopLeft: L.point(sidePaddingInitB, topPaddingInitB),
                 paddingBottomRight: L.point(sidePaddingInitB, bottomPaddingInitB)
             });
+            applyMobileVerticalBias();
         } else {
             console.error('Invalid bounds');
         }
@@ -1644,4 +1649,15 @@ function createHorizontalLegend() {
 }
 
 createHorizontalLegend();
+
+// Utility: On mobile, bias the map's visual center to 33% from the top
+function applyMobileVerticalBias() {
+    var isMobile = window.innerWidth <= 768;
+    if (!isMobile || !map) return;
+    var size = map.getSize();
+    var desiredFractionFromTop = 0.33; // 33% down from top
+    var deltaY = (0.5 - desiredFractionFromTop) * size.y; // positive means move up
+    // Pan map view so the visual center shifts upward
+    map.panBy([0, -deltaY], { animate: false });
+}
 
