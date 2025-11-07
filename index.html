@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Proposition 50 Vote Results by Precinct</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <!-- Material Design Fonts -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons" />
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        #map {
+            height: 100vh;
+            width: 100%;
+        }
+        .info {
+            padding: 16px;
+            font: 14px/20px 'Roboto', sans-serif;
+            background: white;
+            background: rgba(255,255,255,0.95);
+            box-shadow: 0px 2px 4px -1px rgba(0,0,0,0.2), 0px 4px 5px 0px rgba(0,0,0,0.14), 0px 1px 10px 0px rgba(0,0,0,0.12);
+            border-radius: 4px;
+            min-width: 200px;
+        }
+        .info h4 {
+            margin: 0 0 12px;
+            color: rgba(0, 0, 0, 0.87);
+            font-weight: 500;
+            font-size: 16px;
+            letter-spacing: 0.15px;
+        }
+        .info b {
+            color: rgba(0, 0, 0, 0.87);
+            font-weight: 500;
+            display: block;
+            margin-bottom: 8px;
+        }
+        .info i {
+            color: rgba(0, 0, 0, 0.6);
+            font-style: normal;
+            font-size: 13px;
+        }
+        .legend {
+            line-height: 20px;
+            color: rgba(0, 0, 0, 0.87);
+            font-size: 14px;
+            letter-spacing: 0.15px;
+        }
+        .legend h4 {
+            margin: 0 0 12px;
+            color: rgba(0, 0, 0, 0.87);
+            font-weight: 500;
+            font-size: 16px;
+            letter-spacing: 0.15px;
+        }
+        .legend i {
+            width: 18px;
+            height: 18px;
+            float: left;
+            margin-right: 8px;
+            opacity: 0.7;
+            border-radius: 2px;
+        }
+        .legend br {
+            clear: both;
+            margin-bottom: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div id="map"></div>
+    <script>
+        // Initialize map centered on Alameda County
+        var map = L.map('map').setView([37.8044, -122.2712], 10);
+
+        // Add CartoDB Positron (Light) tile layer
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+            subdomains: 'abcd',
+            maxZoom: 19
+        }).addTo(map);
+
+        // Color scale for YES percentage
+        // 0-50% as one key, then split 50-100%
+        function getColor(yesPct) {
+            if (yesPct === null || yesPct === undefined) {
+                return '#d3d3d3'; // Light grey for no data
+            }
+            // 0-50% as one color (lightest)
+            if (yesPct <= 50) {
+                return '#e5f5e0'; // Lightest green for 0-50%
+            }
+            // Split 50-100% into multiple steps
+            return yesPct >= 100 ? '#006d2c' :  // Darkest green for 100%
+                   yesPct >= 95 ? '#238b45' :  // Very dark green for 95-100%
+                   yesPct >= 90 ? '#41ab5d' :  // Dark green for 90-95%
+                   yesPct >= 85 ? '#74c476' :  // Medium green for 85-90%
+                   yesPct >= 80 ? '#a1d99b' :  // Light green for 80-85%
+                   yesPct >= 75 ? '#c7e9c0' :  // Very light green for 75-80%
+                   '#d4e8d0';                   // Light green for 50-75%
+        }
+
+        // Style function
+        function style(feature) {
+            var props = feature.properties;
+            var yesPct = props.percentage && props.percentage.yes !== undefined ? 
+                         props.percentage.yes : null;
+            return {
+                fillColor: getColor(yesPct),
+                weight: 1,
+                opacity: 1,
+                color: yesPct === null ? '#999999' : 'white',
+                dashArray: yesPct === null ? '5,5' : '3',
+                fillOpacity: 0.7
+            };
+        }
+
+        // Highlight on hover
+        function highlightFeature(e) {
+            var layer = e.target;
+            layer.setStyle({
+                weight: 3,
+                color: '#666',
+                dashArray: '',
+                fillOpacity: 0.9
+            });
+            if (!L.Browser.ie && !L.Browser.opera && !L.Browser.edge) {
+                layer.bringToFront();
+            }
+            info.update(layer.feature.properties);
+        }
+
+        // Reset highlight
+        function resetHighlight(e) {
+            geojsonLayer.resetStyle(e.target);
+            info.update();
+        }
+
+        // Zoom to feature on click
+        function zoomToFeature(e) {
+            map.fitBounds(e.target.getBounds());
+        }
+
+        // Add event listeners
+        function onEachFeature(feature, layer) {
+            layer.on({
+                mouseover: highlightFeature,
+                mouseout: resetHighlight,
+                click: zoomToFeature
+            });
+        }
+
+        // Add GeoJSON layer
+        var geojsonLayer = L.geoJSON(null, {
+            style: style,
+            onEachFeature: onEachFeature
+        }).addTo(map);
+
+        // Load GeoJSON data
+        fetch('prop50_precincts_map.geojson')
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('Loaded GeoJSON with', data.features.length, 'features');
+                geojsonLayer.addData(data);
+                if (geojsonLayer.getBounds().isValid()) {
+                    map.fitBounds(geojsonLayer.getBounds());
+                } else {
+                    console.error('Invalid bounds');
+                }
+            })
+            .catch(error => {
+                console.error('Error loading GeoJSON:', error);
+                alert('Error loading map data. Make sure prop50_precincts_map.geojson is in the same directory as this HTML file.');
+            });
+
+        // Info control
+        var info = L.control();
+        info.onAdd = function (map) {
+            this._div = L.DomUtil.create('div', 'info');
+            this.update();
+            return this._div;
+        };
+        info.update = function (props) {
+            if (!props) {
+                this._div.innerHTML = '<h4>Proposition 50 Results</h4>Hover over a precinct';
+                return;
+            }
+            
+            // Try multiple ways to get the precinct name
+            var precinctName = props.Precinct_ID || 
+                              props['Precinct_ID'] || 
+                              props.precinct || 
+                              props['precinct'] ||
+                              props.ID || 
+                              props['ID'] || 
+                              'N/A';
+            
+            var hasVotes = props.votes && props.votes.total !== undefined;
+            
+            var content = '<h4>Proposition 50 Results</h4>';
+            content += '<b>Precinct ' + precinctName + '</b><br />';
+            
+            if (hasVotes && props.votes.total > 0) {
+                var yesPct = props.percentage ? props.percentage.yes : 0;
+                var yesVotes = props.votes.yes || 0;
+                var noPct = props.percentage ? props.percentage.no : 0;
+                var noVotes = props.votes.no || 0;
+                var totalVotes = props.votes.total || 0;
+                
+                content += 'YES: ' + yesPct.toFixed(1) + '% (' + yesVotes + ' votes)<br />';
+                content += 'NO: ' + noPct.toFixed(1) + '% (' + noVotes + ' votes)<br />';
+                content += 'Total: ' + totalVotes + ' votes';
+            } else {
+                content += '<i style="color: #666;">No vote data available<br />(Precinct may not have had Proposition 50 on ballot)</i>';
+            }
+            
+            this._div.innerHTML = content;
+        };
+        info.addTo(map);
+
+        // Legend
+        var legend = L.control({position: 'bottomright'});
+        legend.onAdd = function (map) {
+            var div = L.DomUtil.create('div', 'info legend'),
+                grades = [50, 75, 80, 85, 90, 95, 100],
+                labels = [];
+            
+            div.innerHTML = '<h4>YES %</h4>';
+            // First key: 0-50%
+            div.innerHTML += '<i style="background:' + getColor(25) + '"></i> 0&ndash;50%<br>';
+            // 50-75%
+            div.innerHTML += '<i style="background:' + getColor(62.5) + '"></i> 50&ndash;75%<br>';
+            // Rest: 75-100%
+            for (var i = 1; i < grades.length; i++) {
+                div.innerHTML +=
+                    '<i style="background:' + getColor(grades[i] + 0.1) + '"></i> ' +
+                    grades[i] + (grades[i + 1] ? '&ndash;' + (grades[i + 1] - 0.1).toFixed(0) + '<br>' : '+');
+            }
+            div.innerHTML += '<br><i style="background:#d3d3d3"></i> No data';
+            return div;
+        };
+        legend.addTo(map);
+    </script>
+</body>
+</html>
+

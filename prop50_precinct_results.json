@@ -1,0 +1,6470 @@
+[
+  {
+    "precinct": "200100",
+    "votes": {
+      "yes": 1399,
+      "no": 126,
+      "total": 1525
+    },
+    "percentage": {
+      "yes": 91.74,
+      "no": 8.26
+    }
+  },
+  {
+    "precinct": "200200",
+    "votes": {
+      "yes": 911,
+      "no": 83,
+      "total": 994
+    },
+    "percentage": {
+      "yes": 91.65,
+      "no": 8.35
+    }
+  },
+  {
+    "precinct": "201400",
+    "votes": {
+      "yes": 1362,
+      "no": 107,
+      "total": 1469
+    },
+    "percentage": {
+      "yes": 92.72,
+      "no": 7.28
+    }
+  },
+  {
+    "precinct": "202200",
+    "votes": {
+      "yes": 148,
+      "no": 18,
+      "total": 166
+    },
+    "percentage": {
+      "yes": 89.16,
+      "no": 10.84
+    }
+  },
+  {
+    "precinct": "202500",
+    "votes": {
+      "yes": 164,
+      "no": 16,
+      "total": 180
+    },
+    "percentage": {
+      "yes": 91.11,
+      "no": 8.89
+    }
+  },
+  {
+    "precinct": "202620",
+    "votes": {
+      "yes": 179,
+      "no": 9,
+      "total": 188
+    },
+    "percentage": {
+      "yes": 95.21,
+      "no": 4.79
+    }
+  },
+  {
+    "precinct": "203100",
+    "votes": {
+      "yes": 1260,
+      "no": 99,
+      "total": 1359
+    },
+    "percentage": {
+      "yes": 92.72,
+      "no": 7.28
+    }
+  },
+  {
+    "precinct": "203500",
+    "votes": {
+      "yes": 769,
+      "no": 56,
+      "total": 825
+    },
+    "percentage": {
+      "yes": 93.21,
+      "no": 6.79
+    }
+  },
+  {
+    "precinct": "203800",
+    "votes": {
+      "yes": 807,
+      "no": 40,
+      "total": 847
+    },
+    "percentage": {
+      "yes": 95.28,
+      "no": 4.72
+    }
+  },
+  {
+    "precinct": "203880",
+    "votes": {
+      "yes": 15,
+      "no": 1,
+      "total": 16
+    },
+    "percentage": {
+      "yes": 93.75,
+      "no": 6.25
+    }
+  },
+  {
+    "precinct": "203890",
+    "votes": {
+      "yes": 13,
+      "no": 0,
+      "total": 13
+    },
+    "percentage": {
+      "yes": 100.0,
+      "no": 0.0
+    }
+  },
+  {
+    "precinct": "204210",
+    "votes": {
+      "yes": 565,
+      "no": 31,
+      "total": 596
+    },
+    "percentage": {
+      "yes": 94.8,
+      "no": 5.2
+    }
+  },
+  {
+    "precinct": "204300",
+    "votes": {
+      "yes": 862,
+      "no": 35,
+      "total": 897
+    },
+    "percentage": {
+      "yes": 96.1,
+      "no": 3.9
+    }
+  },
+  {
+    "precinct": "204900",
+    "votes": {
+      "yes": 200,
+      "no": 20,
+      "total": 220
+    },
+    "percentage": {
+      "yes": 90.91,
+      "no": 9.09
+    }
+  },
+  {
+    "precinct": "205200",
+    "votes": {
+      "yes": 2019,
+      "no": 116,
+      "total": 2135
+    },
+    "percentage": {
+      "yes": 94.57,
+      "no": 5.43
+    }
+  },
+  {
+    "precinct": "205700",
+    "votes": {
+      "yes": 1721,
+      "no": 97,
+      "total": 1818
+    },
+    "percentage": {
+      "yes": 94.66,
+      "no": 5.34
+    }
+  },
+  {
+    "precinct": "206200",
+    "votes": {
+      "yes": 771,
+      "no": 51,
+      "total": 822
+    },
+    "percentage": {
+      "yes": 93.8,
+      "no": 6.2
+    }
+  },
+  {
+    "precinct": "206900",
+    "votes": {
+      "yes": 481,
+      "no": 33,
+      "total": 514
+    },
+    "percentage": {
+      "yes": 93.58,
+      "no": 6.42
+    }
+  },
+  {
+    "precinct": "207000",
+    "votes": {
+      "yes": 823,
+      "no": 45,
+      "total": 868
+    },
+    "percentage": {
+      "yes": 94.82,
+      "no": 5.18
+    }
+  },
+  {
+    "precinct": "207200",
+    "votes": {
+      "yes": 961,
+      "no": 62,
+      "total": 1023
+    },
+    "percentage": {
+      "yes": 93.94,
+      "no": 6.06
+    }
+  },
+  {
+    "precinct": "207700",
+    "votes": {
+      "yes": 626,
+      "no": 60,
+      "total": 686
+    },
+    "percentage": {
+      "yes": 91.25,
+      "no": 8.75
+    }
+  },
+  {
+    "precinct": "208010",
+    "votes": {
+      "yes": 1418,
+      "no": 71,
+      "total": 1489
+    },
+    "percentage": {
+      "yes": 95.23,
+      "no": 4.77
+    }
+  },
+  {
+    "precinct": "208300",
+    "votes": {
+      "yes": 1213,
+      "no": 58,
+      "total": 1271
+    },
+    "percentage": {
+      "yes": 95.44,
+      "no": 4.56
+    }
+  },
+  {
+    "precinct": "208510",
+    "votes": {
+      "yes": 828,
+      "no": 45,
+      "total": 873
+    },
+    "percentage": {
+      "yes": 94.85,
+      "no": 5.15
+    }
+  },
+  {
+    "precinct": "208690",
+    "votes": {
+      "yes": 0,
+      "no": 0,
+      "total": 0
+    },
+    "percentage": {
+      "yes": 0,
+      "no": 0
+    }
+  },
+  {
+    "precinct": "208800",
+    "votes": {
+      "yes": 278,
+      "no": 23,
+      "total": 301
+    },
+    "percentage": {
+      "yes": 92.36,
+      "no": 7.64
+    }
+  },
+  {
+    "precinct": "208820",
+    "votes": {
+      "yes": 121,
+      "no": 3,
+      "total": 124
+    },
+    "percentage": {
+      "yes": 97.58,
+      "no": 2.42
+    }
+  },
+  {
+    "precinct": "208900",
+    "votes": {
+      "yes": 324,
+      "no": 14,
+      "total": 338
+    },
+    "percentage": {
+      "yes": 95.86,
+      "no": 4.14
+    }
+  },
+  {
+    "precinct": "209010",
+    "votes": {
+      "yes": 1638,
+      "no": 88,
+      "total": 1726
+    },
+    "percentage": {
+      "yes": 94.9,
+      "no": 5.1
+    }
+  },
+  {
+    "precinct": "209310",
+    "votes": {
+      "yes": 2379,
+      "no": 126,
+      "total": 2505
+    },
+    "percentage": {
+      "yes": 94.97,
+      "no": 5.03
+    }
+  },
+  {
+    "precinct": "209700",
+    "votes": {
+      "yes": 894,
+      "no": 65,
+      "total": 959
+    },
+    "percentage": {
+      "yes": 93.22,
+      "no": 6.78
+    }
+  },
+  {
+    "precinct": "209900",
+    "votes": {
+      "yes": 1502,
+      "no": 89,
+      "total": 1591
+    },
+    "percentage": {
+      "yes": 94.41,
+      "no": 5.59
+    }
+  },
+  {
+    "precinct": "213100",
+    "votes": {
+      "yes": 426,
+      "no": 50,
+      "total": 476
+    },
+    "percentage": {
+      "yes": 89.5,
+      "no": 10.5
+    }
+  },
+  {
+    "precinct": "213500",
+    "votes": {
+      "yes": 1247,
+      "no": 191,
+      "total": 1438
+    },
+    "percentage": {
+      "yes": 86.72,
+      "no": 13.28
+    }
+  },
+  {
+    "precinct": "213600",
+    "votes": {
+      "yes": 1623,
+      "no": 186,
+      "total": 1809
+    },
+    "percentage": {
+      "yes": 89.72,
+      "no": 10.28
+    }
+  },
+  {
+    "precinct": "213920",
+    "votes": {
+      "yes": 23,
+      "no": 8,
+      "total": 31
+    },
+    "percentage": {
+      "yes": 74.19,
+      "no": 25.81
+    }
+  },
+  {
+    "precinct": "214300",
+    "votes": {
+      "yes": 902,
+      "no": 115,
+      "total": 1017
+    },
+    "percentage": {
+      "yes": 88.69,
+      "no": 11.31
+    }
+  },
+  {
+    "precinct": "214600",
+    "votes": {
+      "yes": 1625,
+      "no": 112,
+      "total": 1737
+    },
+    "percentage": {
+      "yes": 93.55,
+      "no": 6.45
+    }
+  },
+  {
+    "precinct": "215110",
+    "votes": {
+      "yes": 1241,
+      "no": 45,
+      "total": 1286
+    },
+    "percentage": {
+      "yes": 96.5,
+      "no": 3.5
+    }
+  },
+  {
+    "precinct": "215400",
+    "votes": {
+      "yes": 552,
+      "no": 22,
+      "total": 574
+    },
+    "percentage": {
+      "yes": 96.17,
+      "no": 3.83
+    }
+  },
+  {
+    "precinct": "215500",
+    "votes": {
+      "yes": 1757,
+      "no": 107,
+      "total": 1864
+    },
+    "percentage": {
+      "yes": 94.26,
+      "no": 5.74
+    }
+  },
+  {
+    "precinct": "215700",
+    "votes": {
+      "yes": 1199,
+      "no": 52,
+      "total": 1251
+    },
+    "percentage": {
+      "yes": 95.84,
+      "no": 4.16
+    }
+  },
+  {
+    "precinct": "215800",
+    "votes": {
+      "yes": 593,
+      "no": 27,
+      "total": 620
+    },
+    "percentage": {
+      "yes": 95.65,
+      "no": 4.35
+    }
+  },
+  {
+    "precinct": "223010",
+    "votes": {
+      "yes": 1778,
+      "no": 128,
+      "total": 1906
+    },
+    "percentage": {
+      "yes": 93.28,
+      "no": 6.72
+    }
+  },
+  {
+    "precinct": "224000",
+    "votes": {
+      "yes": 1949,
+      "no": 161,
+      "total": 2110
+    },
+    "percentage": {
+      "yes": 92.37,
+      "no": 7.63
+    }
+  },
+  {
+    "precinct": "224500",
+    "votes": {
+      "yes": 769,
+      "no": 86,
+      "total": 855
+    },
+    "percentage": {
+      "yes": 89.94,
+      "no": 10.06
+    }
+  },
+  {
+    "precinct": "224600",
+    "votes": {
+      "yes": 1108,
+      "no": 84,
+      "total": 1192
+    },
+    "percentage": {
+      "yes": 92.95,
+      "no": 7.05
+    }
+  },
+  {
+    "precinct": "224800",
+    "votes": {
+      "yes": 587,
+      "no": 43,
+      "total": 630
+    },
+    "percentage": {
+      "yes": 93.17,
+      "no": 6.83
+    }
+  },
+  {
+    "precinct": "225300",
+    "votes": {
+      "yes": 786,
+      "no": 51,
+      "total": 837
+    },
+    "percentage": {
+      "yes": 93.91,
+      "no": 6.09
+    }
+  },
+  {
+    "precinct": "225710",
+    "votes": {
+      "yes": 1230,
+      "no": 95,
+      "total": 1325
+    },
+    "percentage": {
+      "yes": 92.83,
+      "no": 7.17
+    }
+  },
+  {
+    "precinct": "225900",
+    "votes": {
+      "yes": 1091,
+      "no": 63,
+      "total": 1154
+    },
+    "percentage": {
+      "yes": 94.54,
+      "no": 5.46
+    }
+  },
+  {
+    "precinct": "244000",
+    "votes": {
+      "yes": 1226,
+      "no": 121,
+      "total": 1347
+    },
+    "percentage": {
+      "yes": 91.02,
+      "no": 8.98
+    }
+  },
+  {
+    "precinct": "244300",
+    "votes": {
+      "yes": 2312,
+      "no": 204,
+      "total": 2516
+    },
+    "percentage": {
+      "yes": 91.89,
+      "no": 8.11
+    }
+  },
+  {
+    "precinct": "245000",
+    "votes": {
+      "yes": 1199,
+      "no": 117,
+      "total": 1316
+    },
+    "percentage": {
+      "yes": 91.11,
+      "no": 8.89
+    }
+  },
+  {
+    "precinct": "245300",
+    "votes": {
+      "yes": 952,
+      "no": 119,
+      "total": 1071
+    },
+    "percentage": {
+      "yes": 88.89,
+      "no": 11.11
+    }
+  },
+  {
+    "precinct": "260100",
+    "votes": {
+      "yes": 1395,
+      "no": 169,
+      "total": 1564
+    },
+    "percentage": {
+      "yes": 89.19,
+      "no": 10.81
+    }
+  },
+  {
+    "precinct": "261300",
+    "votes": {
+      "yes": 1550,
+      "no": 164,
+      "total": 1714
+    },
+    "percentage": {
+      "yes": 90.43,
+      "no": 9.57
+    }
+  },
+  {
+    "precinct": "262000",
+    "votes": {
+      "yes": 1786,
+      "no": 159,
+      "total": 1945
+    },
+    "percentage": {
+      "yes": 91.83,
+      "no": 8.17
+    }
+  },
+  {
+    "precinct": "280100",
+    "votes": {
+      "yes": 1696,
+      "no": 266,
+      "total": 1962
+    },
+    "percentage": {
+      "yes": 86.44,
+      "no": 13.56
+    }
+  },
+  {
+    "precinct": "280700",
+    "votes": {
+      "yes": 1356,
+      "no": 363,
+      "total": 1719
+    },
+    "percentage": {
+      "yes": 78.88,
+      "no": 21.12
+    }
+  },
+  {
+    "precinct": "300110",
+    "votes": {
+      "yes": 745,
+      "no": 214,
+      "total": 959
+    },
+    "percentage": {
+      "yes": 77.69,
+      "no": 22.31
+    }
+  },
+  {
+    "precinct": "300130",
+    "votes": {
+      "yes": 929,
+      "no": 282,
+      "total": 1211
+    },
+    "percentage": {
+      "yes": 76.71,
+      "no": 23.29
+    }
+  },
+  {
+    "precinct": "300150",
+    "votes": {
+      "yes": 1594,
+      "no": 446,
+      "total": 2040
+    },
+    "percentage": {
+      "yes": 78.14,
+      "no": 21.86
+    }
+  },
+  {
+    "precinct": "300300",
+    "votes": {
+      "yes": 1676,
+      "no": 370,
+      "total": 2046
+    },
+    "percentage": {
+      "yes": 81.92,
+      "no": 18.08
+    }
+  },
+  {
+    "precinct": "301900",
+    "votes": {
+      "yes": 1808,
+      "no": 311,
+      "total": 2119
+    },
+    "percentage": {
+      "yes": 85.32,
+      "no": 14.68
+    }
+  },
+  {
+    "precinct": "302200",
+    "votes": {
+      "yes": 1938,
+      "no": 342,
+      "total": 2280
+    },
+    "percentage": {
+      "yes": 85.0,
+      "no": 15.0
+    }
+  },
+  {
+    "precinct": "302700",
+    "votes": {
+      "yes": 1366,
+      "no": 213,
+      "total": 1579
+    },
+    "percentage": {
+      "yes": 86.51,
+      "no": 13.49
+    }
+  },
+  {
+    "precinct": "303800",
+    "votes": {
+      "yes": 1600,
+      "no": 277,
+      "total": 1877
+    },
+    "percentage": {
+      "yes": 85.24,
+      "no": 14.76
+    }
+  },
+  {
+    "precinct": "304800",
+    "votes": {
+      "yes": 1897,
+      "no": 312,
+      "total": 2209
+    },
+    "percentage": {
+      "yes": 85.88,
+      "no": 14.12
+    }
+  },
+  {
+    "precinct": "305110",
+    "votes": {
+      "yes": 1381,
+      "no": 227,
+      "total": 1608
+    },
+    "percentage": {
+      "yes": 85.88,
+      "no": 14.12
+    }
+  },
+  {
+    "precinct": "305500",
+    "votes": {
+      "yes": 1243,
+      "no": 202,
+      "total": 1445
+    },
+    "percentage": {
+      "yes": 86.02,
+      "no": 13.98
+    }
+  },
+  {
+    "precinct": "305700",
+    "votes": {
+      "yes": 1650,
+      "no": 351,
+      "total": 2001
+    },
+    "percentage": {
+      "yes": 82.46,
+      "no": 17.54
+    }
+  },
+  {
+    "precinct": "310000",
+    "votes": {
+      "yes": 1501,
+      "no": 80,
+      "total": 1581
+    },
+    "percentage": {
+      "yes": 94.94,
+      "no": 5.06
+    }
+  },
+  {
+    "precinct": "310120",
+    "votes": {
+      "yes": 11,
+      "no": 0,
+      "total": 11
+    },
+    "percentage": {
+      "yes": 100.0,
+      "no": 0.0
+    }
+  },
+  {
+    "precinct": "310600",
+    "votes": {
+      "yes": 1412,
+      "no": 46,
+      "total": 1458
+    },
+    "percentage": {
+      "yes": 96.84,
+      "no": 3.16
+    }
+  },
+  {
+    "precinct": "311400",
+    "votes": {
+      "yes": 964,
+      "no": 50,
+      "total": 1014
+    },
+    "percentage": {
+      "yes": 95.07,
+      "no": 4.93
+    }
+  },
+  {
+    "precinct": "323200",
+    "votes": {
+      "yes": 1056,
+      "no": 99,
+      "total": 1155
+    },
+    "percentage": {
+      "yes": 91.43,
+      "no": 8.57
+    }
+  },
+  {
+    "precinct": "325100",
+    "votes": {
+      "yes": 1176,
+      "no": 87,
+      "total": 1263
+    },
+    "percentage": {
+      "yes": 93.11,
+      "no": 6.89
+    }
+  },
+  {
+    "precinct": "325400",
+    "votes": {
+      "yes": 805,
+      "no": 62,
+      "total": 867
+    },
+    "percentage": {
+      "yes": 92.85,
+      "no": 7.15
+    }
+  },
+  {
+    "precinct": "325600",
+    "votes": {
+      "yes": 1021,
+      "no": 82,
+      "total": 1103
+    },
+    "percentage": {
+      "yes": 92.57,
+      "no": 7.43
+    }
+  },
+  {
+    "precinct": "333200",
+    "votes": {
+      "yes": 1063,
+      "no": 86,
+      "total": 1149
+    },
+    "percentage": {
+      "yes": 92.52,
+      "no": 7.48
+    }
+  },
+  {
+    "precinct": "333210",
+    "votes": {
+      "yes": 122,
+      "no": 27,
+      "total": 149
+    },
+    "percentage": {
+      "yes": 81.88,
+      "no": 18.12
+    }
+  },
+  {
+    "precinct": "333410",
+    "votes": {
+      "yes": 930,
+      "no": 144,
+      "total": 1074
+    },
+    "percentage": {
+      "yes": 86.59,
+      "no": 13.41
+    }
+  },
+  {
+    "precinct": "333460",
+    "votes": {
+      "yes": 49,
+      "no": 6,
+      "total": 55
+    },
+    "percentage": {
+      "yes": 89.09,
+      "no": 10.91
+    }
+  },
+  {
+    "precinct": "333810",
+    "votes": {
+      "yes": 304,
+      "no": 51,
+      "total": 355
+    },
+    "percentage": {
+      "yes": 85.63,
+      "no": 14.37
+    }
+  },
+  {
+    "precinct": "333900",
+    "votes": {
+      "yes": 312,
+      "no": 72,
+      "total": 384
+    },
+    "percentage": {
+      "yes": 81.25,
+      "no": 18.75
+    }
+  },
+  {
+    "precinct": "333910",
+    "votes": {
+      "yes": 246,
+      "no": 35,
+      "total": 281
+    },
+    "percentage": {
+      "yes": 87.54,
+      "no": 12.46
+    }
+  },
+  {
+    "precinct": "334000",
+    "votes": {
+      "yes": 491,
+      "no": 58,
+      "total": 549
+    },
+    "percentage": {
+      "yes": 89.44,
+      "no": 10.56
+    }
+  },
+  {
+    "precinct": "334510",
+    "votes": {
+      "yes": 36,
+      "no": 6,
+      "total": 42
+    },
+    "percentage": {
+      "yes": 85.71,
+      "no": 14.29
+    }
+  },
+  {
+    "precinct": "334610",
+    "votes": {
+      "yes": 20,
+      "no": 4,
+      "total": 24
+    },
+    "percentage": {
+      "yes": 83.33,
+      "no": 16.67
+    }
+  },
+  {
+    "precinct": "334800",
+    "votes": {
+      "yes": 491,
+      "no": 65,
+      "total": 556
+    },
+    "percentage": {
+      "yes": 88.31,
+      "no": 11.69
+    }
+  },
+  {
+    "precinct": "335100",
+    "votes": {
+      "yes": 776,
+      "no": 51,
+      "total": 827
+    },
+    "percentage": {
+      "yes": 93.83,
+      "no": 6.17
+    }
+  },
+  {
+    "precinct": "335110",
+    "votes": {
+      "yes": 67,
+      "no": 5,
+      "total": 72
+    },
+    "percentage": {
+      "yes": 93.06,
+      "no": 6.94
+    }
+  },
+  {
+    "precinct": "335400",
+    "votes": {
+      "yes": 637,
+      "no": 51,
+      "total": 688
+    },
+    "percentage": {
+      "yes": 92.59,
+      "no": 7.41
+    }
+  },
+  {
+    "precinct": "335700",
+    "votes": {
+      "yes": 699,
+      "no": 64,
+      "total": 763
+    },
+    "percentage": {
+      "yes": 91.61,
+      "no": 8.39
+    }
+  },
+  {
+    "precinct": "335710",
+    "votes": {
+      "yes": 797,
+      "no": 53,
+      "total": 850
+    },
+    "percentage": {
+      "yes": 93.76,
+      "no": 6.24
+    }
+  },
+  {
+    "precinct": "335810",
+    "votes": {
+      "yes": 37,
+      "no": 6,
+      "total": 43
+    },
+    "percentage": {
+      "yes": 86.05,
+      "no": 13.95
+    }
+  },
+  {
+    "precinct": "336200",
+    "votes": {
+      "yes": 978,
+      "no": 74,
+      "total": 1052
+    },
+    "percentage": {
+      "yes": 92.97,
+      "no": 7.03
+    }
+  },
+  {
+    "precinct": "336610",
+    "votes": {
+      "yes": 673,
+      "no": 74,
+      "total": 747
+    },
+    "percentage": {
+      "yes": 90.09,
+      "no": 9.91
+    }
+  },
+  {
+    "precinct": "336710",
+    "votes": {
+      "yes": 722,
+      "no": 72,
+      "total": 794
+    },
+    "percentage": {
+      "yes": 90.93,
+      "no": 9.07
+    }
+  },
+  {
+    "precinct": "336900",
+    "votes": {
+      "yes": 346,
+      "no": 40,
+      "total": 386
+    },
+    "percentage": {
+      "yes": 89.64,
+      "no": 10.36
+    }
+  },
+  {
+    "precinct": "344000",
+    "votes": {
+      "yes": 463,
+      "no": 65,
+      "total": 528
+    },
+    "percentage": {
+      "yes": 87.69,
+      "no": 12.31
+    }
+  },
+  {
+    "precinct": "344200",
+    "votes": {
+      "yes": 875,
+      "no": 84,
+      "total": 959
+    },
+    "percentage": {
+      "yes": 91.24,
+      "no": 8.76
+    }
+  },
+  {
+    "precinct": "344410",
+    "votes": {
+      "yes": 323,
+      "no": 21,
+      "total": 344
+    },
+    "percentage": {
+      "yes": 93.9,
+      "no": 6.1
+    }
+  },
+  {
+    "precinct": "344700",
+    "votes": {
+      "yes": 694,
+      "no": 76,
+      "total": 770
+    },
+    "percentage": {
+      "yes": 90.13,
+      "no": 9.87
+    }
+  },
+  {
+    "precinct": "345310",
+    "votes": {
+      "yes": 278,
+      "no": 21,
+      "total": 299
+    },
+    "percentage": {
+      "yes": 92.98,
+      "no": 7.02
+    }
+  },
+  {
+    "precinct": "345320",
+    "votes": {
+      "yes": 0,
+      "no": 0,
+      "total": 0
+    },
+    "percentage": {
+      "yes": 0,
+      "no": 0
+    }
+  },
+  {
+    "precinct": "345500",
+    "votes": {
+      "yes": 1200,
+      "no": 95,
+      "total": 1295
+    },
+    "percentage": {
+      "yes": 92.66,
+      "no": 7.34
+    }
+  },
+  {
+    "precinct": "345700",
+    "votes": {
+      "yes": 813,
+      "no": 87,
+      "total": 900
+    },
+    "percentage": {
+      "yes": 90.33,
+      "no": 9.67
+    }
+  },
+  {
+    "precinct": "345710",
+    "votes": {
+      "yes": 35,
+      "no": 7,
+      "total": 42
+    },
+    "percentage": {
+      "yes": 83.33,
+      "no": 16.67
+    }
+  },
+  {
+    "precinct": "345900",
+    "votes": {
+      "yes": 848,
+      "no": 118,
+      "total": 966
+    },
+    "percentage": {
+      "yes": 87.78,
+      "no": 12.22
+    }
+  },
+  {
+    "precinct": "346000",
+    "votes": {
+      "yes": 137,
+      "no": 24,
+      "total": 161
+    },
+    "percentage": {
+      "yes": 85.09,
+      "no": 14.91
+    }
+  },
+  {
+    "precinct": "346100",
+    "votes": {
+      "yes": 621,
+      "no": 75,
+      "total": 696
+    },
+    "percentage": {
+      "yes": 89.22,
+      "no": 10.78
+    }
+  },
+  {
+    "precinct": "347200",
+    "votes": {
+      "yes": 781,
+      "no": 104,
+      "total": 885
+    },
+    "percentage": {
+      "yes": 88.25,
+      "no": 11.75
+    }
+  },
+  {
+    "precinct": "353310",
+    "votes": {
+      "yes": 652,
+      "no": 77,
+      "total": 729
+    },
+    "percentage": {
+      "yes": 89.44,
+      "no": 10.56
+    }
+  },
+  {
+    "precinct": "353900",
+    "votes": {
+      "yes": 847,
+      "no": 115,
+      "total": 962
+    },
+    "percentage": {
+      "yes": 88.05,
+      "no": 11.95
+    }
+  },
+  {
+    "precinct": "354100",
+    "votes": {
+      "yes": 218,
+      "no": 28,
+      "total": 246
+    },
+    "percentage": {
+      "yes": 88.62,
+      "no": 11.38
+    }
+  },
+  {
+    "precinct": "354300",
+    "votes": {
+      "yes": 205,
+      "no": 50,
+      "total": 255
+    },
+    "percentage": {
+      "yes": 80.39,
+      "no": 19.61
+    }
+  },
+  {
+    "precinct": "354400",
+    "votes": {
+      "yes": 407,
+      "no": 74,
+      "total": 481
+    },
+    "percentage": {
+      "yes": 84.62,
+      "no": 15.38
+    }
+  },
+  {
+    "precinct": "354700",
+    "votes": {
+      "yes": 352,
+      "no": 62,
+      "total": 414
+    },
+    "percentage": {
+      "yes": 85.02,
+      "no": 14.98
+    }
+  },
+  {
+    "precinct": "354910",
+    "votes": {
+      "yes": 675,
+      "no": 84,
+      "total": 759
+    },
+    "percentage": {
+      "yes": 88.93,
+      "no": 11.07
+    }
+  },
+  {
+    "precinct": "355100",
+    "votes": {
+      "yes": 460,
+      "no": 55,
+      "total": 515
+    },
+    "percentage": {
+      "yes": 89.32,
+      "no": 10.68
+    }
+  },
+  {
+    "precinct": "356000",
+    "votes": {
+      "yes": 724,
+      "no": 131,
+      "total": 855
+    },
+    "percentage": {
+      "yes": 84.68,
+      "no": 15.32
+    }
+  },
+  {
+    "precinct": "356410",
+    "votes": {
+      "yes": 357,
+      "no": 70,
+      "total": 427
+    },
+    "percentage": {
+      "yes": 83.61,
+      "no": 16.39
+    }
+  },
+  {
+    "precinct": "361000",
+    "votes": {
+      "yes": 21,
+      "no": 3,
+      "total": 24
+    },
+    "percentage": {
+      "yes": 87.5,
+      "no": 12.5
+    }
+  },
+  {
+    "precinct": "361100",
+    "votes": {
+      "yes": 12,
+      "no": 0,
+      "total": 12
+    },
+    "percentage": {
+      "yes": 100.0,
+      "no": 0.0
+    }
+  },
+  {
+    "precinct": "361130",
+    "votes": {
+      "yes": 39,
+      "no": 7,
+      "total": 46
+    },
+    "percentage": {
+      "yes": 84.78,
+      "no": 15.22
+    }
+  },
+  {
+    "precinct": "361200",
+    "votes": {
+      "yes": 47,
+      "no": 10,
+      "total": 57
+    },
+    "percentage": {
+      "yes": 82.46,
+      "no": 17.54
+    }
+  },
+  {
+    "precinct": "361500",
+    "votes": {
+      "yes": 702,
+      "no": 100,
+      "total": 802
+    },
+    "percentage": {
+      "yes": 87.53,
+      "no": 12.47
+    }
+  },
+  {
+    "precinct": "362200",
+    "votes": {
+      "yes": 223,
+      "no": 48,
+      "total": 271
+    },
+    "percentage": {
+      "yes": 82.29,
+      "no": 17.71
+    }
+  },
+  {
+    "precinct": "362220",
+    "votes": {
+      "yes": 0,
+      "no": 0,
+      "total": 0
+    },
+    "percentage": {
+      "yes": 0,
+      "no": 0
+    }
+  },
+  {
+    "precinct": "362500",
+    "votes": {
+      "yes": 107,
+      "no": 15,
+      "total": 122
+    },
+    "percentage": {
+      "yes": 87.7,
+      "no": 12.3
+    }
+  },
+  {
+    "precinct": "362510",
+    "votes": {
+      "yes": 262,
+      "no": 26,
+      "total": 288
+    },
+    "percentage": {
+      "yes": 90.97,
+      "no": 9.03
+    }
+  },
+  {
+    "precinct": "362600",
+    "votes": {
+      "yes": 1060,
+      "no": 56,
+      "total": 1116
+    },
+    "percentage": {
+      "yes": 94.98,
+      "no": 5.02
+    }
+  },
+  {
+    "precinct": "362800",
+    "votes": {
+      "yes": 494,
+      "no": 22,
+      "total": 516
+    },
+    "percentage": {
+      "yes": 95.74,
+      "no": 4.26
+    }
+  },
+  {
+    "precinct": "363000",
+    "votes": {
+      "yes": 494,
+      "no": 55,
+      "total": 549
+    },
+    "percentage": {
+      "yes": 89.98,
+      "no": 10.02
+    }
+  },
+  {
+    "precinct": "363200",
+    "votes": {
+      "yes": 421,
+      "no": 34,
+      "total": 455
+    },
+    "percentage": {
+      "yes": 92.53,
+      "no": 7.47
+    }
+  },
+  {
+    "precinct": "364020",
+    "votes": {
+      "yes": 0,
+      "no": 0,
+      "total": 0
+    },
+    "percentage": {
+      "yes": 0,
+      "no": 0
+    }
+  },
+  {
+    "precinct": "364200",
+    "votes": {
+      "yes": 549,
+      "no": 84,
+      "total": 633
+    },
+    "percentage": {
+      "yes": 86.73,
+      "no": 13.27
+    }
+  },
+  {
+    "precinct": "364310",
+    "votes": {
+      "yes": 1048,
+      "no": 121,
+      "total": 1169
+    },
+    "percentage": {
+      "yes": 89.65,
+      "no": 10.35
+    }
+  },
+  {
+    "precinct": "364510",
+    "votes": {
+      "yes": 368,
+      "no": 32,
+      "total": 400
+    },
+    "percentage": {
+      "yes": 92.0,
+      "no": 8.0
+    }
+  },
+  {
+    "precinct": "364600",
+    "votes": {
+      "yes": 450,
+      "no": 40,
+      "total": 490
+    },
+    "percentage": {
+      "yes": 91.84,
+      "no": 8.16
+    }
+  },
+  {
+    "precinct": "364800",
+    "votes": {
+      "yes": 404,
+      "no": 21,
+      "total": 425
+    },
+    "percentage": {
+      "yes": 95.06,
+      "no": 4.94
+    }
+  },
+  {
+    "precinct": "365100",
+    "votes": {
+      "yes": 1028,
+      "no": 79,
+      "total": 1107
+    },
+    "percentage": {
+      "yes": 92.86,
+      "no": 7.14
+    }
+  },
+  {
+    "precinct": "365200",
+    "votes": {
+      "yes": 593,
+      "no": 63,
+      "total": 656
+    },
+    "percentage": {
+      "yes": 90.4,
+      "no": 9.6
+    }
+  },
+  {
+    "precinct": "373010",
+    "votes": {
+      "yes": 0,
+      "no": 0,
+      "total": 0
+    },
+    "percentage": {
+      "yes": 0,
+      "no": 0
+    }
+  },
+  {
+    "precinct": "373030",
+    "votes": {
+      "yes": 0,
+      "no": 0,
+      "total": 0
+    },
+    "percentage": {
+      "yes": 0,
+      "no": 0
+    }
+  },
+  {
+    "precinct": "373100",
+    "votes": {
+      "yes": 158,
+      "no": 33,
+      "total": 191
+    },
+    "percentage": {
+      "yes": 82.72,
+      "no": 17.28
+    }
+  },
+  {
+    "precinct": "380300",
+    "votes": {
+      "yes": 956,
+      "no": 65,
+      "total": 1021
+    },
+    "percentage": {
+      "yes": 93.63,
+      "no": 6.37
+    }
+  },
+  {
+    "precinct": "380400",
+    "votes": {
+      "yes": 1141,
+      "no": 139,
+      "total": 1280
+    },
+    "percentage": {
+      "yes": 89.14,
+      "no": 10.86
+    }
+  },
+  {
+    "precinct": "400100",
+    "votes": {
+      "yes": 284,
+      "no": 30,
+      "total": 314
+    },
+    "percentage": {
+      "yes": 90.45,
+      "no": 9.55
+    }
+  },
+  {
+    "precinct": "400200",
+    "votes": {
+      "yes": 719,
+      "no": 67,
+      "total": 786
+    },
+    "percentage": {
+      "yes": 91.48,
+      "no": 8.52
+    }
+  },
+  {
+    "precinct": "400300",
+    "votes": {
+      "yes": 483,
+      "no": 50,
+      "total": 533
+    },
+    "percentage": {
+      "yes": 90.62,
+      "no": 9.38
+    }
+  },
+  {
+    "precinct": "401200",
+    "votes": {
+      "yes": 65,
+      "no": 11,
+      "total": 76
+    },
+    "percentage": {
+      "yes": 85.53,
+      "no": 14.47
+    }
+  },
+  {
+    "precinct": "410500",
+    "votes": {
+      "yes": 1049,
+      "no": 103,
+      "total": 1152
+    },
+    "percentage": {
+      "yes": 91.06,
+      "no": 8.94
+    }
+  },
+  {
+    "precinct": "410700",
+    "votes": {
+      "yes": 971,
+      "no": 82,
+      "total": 1053
+    },
+    "percentage": {
+      "yes": 92.21,
+      "no": 7.79
+    }
+  },
+  {
+    "precinct": "415300",
+    "votes": {
+      "yes": 293,
+      "no": 31,
+      "total": 324
+    },
+    "percentage": {
+      "yes": 90.43,
+      "no": 9.57
+    }
+  },
+  {
+    "precinct": "415800",
+    "votes": {
+      "yes": 561,
+      "no": 70,
+      "total": 631
+    },
+    "percentage": {
+      "yes": 88.91,
+      "no": 11.09
+    }
+  },
+  {
+    "precinct": "416220",
+    "votes": {
+      "yes": 0,
+      "no": 0,
+      "total": 0
+    },
+    "percentage": {
+      "yes": 0,
+      "no": 0
+    }
+  },
+  {
+    "precinct": "420010",
+    "votes": {
+      "yes": 0,
+      "no": 0,
+      "total": 0
+    },
+    "percentage": {
+      "yes": 0,
+      "no": 0
+    }
+  },
+  {
+    "precinct": "420030",
+    "votes": {
+      "yes": 0,
+      "no": 0,
+      "total": 0
+    },
+    "percentage": {
+      "yes": 0,
+      "no": 0
+    }
+  },
+  {
+    "precinct": "420220",
+    "votes": {
+      "yes": 0,
+      "no": 0,
+      "total": 0
+    },
+    "percentage": {
+      "yes": 0,
+      "no": 0
+    }
+  },
+  {
+    "precinct": "420240",
+    "votes": {
+      "yes": 0,
+      "no": 0,
+      "total": 0
+    },
+    "percentage": {
+      "yes": 0,
+      "no": 0
+    }
+  },
+  {
+    "precinct": "420250",
+    "votes": {
+      "yes": 24,
+      "no": 5,
+      "total": 29
+    },
+    "percentage": {
+      "yes": 82.76,
+      "no": 17.24
+    }
+  },
+  {
+    "precinct": "420300",
+    "votes": {
+      "yes": 0,
+      "no": 0,
+      "total": 0
+    },
+    "percentage": {
+      "yes": 0,
+      "no": 0
+    }
+  },
+  {
+    "precinct": "420310",
+    "votes": {
+      "yes": 0,
+      "no": 0,
+      "total": 0
+    },
+    "percentage": {
+      "yes": 0,
+      "no": 0
+    }
+  },
+  {
+    "precinct": "420320",
+    "votes": {
+      "yes": 0,
+      "no": 0,
+      "total": 0
+    },
+    "percentage": {
+      "yes": 0,
+      "no": 0
+    }
+  },
+  {
+    "precinct": "420610",
+    "votes": {
+      "yes": 0,
+      "no": 0,
+      "total": 0
+    },
+    "percentage": {
+      "yes": 0,
+      "no": 0
+    }
+  },
+  {
+    "precinct": "420800",
+    "votes": {
+      "yes": 111,
+      "no": 31,
+      "total": 142
+    },
+    "percentage": {
+      "yes": 78.17,
+      "no": 21.83
+    }
+  },
+  {
+    "precinct": "420900",
+    "votes": {
+      "yes": 355,
+      "no": 107,
+      "total": 462
+    },
+    "percentage": {
+      "yes": 76.84,
+      "no": 23.16
+    }
+  },
+  {
+    "precinct": "421200",
+    "votes": {
+      "yes": 255,
+      "no": 86,
+      "total": 341
+    },
+    "percentage": {
+      "yes": 74.78,
+      "no": 25.22
+    }
+  },
+  {
+    "precinct": "421300",
+    "votes": {
+      "yes": 538,
+      "no": 151,
+      "total": 689
+    },
+    "percentage": {
+      "yes": 78.08,
+      "no": 21.92
+    }
+  },
+  {
+    "precinct": "421600",
+    "votes": {
+      "yes": 736,
+      "no": 226,
+      "total": 962
+    },
+    "percentage": {
+      "yes": 76.51,
+      "no": 23.49
+    }
+  },
+  {
+    "precinct": "422000",
+    "votes": {
+      "yes": 973,
+      "no": 382,
+      "total": 1355
+    },
+    "percentage": {
+      "yes": 71.81,
+      "no": 28.19
+    }
+  },
+  {
+    "precinct": "422300",
+    "votes": {
+      "yes": 959,
+      "no": 296,
+      "total": 1255
+    },
+    "percentage": {
+      "yes": 76.41,
+      "no": 23.59
+    }
+  },
+  {
+    "precinct": "422600",
+    "votes": {
+      "yes": 1005,
+      "no": 356,
+      "total": 1361
+    },
+    "percentage": {
+      "yes": 73.84,
+      "no": 26.16
+    }
+  },
+  {
+    "precinct": "422920",
+    "votes": {
+      "yes": 955,
+      "no": 303,
+      "total": 1258
+    },
+    "percentage": {
+      "yes": 75.91,
+      "no": 24.09
+    }
+  },
+  {
+    "precinct": "422940",
+    "votes": {
+      "yes": 0,
+      "no": 0,
+      "total": 0
+    },
+    "percentage": {
+      "yes": 0,
+      "no": 0
+    }
+  },
+  {
+    "precinct": "423000",
+    "votes": {
+      "yes": 229,
+      "no": 70,
+      "total": 299
+    },
+    "percentage": {
+      "yes": 76.59,
+      "no": 23.41
+    }
+  },
+  {
+    "precinct": "423300",
+    "votes": {
+      "yes": 210,
+      "no": 72,
+      "total": 282
+    },
+    "percentage": {
+      "yes": 74.47,
+      "no": 25.53
+    }
+  },
+  {
+    "precinct": "423610",
+    "votes": {
+      "yes": 505,
+      "no": 160,
+      "total": 665
+    },
+    "percentage": {
+      "yes": 75.94,
+      "no": 24.06
+    }
+  },
+  {
+    "precinct": "423700",
+    "votes": {
+      "yes": 0,
+      "no": 0,
+      "total": 0
+    },
+    "percentage": {
+      "yes": 0,
+      "no": 0
+    }
+  },
+  {
+    "precinct": "423710",
+    "votes": {
+      "yes": 609,
+      "no": 205,
+      "total": 814
+    },
+    "percentage": {
+      "yes": 74.82,
+      "no": 25.18
+    }
+  },
+  {
+    "precinct": "423800",
+    "votes": {
+      "yes": 4,
+      "no": 6,
+      "total": 10
+    },
+    "percentage": {
+      "yes": 40.0,
+      "no": 60.0
+    }
+  },
+  {
+    "precinct": "424110",
+    "votes": {
+      "yes": 773,
+      "no": 240,
+      "total": 1013
+    },
+    "percentage": {
+      "yes": 76.31,
+      "no": 23.69
+    }
+  },
+  {
+    "precinct": "424200",
+    "votes": {
+      "yes": 15,
+      "no": 3,
+      "total": 18
+    },
+    "percentage": {
+      "yes": 83.33,
+      "no": 16.67
+    }
+  },
+  {
+    "precinct": "424510",
+    "votes": {
+      "yes": 79,
+      "no": 14,
+      "total": 93
+    },
+    "percentage": {
+      "yes": 84.95,
+      "no": 15.05
+    }
+  },
+  {
+    "precinct": "424600",
+    "votes": {
+      "yes": 593,
+      "no": 142,
+      "total": 735
+    },
+    "percentage": {
+      "yes": 80.68,
+      "no": 19.32
+    }
+  },
+  {
+    "precinct": "430020",
+    "votes": {
+      "yes": 0,
+      "no": 0,
+      "total": 0
+    },
+    "percentage": {
+      "yes": 0,
+      "no": 0
+    }
+  },
+  {
+    "precinct": "430100",
+    "votes": {
+      "yes": 14,
+      "no": 3,
+      "total": 17
+    },
+    "percentage": {
+      "yes": 82.35,
+      "no": 17.65
+    }
+  },
+  {
+    "precinct": "430120",
+    "votes": {
+      "yes": 0,
+      "no": 0,
+      "total": 0
+    },
+    "percentage": {
+      "yes": 0,
+      "no": 0
+    }
+  },
+  {
+    "precinct": "430130",
+    "votes": {
+      "yes": 0,
+      "no": 0,
+      "total": 0
+    },
+    "percentage": {
+      "yes": 0,
+      "no": 0
+    }
+  },
+  {
+    "precinct": "430140",
+    "votes": {
+      "yes": 0,
+      "no": 0,
+      "total": 0
+    },
+    "percentage": {
+      "yes": 0,
+      "no": 0
+    }
+  },
+  {
+    "precinct": "430200",
+    "votes": {
+      "yes": 19,
+      "no": 2,
+      "total": 21
+    },
+    "percentage": {
+      "yes": 90.48,
+      "no": 9.52
+    }
+  },
+  {
+    "precinct": "430300",
+    "votes": {
+      "yes": 0,
+      "no": 0,
+      "total": 0
+    },
+    "percentage": {
+      "yes": 0,
+      "no": 0
+    }
+  },
+  {
+    "precinct": "430430",
+    "votes": {
+      "yes": 0,
+      "no": 0,
+      "total": 0
+    },
+    "percentage": {
+      "yes": 0,
+      "no": 0
+    }
+  },
+  {
+    "precinct": "430610",
+    "votes": {
+      "yes": 111,
+      "no": 40,
+      "total": 151
+    },
+    "percentage": {
+      "yes": 73.51,
+      "no": 26.49
+    }
+  },
+  {
+    "precinct": "430700",
+    "votes": {
+      "yes": 163,
+      "no": 50,
+      "total": 213
+    },
+    "percentage": {
+      "yes": 76.53,
+      "no": 23.47
+    }
+  },
+  {
+    "precinct": "430800",
+    "votes": {
+      "yes": 129,
+      "no": 26,
+      "total": 155
+    },
+    "percentage": {
+      "yes": 83.23,
+      "no": 16.77
+    }
+  },
+  {
+    "precinct": "430900",
+    "votes": {
+      "yes": 225,
+      "no": 61,
+      "total": 286
+    },
+    "percentage": {
+      "yes": 78.67,
+      "no": 21.33
+    }
+  },
+  {
+    "precinct": "431100",
+    "votes": {
+      "yes": 357,
+      "no": 101,
+      "total": 458
+    },
+    "percentage": {
+      "yes": 77.95,
+      "no": 22.05
+    }
+  },
+  {
+    "precinct": "431400",
+    "votes": {
+      "yes": 115,
+      "no": 42,
+      "total": 157
+    },
+    "percentage": {
+      "yes": 73.25,
+      "no": 26.75
+    }
+  },
+  {
+    "precinct": "431500",
+    "votes": {
+      "yes": 54,
+      "no": 14,
+      "total": 68
+    },
+    "percentage": {
+      "yes": 79.41,
+      "no": 20.59
+    }
+  },
+  {
+    "precinct": "432020",
+    "votes": {
+      "yes": 760,
+      "no": 180,
+      "total": 940
+    },
+    "percentage": {
+      "yes": 80.85,
+      "no": 19.15
+    }
+  },
+  {
+    "precinct": "432110",
+    "votes": {
+      "yes": 830,
+      "no": 237,
+      "total": 1067
+    },
+    "percentage": {
+      "yes": 77.79,
+      "no": 22.21
+    }
+  },
+  {
+    "precinct": "432200",
+    "votes": {
+      "yes": 348,
+      "no": 110,
+      "total": 458
+    },
+    "percentage": {
+      "yes": 75.98,
+      "no": 24.02
+    }
+  },
+  {
+    "precinct": "432700",
+    "votes": {
+      "yes": 780,
+      "no": 283,
+      "total": 1063
+    },
+    "percentage": {
+      "yes": 73.38,
+      "no": 26.62
+    }
+  },
+  {
+    "precinct": "432910",
+    "votes": {
+      "yes": 605,
+      "no": 195,
+      "total": 800
+    },
+    "percentage": {
+      "yes": 75.62,
+      "no": 24.38
+    }
+  },
+  {
+    "precinct": "433100",
+    "votes": {
+      "yes": 76,
+      "no": 29,
+      "total": 105
+    },
+    "percentage": {
+      "yes": 72.38,
+      "no": 27.62
+    }
+  },
+  {
+    "precinct": "433220",
+    "votes": {
+      "yes": 169,
+      "no": 40,
+      "total": 209
+    },
+    "percentage": {
+      "yes": 80.86,
+      "no": 19.14
+    }
+  },
+  {
+    "precinct": "433300",
+    "votes": {
+      "yes": 241,
+      "no": 74,
+      "total": 315
+    },
+    "percentage": {
+      "yes": 76.51,
+      "no": 23.49
+    }
+  },
+  {
+    "precinct": "433400",
+    "votes": {
+      "yes": 711,
+      "no": 243,
+      "total": 954
+    },
+    "percentage": {
+      "yes": 74.53,
+      "no": 25.47
+    }
+  },
+  {
+    "precinct": "433630",
+    "votes": {
+      "yes": 180,
+      "no": 83,
+      "total": 263
+    },
+    "percentage": {
+      "yes": 68.44,
+      "no": 31.56
+    }
+  },
+  {
+    "precinct": "433650",
+    "votes": {
+      "yes": 0,
+      "no": 0,
+      "total": 0
+    },
+    "percentage": {
+      "yes": 0,
+      "no": 0
+    }
+  },
+  {
+    "precinct": "433700",
+    "votes": {
+      "yes": 485,
+      "no": 146,
+      "total": 631
+    },
+    "percentage": {
+      "yes": 76.86,
+      "no": 23.14
+    }
+  },
+  {
+    "precinct": "438120",
+    "votes": {
+      "yes": 0,
+      "no": 0,
+      "total": 0
+    },
+    "percentage": {
+      "yes": 0,
+      "no": 0
+    }
+  },
+  {
+    "precinct": "438130",
+    "votes": {
+      "yes": 0,
+      "no": 0,
+      "total": 0
+    },
+    "percentage": {
+      "yes": 0,
+      "no": 0
+    }
+  },
+  {
+    "precinct": "438140",
+    "votes": {
+      "yes": 0,
+      "no": 0,
+      "total": 0
+    },
+    "percentage": {
+      "yes": 0,
+      "no": 0
+    }
+  },
+  {
+    "precinct": "438200",
+    "votes": {
+      "yes": 0,
+      "no": 0,
+      "total": 0
+    },
+    "percentage": {
+      "yes": 0,
+      "no": 0
+    }
+  },
+  {
+    "precinct": "438300",
+    "votes": {
+      "yes": 0,
+      "no": 0,
+      "total": 0
+    },
+    "percentage": {
+      "yes": 0,
+      "no": 0
+    }
+  },
+  {
+    "precinct": "438500",
+    "votes": {
+      "yes": 0,
+      "no": 0,
+      "total": 0
+    },
+    "percentage": {
+      "yes": 0,
+      "no": 0
+    }
+  },
+  {
+    "precinct": "440200",
+    "votes": {
+      "yes": 366,
+      "no": 183,
+      "total": 549
+    },
+    "percentage": {
+      "yes": 66.67,
+      "no": 33.33
+    }
+  },
+  {
+    "precinct": "440210",
+    "votes": {
+      "yes": 41,
+      "no": 8,
+      "total": 49
+    },
+    "percentage": {
+      "yes": 83.67,
+      "no": 16.33
+    }
+  },
+  {
+    "precinct": "440300",
+    "votes": {
+      "yes": 820,
+      "no": 333,
+      "total": 1153
+    },
+    "percentage": {
+      "yes": 71.12,
+      "no": 28.88
+    }
+  },
+  {
+    "precinct": "440900",
+    "votes": {
+      "yes": 595,
+      "no": 268,
+      "total": 863
+    },
+    "percentage": {
+      "yes": 68.95,
+      "no": 31.05
+    }
+  },
+  {
+    "precinct": "441300",
+    "votes": {
+      "yes": 175,
+      "no": 77,
+      "total": 252
+    },
+    "percentage": {
+      "yes": 69.44,
+      "no": 30.56
+    }
+  },
+  {
+    "precinct": "442000",
+    "votes": {
+      "yes": 108,
+      "no": 44,
+      "total": 152
+    },
+    "percentage": {
+      "yes": 71.05,
+      "no": 28.95
+    }
+  },
+  {
+    "precinct": "442200",
+    "votes": {
+      "yes": 368,
+      "no": 135,
+      "total": 503
+    },
+    "percentage": {
+      "yes": 73.16,
+      "no": 26.84
+    }
+  },
+  {
+    "precinct": "443000",
+    "votes": {
+      "yes": 309,
+      "no": 89,
+      "total": 398
+    },
+    "percentage": {
+      "yes": 77.64,
+      "no": 22.36
+    }
+  },
+  {
+    "precinct": "443100",
+    "votes": {
+      "yes": 858,
+      "no": 289,
+      "total": 1147
+    },
+    "percentage": {
+      "yes": 74.8,
+      "no": 25.2
+    }
+  },
+  {
+    "precinct": "443500",
+    "votes": {
+      "yes": 749,
+      "no": 170,
+      "total": 919
+    },
+    "percentage": {
+      "yes": 81.5,
+      "no": 18.5
+    }
+  },
+  {
+    "precinct": "443700",
+    "votes": {
+      "yes": 70,
+      "no": 40,
+      "total": 110
+    },
+    "percentage": {
+      "yes": 63.64,
+      "no": 36.36
+    }
+  },
+  {
+    "precinct": "443800",
+    "votes": {
+      "yes": 18,
+      "no": 9,
+      "total": 27
+    },
+    "percentage": {
+      "yes": 66.67,
+      "no": 33.33
+    }
+  },
+  {
+    "precinct": "447010",
+    "votes": {
+      "yes": 0,
+      "no": 0,
+      "total": 0
+    },
+    "percentage": {
+      "yes": 0,
+      "no": 0
+    }
+  },
+  {
+    "precinct": "447020",
+    "votes": {
+      "yes": 0,
+      "no": 0,
+      "total": 0
+    },
+    "percentage": {
+      "yes": 0,
+      "no": 0
+    }
+  },
+  {
+    "precinct": "447100",
+    "votes": {
+      "yes": 0,
+      "no": 0,
+      "total": 0
+    },
+    "percentage": {
+      "yes": 0,
+      "no": 0
+    }
+  },
+  {
+    "precinct": "447110",
+    "votes": {
+      "yes": 0,
+      "no": 0,
+      "total": 0
+    },
+    "percentage": {
+      "yes": 0,
+      "no": 0
+    }
+  },
+  {
+    "precinct": "447120",
+    "votes": {
+      "yes": 0,
+      "no": 0,
+      "total": 0
+    },
+    "percentage": {
+      "yes": 0,
+      "no": 0
+    }
+  },
+  {
+    "precinct": "447200",
+    "votes": {
+      "yes": 19,
+      "no": 15,
+      "total": 34
+    },
+    "percentage": {
+      "yes": 55.88,
+      "no": 44.12
+    }
+  },
+  {
+    "precinct": "447300",
+    "votes": {
+      "yes": 6,
+      "no": 6,
+      "total": 12
+    },
+    "percentage": {
+      "yes": 50.0,
+      "no": 50.0
+    }
+  },
+  {
+    "precinct": "447510",
+    "votes": {
+      "yes": 0,
+      "no": 0,
+      "total": 0
+    },
+    "percentage": {
+      "yes": 0,
+      "no": 0
+    }
+  },
+  {
+    "precinct": "447600",
+    "votes": {
+      "yes": 382,
+      "no": 162,
+      "total": 544
+    },
+    "percentage": {
+      "yes": 70.22,
+      "no": 29.78
+    }
+  },
+  {
+    "precinct": "447700",
+    "votes": {
+      "yes": 105,
+      "no": 42,
+      "total": 147
+    },
+    "percentage": {
+      "yes": 71.43,
+      "no": 28.57
+    }
+  },
+  {
+    "precinct": "447710",
+    "votes": {
+      "yes": 0,
+      "no": 0,
+      "total": 0
+    },
+    "percentage": {
+      "yes": 0,
+      "no": 0
+    }
+  },
+  {
+    "precinct": "447730",
+    "votes": {
+      "yes": 8,
+      "no": 6,
+      "total": 14
+    },
+    "percentage": {
+      "yes": 57.14,
+      "no": 42.86
+    }
+  },
+  {
+    "precinct": "450200",
+    "votes": {
+      "yes": 348,
+      "no": 115,
+      "total": 463
+    },
+    "percentage": {
+      "yes": 75.16,
+      "no": 24.84
+    }
+  },
+  {
+    "precinct": "450500",
+    "votes": {
+      "yes": 574,
+      "no": 260,
+      "total": 834
+    },
+    "percentage": {
+      "yes": 68.82,
+      "no": 31.18
+    }
+  },
+  {
+    "precinct": "450610",
+    "votes": {
+      "yes": 240,
+      "no": 121,
+      "total": 361
+    },
+    "percentage": {
+      "yes": 66.48,
+      "no": 33.52
+    }
+  },
+  {
+    "precinct": "450620",
+    "votes": {
+      "yes": 0,
+      "no": 0,
+      "total": 0
+    },
+    "percentage": {
+      "yes": 0,
+      "no": 0
+    }
+  },
+  {
+    "precinct": "450800",
+    "votes": {
+      "yes": 20,
+      "no": 12,
+      "total": 32
+    },
+    "percentage": {
+      "yes": 62.5,
+      "no": 37.5
+    }
+  },
+  {
+    "precinct": "450820",
+    "votes": {
+      "yes": 0,
+      "no": 0,
+      "total": 0
+    },
+    "percentage": {
+      "yes": 0,
+      "no": 0
+    }
+  },
+  {
+    "precinct": "450920",
+    "votes": {
+      "yes": 0,
+      "no": 0,
+      "total": 0
+    },
+    "percentage": {
+      "yes": 0,
+      "no": 0
+    }
+  },
+  {
+    "precinct": "450930",
+    "votes": {
+      "yes": 0,
+      "no": 0,
+      "total": 0
+    },
+    "percentage": {
+      "yes": 0,
+      "no": 0
+    }
+  },
+  {
+    "precinct": "451000",
+    "votes": {
+      "yes": 298,
+      "no": 125,
+      "total": 423
+    },
+    "percentage": {
+      "yes": 70.45,
+      "no": 29.55
+    }
+  },
+  {
+    "precinct": "451600",
+    "votes": {
+      "yes": 554,
+      "no": 279,
+      "total": 833
+    },
+    "percentage": {
+      "yes": 66.51,
+      "no": 33.49
+    }
+  },
+  {
+    "precinct": "451900",
+    "votes": {
+      "yes": 268,
+      "no": 124,
+      "total": 392
+    },
+    "percentage": {
+      "yes": 68.37,
+      "no": 31.63
+    }
+  },
+  {
+    "precinct": "452400",
+    "votes": {
+      "yes": 942,
+      "no": 341,
+      "total": 1283
+    },
+    "percentage": {
+      "yes": 73.42,
+      "no": 26.58
+    }
+  },
+  {
+    "precinct": "453200",
+    "votes": {
+      "yes": 0,
+      "no": 0,
+      "total": 0
+    },
+    "percentage": {
+      "yes": 0,
+      "no": 0
+    }
+  },
+  {
+    "precinct": "453300",
+    "votes": {
+      "yes": 194,
+      "no": 52,
+      "total": 246
+    },
+    "percentage": {
+      "yes": 78.86,
+      "no": 21.14
+    }
+  },
+  {
+    "precinct": "453500",
+    "votes": {
+      "yes": 470,
+      "no": 204,
+      "total": 674
+    },
+    "percentage": {
+      "yes": 69.73,
+      "no": 30.27
+    }
+  },
+  {
+    "precinct": "453600",
+    "votes": {
+      "yes": 12,
+      "no": 3,
+      "total": 15
+    },
+    "percentage": {
+      "yes": 80.0,
+      "no": 20.0
+    }
+  },
+  {
+    "precinct": "453900",
+    "votes": {
+      "yes": 113,
+      "no": 36,
+      "total": 149
+    },
+    "percentage": {
+      "yes": 75.84,
+      "no": 24.16
+    }
+  },
+  {
+    "precinct": "453920",
+    "votes": {
+      "yes": 166,
+      "no": 32,
+      "total": 198
+    },
+    "percentage": {
+      "yes": 83.84,
+      "no": 16.16
+    }
+  },
+  {
+    "precinct": "453940",
+    "votes": {
+      "yes": 210,
+      "no": 76,
+      "total": 286
+    },
+    "percentage": {
+      "yes": 73.43,
+      "no": 26.57
+    }
+  },
+  {
+    "precinct": "454100",
+    "votes": {
+      "yes": 0,
+      "no": 0,
+      "total": 0
+    },
+    "percentage": {
+      "yes": 0,
+      "no": 0
+    }
+  },
+  {
+    "precinct": "454220",
+    "votes": {
+      "yes": 0,
+      "no": 0,
+      "total": 0
+    },
+    "percentage": {
+      "yes": 0,
+      "no": 0
+    }
+  },
+  {
+    "precinct": "454500",
+    "votes": {
+      "yes": 46,
+      "no": 11,
+      "total": 57
+    },
+    "percentage": {
+      "yes": 80.7,
+      "no": 19.3
+    }
+  },
+  {
+    "precinct": "454510",
+    "votes": {
+      "yes": 0,
+      "no": 0,
+      "total": 0
+    },
+    "percentage": {
+      "yes": 0,
+      "no": 0
+    }
+  },
+  {
+    "precinct": "454520",
+    "votes": {
+      "yes": 0,
+      "no": 0,
+      "total": 0
+    },
+    "percentage": {
+      "yes": 0,
+      "no": 0
+    }
+  },
+  {
+    "precinct": "454600",
+    "votes": {
+      "yes": 0,
+      "no": 0,
+      "total": 0
+    },
+    "percentage": {
+      "yes": 0,
+      "no": 0
+    }
+  },
+  {
+    "precinct": "454700",
+    "votes": {
+      "yes": 0,
+      "no": 0,
+      "total": 0
+    },
+    "percentage": {
+      "yes": 0,
+      "no": 0
+    }
+  },
+  {
+    "precinct": "454710",
+    "votes": {
+      "yes": 0,
+      "no": 0,
+      "total": 0
+    },
+    "percentage": {
+      "yes": 0,
+      "no": 0
+    }
+  },
+  {
+    "precinct": "455100",
+    "votes": {
+      "yes": 160,
+      "no": 33,
+      "total": 193
+    },
+    "percentage": {
+      "yes": 82.9,
+      "no": 17.1
+    }
+  },
+  {
+    "precinct": "455300",
+    "votes": {
+      "yes": 424,
+      "no": 122,
+      "total": 546
+    },
+    "percentage": {
+      "yes": 77.66,
+      "no": 22.34
+    }
+  },
+  {
+    "precinct": "455400",
+    "votes": {
+      "yes": 490,
+      "no": 123,
+      "total": 613
+    },
+    "percentage": {
+      "yes": 79.93,
+      "no": 20.07
+    }
+  },
+  {
+    "precinct": "455700",
+    "votes": {
+      "yes": 179,
+      "no": 36,
+      "total": 215
+    },
+    "percentage": {
+      "yes": 83.26,
+      "no": 16.74
+    }
+  },
+  {
+    "precinct": "456100",
+    "votes": {
+      "yes": 390,
+      "no": 85,
+      "total": 475
+    },
+    "percentage": {
+      "yes": 82.11,
+      "no": 17.89
+    }
+  },
+  {
+    "precinct": "456200",
+    "votes": {
+      "yes": 502,
+      "no": 114,
+      "total": 616
+    },
+    "percentage": {
+      "yes": 81.49,
+      "no": 18.51
+    }
+  },
+  {
+    "precinct": "456500",
+    "votes": {
+      "yes": 271,
+      "no": 40,
+      "total": 311
+    },
+    "percentage": {
+      "yes": 87.14,
+      "no": 12.86
+    }
+  },
+  {
+    "precinct": "456610",
+    "votes": {
+      "yes": 0,
+      "no": 0,
+      "total": 0
+    },
+    "percentage": {
+      "yes": 0,
+      "no": 0
+    }
+  },
+  {
+    "precinct": "456620",
+    "votes": {
+      "yes": 21,
+      "no": 4,
+      "total": 25
+    },
+    "percentage": {
+      "yes": 84.0,
+      "no": 16.0
+    }
+  },
+  {
+    "precinct": "456700",
+    "votes": {
+      "yes": 425,
+      "no": 145,
+      "total": 570
+    },
+    "percentage": {
+      "yes": 74.56,
+      "no": 25.44
+    }
+  },
+  {
+    "precinct": "456910",
+    "votes": {
+      "yes": 55,
+      "no": 22,
+      "total": 77
+    },
+    "percentage": {
+      "yes": 71.43,
+      "no": 28.57
+    }
+  },
+  {
+    "precinct": "457300",
+    "votes": {
+      "yes": 784,
+      "no": 151,
+      "total": 935
+    },
+    "percentage": {
+      "yes": 83.85,
+      "no": 16.15
+    }
+  },
+  {
+    "precinct": "457500",
+    "votes": {
+      "yes": 789,
+      "no": 133,
+      "total": 922
+    },
+    "percentage": {
+      "yes": 85.57,
+      "no": 14.43
+    }
+  },
+  {
+    "precinct": "458400",
+    "votes": {
+      "yes": 615,
+      "no": 148,
+      "total": 763
+    },
+    "percentage": {
+      "yes": 80.6,
+      "no": 19.4
+    }
+  },
+  {
+    "precinct": "458800",
+    "votes": {
+      "yes": 463,
+      "no": 151,
+      "total": 614
+    },
+    "percentage": {
+      "yes": 75.41,
+      "no": 24.59
+    }
+  },
+  {
+    "precinct": "458900",
+    "votes": {
+      "yes": 188,
+      "no": 71,
+      "total": 259
+    },
+    "percentage": {
+      "yes": 72.59,
+      "no": 27.41
+    }
+  },
+  {
+    "precinct": "458910",
+    "votes": {
+      "yes": 0,
+      "no": 0,
+      "total": 0
+    },
+    "percentage": {
+      "yes": 0,
+      "no": 0
+    }
+  },
+  {
+    "precinct": "458920",
+    "votes": {
+      "yes": 0,
+      "no": 0,
+      "total": 0
+    },
+    "percentage": {
+      "yes": 0,
+      "no": 0
+    }
+  },
+  {
+    "precinct": "464000",
+    "votes": {
+      "yes": 0,
+      "no": 0,
+      "total": 0
+    },
+    "percentage": {
+      "yes": 0,
+      "no": 0
+    }
+  },
+  {
+    "precinct": "464220",
+    "votes": {
+      "yes": 0,
+      "no": 0,
+      "total": 0
+    },
+    "percentage": {
+      "yes": 0,
+      "no": 0
+    }
+  },
+  {
+    "precinct": "464300",
+    "votes": {
+      "yes": 0,
+      "no": 0,
+      "total": 0
+    },
+    "percentage": {
+      "yes": 0,
+      "no": 0
+    }
+  },
+  {
+    "precinct": "464310",
+    "votes": {
+      "yes": 0,
+      "no": 0,
+      "total": 0
+    },
+    "percentage": {
+      "yes": 0,
+      "no": 0
+    }
+  },
+  {
+    "precinct": "464500",
+    "votes": {
+      "yes": 0,
+      "no": 0,
+      "total": 0
+    },
+    "percentage": {
+      "yes": 0,
+      "no": 0
+    }
+  },
+  {
+    "precinct": "464660",
+    "votes": {
+      "yes": 0,
+      "no": 0,
+      "total": 0
+    },
+    "percentage": {
+      "yes": 0,
+      "no": 0
+    }
+  },
+  {
+    "precinct": "464700",
+    "votes": {
+      "yes": 0,
+      "no": 0,
+      "total": 0
+    },
+    "percentage": {
+      "yes": 0,
+      "no": 0
+    }
+  },
+  {
+    "precinct": "464710",
+    "votes": {
+      "yes": 0,
+      "no": 0,
+      "total": 0
+    },
+    "percentage": {
+      "yes": 0,
+      "no": 0
+    }
+  },
+  {
+    "precinct": "470100",
+    "votes": {
+      "yes": 48,
+      "no": 20,
+      "total": 68
+    },
+    "percentage": {
+      "yes": 70.59,
+      "no": 29.41
+    }
+  },
+  {
+    "precinct": "470600",
+    "votes": {
+      "yes": 575,
+      "no": 205,
+      "total": 780
+    },
+    "percentage": {
+      "yes": 73.72,
+      "no": 26.28
+    }
+  },
+  {
+    "precinct": "470800",
+    "votes": {
+      "yes": 298,
+      "no": 117,
+      "total": 415
+    },
+    "percentage": {
+      "yes": 71.81,
+      "no": 28.19
+    }
+  },
+  {
+    "precinct": "471900",
+    "votes": {
+      "yes": 927,
+      "no": 421,
+      "total": 1348
+    },
+    "percentage": {
+      "yes": 68.77,
+      "no": 31.23
+    }
+  },
+  {
+    "precinct": "472200",
+    "votes": {
+      "yes": 701,
+      "no": 237,
+      "total": 938
+    },
+    "percentage": {
+      "yes": 74.73,
+      "no": 25.27
+    }
+  },
+  {
+    "precinct": "472300",
+    "votes": {
+      "yes": 539,
+      "no": 208,
+      "total": 747
+    },
+    "percentage": {
+      "yes": 72.16,
+      "no": 27.84
+    }
+  },
+  {
+    "precinct": "472610",
+    "votes": {
+      "yes": 857,
+      "no": 370,
+      "total": 1227
+    },
+    "percentage": {
+      "yes": 69.85,
+      "no": 30.15
+    }
+  },
+  {
+    "precinct": "472920",
+    "votes": {
+      "yes": 0,
+      "no": 0,
+      "total": 0
+    },
+    "percentage": {
+      "yes": 0,
+      "no": 0
+    }
+  },
+  {
+    "precinct": "473010",
+    "votes": {
+      "yes": 843,
+      "no": 362,
+      "total": 1205
+    },
+    "percentage": {
+      "yes": 69.96,
+      "no": 30.04
+    }
+  },
+  {
+    "precinct": "473900",
+    "votes": {
+      "yes": 571,
+      "no": 265,
+      "total": 836
+    },
+    "percentage": {
+      "yes": 68.3,
+      "no": 31.7
+    }
+  },
+  {
+    "precinct": "474010",
+    "votes": {
+      "yes": 314,
+      "no": 132,
+      "total": 446
+    },
+    "percentage": {
+      "yes": 70.4,
+      "no": 29.6
+    }
+  },
+  {
+    "precinct": "474200",
+    "votes": {
+      "yes": 567,
+      "no": 295,
+      "total": 862
+    },
+    "percentage": {
+      "yes": 65.78,
+      "no": 34.22
+    }
+  },
+  {
+    "precinct": "474600",
+    "votes": {
+      "yes": 962,
+      "no": 457,
+      "total": 1419
+    },
+    "percentage": {
+      "yes": 67.79,
+      "no": 32.21
+    }
+  },
+  {
+    "precinct": "475020",
+    "votes": {
+      "yes": 140,
+      "no": 44,
+      "total": 184
+    },
+    "percentage": {
+      "yes": 76.09,
+      "no": 23.91
+    }
+  },
+  {
+    "precinct": "475100",
+    "votes": {
+      "yes": 323,
+      "no": 151,
+      "total": 474
+    },
+    "percentage": {
+      "yes": 68.14,
+      "no": 31.86
+    }
+  },
+  {
+    "precinct": "475200",
+    "votes": {
+      "yes": 171,
+      "no": 96,
+      "total": 267
+    },
+    "percentage": {
+      "yes": 64.04,
+      "no": 35.96
+    }
+  },
+  {
+    "precinct": "475500",
+    "votes": {
+      "yes": 651,
+      "no": 293,
+      "total": 944
+    },
+    "percentage": {
+      "yes": 68.96,
+      "no": 31.04
+    }
+  },
+  {
+    "precinct": "475600",
+    "votes": {
+      "yes": 0,
+      "no": 0,
+      "total": 0
+    },
+    "percentage": {
+      "yes": 0,
+      "no": 0
+    }
+  },
+  {
+    "precinct": "475700",
+    "votes": {
+      "yes": 0,
+      "no": 0,
+      "total": 0
+    },
+    "percentage": {
+      "yes": 0,
+      "no": 0
+    }
+  },
+  {
+    "precinct": "476100",
+    "votes": {
+      "yes": 597,
+      "no": 175,
+      "total": 772
+    },
+    "percentage": {
+      "yes": 77.33,
+      "no": 22.67
+    }
+  },
+  {
+    "precinct": "481200",
+    "votes": {
+      "yes": 356,
+      "no": 140,
+      "total": 496
+    },
+    "percentage": {
+      "yes": 71.77,
+      "no": 28.23
+    }
+  },
+  {
+    "precinct": "481420",
+    "votes": {
+      "yes": 7,
+      "no": 3,
+      "total": 10
+    },
+    "percentage": {
+      "yes": 70.0,
+      "no": 30.0
+    }
+  },
+  {
+    "precinct": "481500",
+    "votes": {
+      "yes": 465,
+      "no": 113,
+      "total": 578
+    },
+    "percentage": {
+      "yes": 80.45,
+      "no": 19.55
+    }
+  },
+  {
+    "precinct": "481550",
+    "votes": {
+      "yes": 0,
+      "no": 0,
+      "total": 0
+    },
+    "percentage": {
+      "yes": 0,
+      "no": 0
+    }
+  },
+  {
+    "precinct": "481900",
+    "votes": {
+      "yes": 95,
+      "no": 24,
+      "total": 119
+    },
+    "percentage": {
+      "yes": 79.83,
+      "no": 20.17
+    }
+  },
+  {
+    "precinct": "481940",
+    "votes": {
+      "yes": 0,
+      "no": 0,
+      "total": 0
+    },
+    "percentage": {
+      "yes": 0,
+      "no": 0
+    }
+  },
+  {
+    "precinct": "481950",
+    "votes": {
+      "yes": 0,
+      "no": 0,
+      "total": 0
+    },
+    "percentage": {
+      "yes": 0,
+      "no": 0
+    }
+  },
+  {
+    "precinct": "481960",
+    "votes": {
+      "yes": 0,
+      "no": 0,
+      "total": 0
+    },
+    "percentage": {
+      "yes": 0,
+      "no": 0
+    }
+  },
+  {
+    "precinct": "481970",
+    "votes": {
+      "yes": 0,
+      "no": 0,
+      "total": 0
+    },
+    "percentage": {
+      "yes": 0,
+      "no": 0
+    }
+  },
+  {
+    "precinct": "482000",
+    "votes": {
+      "yes": 0,
+      "no": 0,
+      "total": 0
+    },
+    "percentage": {
+      "yes": 0,
+      "no": 0
+    }
+  },
+  {
+    "precinct": "483000",
+    "votes": {
+      "yes": 474,
+      "no": 201,
+      "total": 675
+    },
+    "percentage": {
+      "yes": 70.22,
+      "no": 29.78
+    }
+  },
+  {
+    "precinct": "490040",
+    "votes": {
+      "yes": 23,
+      "no": 7,
+      "total": 30
+    },
+    "percentage": {
+      "yes": 76.67,
+      "no": 23.33
+    }
+  },
+  {
+    "precinct": "490100",
+    "votes": {
+      "yes": 6,
+      "no": 17,
+      "total": 23
+    },
+    "percentage": {
+      "yes": 26.09,
+      "no": 73.91
+    }
+  },
+  {
+    "precinct": "490200",
+    "votes": {
+      "yes": 0,
+      "no": 0,
+      "total": 0
+    },
+    "percentage": {
+      "yes": 0,
+      "no": 0
+    }
+  },
+  {
+    "precinct": "490300",
+    "votes": {
+      "yes": 0,
+      "no": 0,
+      "total": 0
+    },
+    "percentage": {
+      "yes": 0,
+      "no": 0
+    }
+  },
+  {
+    "precinct": "490400",
+    "votes": {
+      "yes": 0,
+      "no": 0,
+      "total": 0
+    },
+    "percentage": {
+      "yes": 0,
+      "no": 0
+    }
+  },
+  {
+    "precinct": "491000",
+    "votes": {
+      "yes": 557,
+      "no": 153,
+      "total": 710
+    },
+    "percentage": {
+      "yes": 78.45,
+      "no": 21.55
+    }
+  },
+  {
+    "precinct": "491010",
+    "votes": {
+      "yes": 0,
+      "no": 0,
+      "total": 0
+    },
+    "percentage": {
+      "yes": 0,
+      "no": 0
+    }
+  },
+  {
+    "precinct": "491020",
+    "votes": {
+      "yes": 0,
+      "no": 0,
+      "total": 0
+    },
+    "percentage": {
+      "yes": 0,
+      "no": 0
+    }
+  },
+  {
+    "precinct": "491090",
+    "votes": {
+      "yes": 0,
+      "no": 0,
+      "total": 0
+    },
+    "percentage": {
+      "yes": 0,
+      "no": 0
+    }
+  },
+  {
+    "precinct": "491300",
+    "votes": {
+      "yes": 558,
+      "no": 192,
+      "total": 750
+    },
+    "percentage": {
+      "yes": 74.4,
+      "no": 25.6
+    }
+  },
+  {
+    "precinct": "491600",
+    "votes": {
+      "yes": 157,
+      "no": 62,
+      "total": 219
+    },
+    "percentage": {
+      "yes": 71.69,
+      "no": 28.31
+    }
+  },
+  {
+    "precinct": "491630",
+    "votes": {
+      "yes": 0,
+      "no": 0,
+      "total": 0
+    },
+    "percentage": {
+      "yes": 0,
+      "no": 0
+    }
+  },
+  {
+    "precinct": "492000",
+    "votes": {
+      "yes": 0,
+      "no": 0,
+      "total": 0
+    },
+    "percentage": {
+      "yes": 0,
+      "no": 0
+    }
+  },
+  {
+    "precinct": "492100",
+    "votes": {
+      "yes": 0,
+      "no": 0,
+      "total": 0
+    },
+    "percentage": {
+      "yes": 0,
+      "no": 0
+    }
+  },
+  {
+    "precinct": "492140",
+    "votes": {
+      "yes": 0,
+      "no": 0,
+      "total": 0
+    },
+    "percentage": {
+      "yes": 0,
+      "no": 0
+    }
+  },
+  {
+    "precinct": "498250",
+    "votes": {
+      "yes": 0,
+      "no": 0,
+      "total": 0
+    },
+    "percentage": {
+      "yes": 0,
+      "no": 0
+    }
+  },
+  {
+    "precinct": "498300",
+    "votes": {
+      "yes": 0,
+      "no": 0,
+      "total": 0
+    },
+    "percentage": {
+      "yes": 0,
+      "no": 0
+    }
+  },
+  {
+    "precinct": "498310",
+    "votes": {
+      "yes": 0,
+      "no": 0,
+      "total": 0
+    },
+    "percentage": {
+      "yes": 0,
+      "no": 0
+    }
+  },
+  {
+    "precinct": "498320",
+    "votes": {
+      "yes": 0,
+      "no": 0,
+      "total": 0
+    },
+    "percentage": {
+      "yes": 0,
+      "no": 0
+    }
+  },
+  {
+    "precinct": "499010",
+    "votes": {
+      "yes": 0,
+      "no": 0,
+      "total": 0
+    },
+    "percentage": {
+      "yes": 0,
+      "no": 0
+    }
+  },
+  {
+    "precinct": "499020",
+    "votes": {
+      "yes": 0,
+      "no": 0,
+      "total": 0
+    },
+    "percentage": {
+      "yes": 0,
+      "no": 0
+    }
+  },
+  {
+    "precinct": "500110",
+    "votes": {
+      "yes": 1191,
+      "no": 757,
+      "total": 1948
+    },
+    "percentage": {
+      "yes": 61.14,
+      "no": 38.86
+    }
+  },
+  {
+    "precinct": "500200",
+    "votes": {
+      "yes": 934,
+      "no": 507,
+      "total": 1441
+    },
+    "percentage": {
+      "yes": 64.82,
+      "no": 35.18
+    }
+  },
+  {
+    "precinct": "500300",
+    "votes": {
+      "yes": 973,
+      "no": 577,
+      "total": 1550
+    },
+    "percentage": {
+      "yes": 62.77,
+      "no": 37.23
+    }
+  },
+  {
+    "precinct": "500350",
+    "votes": {
+      "yes": 1348,
+      "no": 771,
+      "total": 2119
+    },
+    "percentage": {
+      "yes": 63.61,
+      "no": 36.39
+    }
+  },
+  {
+    "precinct": "500800",
+    "votes": {
+      "yes": 1020,
+      "no": 511,
+      "total": 1531
+    },
+    "percentage": {
+      "yes": 66.62,
+      "no": 33.38
+    }
+  },
+  {
+    "precinct": "501410",
+    "votes": {
+      "yes": 329,
+      "no": 218,
+      "total": 547
+    },
+    "percentage": {
+      "yes": 60.15,
+      "no": 39.85
+    }
+  },
+  {
+    "precinct": "501420",
+    "votes": {
+      "yes": 519,
+      "no": 240,
+      "total": 759
+    },
+    "percentage": {
+      "yes": 68.38,
+      "no": 31.62
+    }
+  },
+  {
+    "precinct": "501610",
+    "votes": {
+      "yes": 1443,
+      "no": 943,
+      "total": 2386
+    },
+    "percentage": {
+      "yes": 60.48,
+      "no": 39.52
+    }
+  },
+  {
+    "precinct": "501900",
+    "votes": {
+      "yes": 7,
+      "no": 10,
+      "total": 17
+    },
+    "percentage": {
+      "yes": 41.18,
+      "no": 58.82
+    }
+  },
+  {
+    "precinct": "501910",
+    "votes": {
+      "yes": 1050,
+      "no": 555,
+      "total": 1605
+    },
+    "percentage": {
+      "yes": 65.42,
+      "no": 34.58
+    }
+  },
+  {
+    "precinct": "502020",
+    "votes": {
+      "yes": 1008,
+      "no": 651,
+      "total": 1659
+    },
+    "percentage": {
+      "yes": 60.76,
+      "no": 39.24
+    }
+  },
+  {
+    "precinct": "502300",
+    "votes": {
+      "yes": 980,
+      "no": 485,
+      "total": 1465
+    },
+    "percentage": {
+      "yes": 66.89,
+      "no": 33.11
+    }
+  },
+  {
+    "precinct": "502500",
+    "votes": {
+      "yes": 890,
+      "no": 421,
+      "total": 1311
+    },
+    "percentage": {
+      "yes": 67.89,
+      "no": 32.11
+    }
+  },
+  {
+    "precinct": "502740",
+    "votes": {
+      "yes": 616,
+      "no": 319,
+      "total": 935
+    },
+    "percentage": {
+      "yes": 65.88,
+      "no": 34.12
+    }
+  },
+  {
+    "precinct": "502900",
+    "votes": {
+      "yes": 913,
+      "no": 564,
+      "total": 1477
+    },
+    "percentage": {
+      "yes": 61.81,
+      "no": 38.19
+    }
+  },
+  {
+    "precinct": "510100",
+    "votes": {
+      "yes": 18,
+      "no": 60,
+      "total": 78
+    },
+    "percentage": {
+      "yes": 23.08,
+      "no": 76.92
+    }
+  },
+  {
+    "precinct": "510120",
+    "votes": {
+      "yes": 0,
+      "no": 0,
+      "total": 0
+    },
+    "percentage": {
+      "yes": 0,
+      "no": 0
+    }
+  },
+  {
+    "precinct": "510300",
+    "votes": {
+      "yes": 26,
+      "no": 76,
+      "total": 102
+    },
+    "percentage": {
+      "yes": 25.49,
+      "no": 74.51
+    }
+  },
+  {
+    "precinct": "510400",
+    "votes": {
+      "yes": 0,
+      "no": 0,
+      "total": 0
+    },
+    "percentage": {
+      "yes": 0,
+      "no": 0
+    }
+  },
+  {
+    "precinct": "510500",
+    "votes": {
+      "yes": 0,
+      "no": 0,
+      "total": 0
+    },
+    "percentage": {
+      "yes": 0,
+      "no": 0
+    }
+  },
+  {
+    "precinct": "510700",
+    "votes": {
+      "yes": 0,
+      "no": 0,
+      "total": 0
+    },
+    "percentage": {
+      "yes": 0,
+      "no": 0
+    }
+  },
+  {
+    "precinct": "510730",
+    "votes": {
+      "yes": 0,
+      "no": 0,
+      "total": 0
+    },
+    "percentage": {
+      "yes": 0,
+      "no": 0
+    }
+  },
+  {
+    "precinct": "510840",
+    "votes": {
+      "yes": 0,
+      "no": 0,
+      "total": 0
+    },
+    "percentage": {
+      "yes": 0,
+      "no": 0
+    }
+  },
+  {
+    "precinct": "510910",
+    "votes": {
+      "yes": 0,
+      "no": 0,
+      "total": 0
+    },
+    "percentage": {
+      "yes": 0,
+      "no": 0
+    }
+  },
+  {
+    "precinct": "511000",
+    "votes": {
+      "yes": 0,
+      "no": 0,
+      "total": 0
+    },
+    "percentage": {
+      "yes": 0,
+      "no": 0
+    }
+  },
+  {
+    "precinct": "511010",
+    "votes": {
+      "yes": 0,
+      "no": 0,
+      "total": 0
+    },
+    "percentage": {
+      "yes": 0,
+      "no": 0
+    }
+  },
+  {
+    "precinct": "520000",
+    "votes": {
+      "yes": 224,
+      "no": 116,
+      "total": 340
+    },
+    "percentage": {
+      "yes": 65.88,
+      "no": 34.12
+    }
+  },
+  {
+    "precinct": "520110",
+    "votes": {
+      "yes": 512,
+      "no": 252,
+      "total": 764
+    },
+    "percentage": {
+      "yes": 67.02,
+      "no": 32.98
+    }
+  },
+  {
+    "precinct": "520220",
+    "votes": {
+      "yes": 662,
+      "no": 368,
+      "total": 1030
+    },
+    "percentage": {
+      "yes": 64.27,
+      "no": 35.73
+    }
+  },
+  {
+    "precinct": "520230",
+    "votes": {
+      "yes": 385,
+      "no": 177,
+      "total": 562
+    },
+    "percentage": {
+      "yes": 68.51,
+      "no": 31.49
+    }
+  },
+  {
+    "precinct": "520240",
+    "votes": {
+      "yes": 197,
+      "no": 166,
+      "total": 363
+    },
+    "percentage": {
+      "yes": 54.27,
+      "no": 45.73
+    }
+  },
+  {
+    "precinct": "520250",
+    "votes": {
+      "yes": 62,
+      "no": 32,
+      "total": 94
+    },
+    "percentage": {
+      "yes": 65.96,
+      "no": 34.04
+    }
+  },
+  {
+    "precinct": "520400",
+    "votes": {
+      "yes": 196,
+      "no": 103,
+      "total": 299
+    },
+    "percentage": {
+      "yes": 65.55,
+      "no": 34.45
+    }
+  },
+  {
+    "precinct": "520410",
+    "votes": {
+      "yes": 18,
+      "no": 11,
+      "total": 29
+    },
+    "percentage": {
+      "yes": 62.07,
+      "no": 37.93
+    }
+  },
+  {
+    "precinct": "520500",
+    "votes": {
+      "yes": 1031,
+      "no": 490,
+      "total": 1521
+    },
+    "percentage": {
+      "yes": 67.78,
+      "no": 32.22
+    }
+  },
+  {
+    "precinct": "520510",
+    "votes": {
+      "yes": 47,
+      "no": 29,
+      "total": 76
+    },
+    "percentage": {
+      "yes": 61.84,
+      "no": 38.16
+    }
+  },
+  {
+    "precinct": "520600",
+    "votes": {
+      "yes": 12,
+      "no": 8,
+      "total": 20
+    },
+    "percentage": {
+      "yes": 60.0,
+      "no": 40.0
+    }
+  },
+  {
+    "precinct": "520630",
+    "votes": {
+      "yes": 22,
+      "no": 22,
+      "total": 44
+    },
+    "percentage": {
+      "yes": 50.0,
+      "no": 50.0
+    }
+  },
+  {
+    "precinct": "520640",
+    "votes": {
+      "yes": 314,
+      "no": 130,
+      "total": 444
+    },
+    "percentage": {
+      "yes": 70.72,
+      "no": 29.28
+    }
+  },
+  {
+    "precinct": "520710",
+    "votes": {
+      "yes": 186,
+      "no": 140,
+      "total": 326
+    },
+    "percentage": {
+      "yes": 57.06,
+      "no": 42.94
+    }
+  },
+  {
+    "precinct": "520720",
+    "votes": {
+      "yes": 8,
+      "no": 12,
+      "total": 20
+    },
+    "percentage": {
+      "yes": 40.0,
+      "no": 60.0
+    }
+  },
+  {
+    "precinct": "520730",
+    "votes": {
+      "yes": 0,
+      "no": 0,
+      "total": 0
+    },
+    "percentage": {
+      "yes": 0,
+      "no": 0
+    }
+  },
+  {
+    "precinct": "520760",
+    "votes": {
+      "yes": 257,
+      "no": 170,
+      "total": 427
+    },
+    "percentage": {
+      "yes": 60.19,
+      "no": 39.81
+    }
+  },
+  {
+    "precinct": "520770",
+    "votes": {
+      "yes": 0,
+      "no": 0,
+      "total": 0
+    },
+    "percentage": {
+      "yes": 0,
+      "no": 0
+    }
+  },
+  {
+    "precinct": "520810",
+    "votes": {
+      "yes": 490,
+      "no": 240,
+      "total": 730
+    },
+    "percentage": {
+      "yes": 67.12,
+      "no": 32.88
+    }
+  },
+  {
+    "precinct": "520850",
+    "votes": {
+      "yes": 259,
+      "no": 123,
+      "total": 382
+    },
+    "percentage": {
+      "yes": 67.8,
+      "no": 32.2
+    }
+  },
+  {
+    "precinct": "520860",
+    "votes": {
+      "yes": 521,
+      "no": 175,
+      "total": 696
+    },
+    "percentage": {
+      "yes": 74.86,
+      "no": 25.14
+    }
+  },
+  {
+    "precinct": "521200",
+    "votes": {
+      "yes": 443,
+      "no": 203,
+      "total": 646
+    },
+    "percentage": {
+      "yes": 68.58,
+      "no": 31.42
+    }
+  },
+  {
+    "precinct": "521500",
+    "votes": {
+      "yes": 592,
+      "no": 291,
+      "total": 883
+    },
+    "percentage": {
+      "yes": 67.04,
+      "no": 32.96
+    }
+  },
+  {
+    "precinct": "522010",
+    "votes": {
+      "yes": 665,
+      "no": 311,
+      "total": 976
+    },
+    "percentage": {
+      "yes": 68.14,
+      "no": 31.86
+    }
+  },
+  {
+    "precinct": "522100",
+    "votes": {
+      "yes": 795,
+      "no": 413,
+      "total": 1208
+    },
+    "percentage": {
+      "yes": 65.81,
+      "no": 34.19
+    }
+  },
+  {
+    "precinct": "522160",
+    "votes": {
+      "yes": 111,
+      "no": 38,
+      "total": 149
+    },
+    "percentage": {
+      "yes": 74.5,
+      "no": 25.5
+    }
+  },
+  {
+    "precinct": "522180",
+    "votes": {
+      "yes": 430,
+      "no": 196,
+      "total": 626
+    },
+    "percentage": {
+      "yes": 68.69,
+      "no": 31.31
+    }
+  },
+  {
+    "precinct": "523100",
+    "votes": {
+      "yes": 145,
+      "no": 60,
+      "total": 205
+    },
+    "percentage": {
+      "yes": 70.73,
+      "no": 29.27
+    }
+  },
+  {
+    "precinct": "523120",
+    "votes": {
+      "yes": 369,
+      "no": 130,
+      "total": 499
+    },
+    "percentage": {
+      "yes": 73.95,
+      "no": 26.05
+    }
+  },
+  {
+    "precinct": "523200",
+    "votes": {
+      "yes": 719,
+      "no": 332,
+      "total": 1051
+    },
+    "percentage": {
+      "yes": 68.41,
+      "no": 31.59
+    }
+  },
+  {
+    "precinct": "523700",
+    "votes": {
+      "yes": 698,
+      "no": 351,
+      "total": 1049
+    },
+    "percentage": {
+      "yes": 66.54,
+      "no": 33.46
+    }
+  },
+  {
+    "precinct": "523720",
+    "votes": {
+      "yes": 305,
+      "no": 129,
+      "total": 434
+    },
+    "percentage": {
+      "yes": 70.28,
+      "no": 29.72
+    }
+  },
+  {
+    "precinct": "532000",
+    "votes": {
+      "yes": 0,
+      "no": 0,
+      "total": 0
+    },
+    "percentage": {
+      "yes": 0,
+      "no": 0
+    }
+  },
+  {
+    "precinct": "532100",
+    "votes": {
+      "yes": 0,
+      "no": 0,
+      "total": 0
+    },
+    "percentage": {
+      "yes": 0,
+      "no": 0
+    }
+  },
+  {
+    "precinct": "532200",
+    "votes": {
+      "yes": 0,
+      "no": 0,
+      "total": 0
+    },
+    "percentage": {
+      "yes": 0,
+      "no": 0
+    }
+  },
+  {
+    "precinct": "532300",
+    "votes": {
+      "yes": 0,
+      "no": 0,
+      "total": 0
+    },
+    "percentage": {
+      "yes": 0,
+      "no": 0
+    }
+  },
+  {
+    "precinct": "532400",
+    "votes": {
+      "yes": 0,
+      "no": 0,
+      "total": 0
+    },
+    "percentage": {
+      "yes": 0,
+      "no": 0
+    }
+  },
+  {
+    "precinct": "535000",
+    "votes": {
+      "yes": 0,
+      "no": 0,
+      "total": 0
+    },
+    "percentage": {
+      "yes": 0,
+      "no": 0
+    }
+  },
+  {
+    "precinct": "535040",
+    "votes": {
+      "yes": 0,
+      "no": 0,
+      "total": 0
+    },
+    "percentage": {
+      "yes": 0,
+      "no": 0
+    }
+  },
+  {
+    "precinct": "535060",
+    "votes": {
+      "yes": 0,
+      "no": 0,
+      "total": 0
+    },
+    "percentage": {
+      "yes": 0,
+      "no": 0
+    }
+  },
+  {
+    "precinct": "535070",
+    "votes": {
+      "yes": 0,
+      "no": 0,
+      "total": 0
+    },
+    "percentage": {
+      "yes": 0,
+      "no": 0
+    }
+  },
+  {
+    "precinct": "535080",
+    "votes": {
+      "yes": 0,
+      "no": 0,
+      "total": 0
+    },
+    "percentage": {
+      "yes": 0,
+      "no": 0
+    }
+  },
+  {
+    "precinct": "535300",
+    "votes": {
+      "yes": 0,
+      "no": 0,
+      "total": 0
+    },
+    "percentage": {
+      "yes": 0,
+      "no": 0
+    }
+  },
+  {
+    "precinct": "535400",
+    "votes": {
+      "yes": 0,
+      "no": 0,
+      "total": 0
+    },
+    "percentage": {
+      "yes": 0,
+      "no": 0
+    }
+  },
+  {
+    "precinct": "535500",
+    "votes": {
+      "yes": 0,
+      "no": 0,
+      "total": 0
+    },
+    "percentage": {
+      "yes": 0,
+      "no": 0
+    }
+  },
+  {
+    "precinct": "535600",
+    "votes": {
+      "yes": 0,
+      "no": 0,
+      "total": 0
+    },
+    "percentage": {
+      "yes": 0,
+      "no": 0
+    }
+  },
+  {
+    "precinct": "535700",
+    "votes": {
+      "yes": 0,
+      "no": 0,
+      "total": 0
+    },
+    "percentage": {
+      "yes": 0,
+      "no": 0
+    }
+  },
+  {
+    "precinct": "535900",
+    "votes": {
+      "yes": 0,
+      "no": 0,
+      "total": 0
+    },
+    "percentage": {
+      "yes": 0,
+      "no": 0
+    }
+  },
+  {
+    "precinct": "540400",
+    "votes": {
+      "yes": 179,
+      "no": 74,
+      "total": 253
+    },
+    "percentage": {
+      "yes": 70.75,
+      "no": 29.25
+    }
+  },
+  {
+    "precinct": "540600",
+    "votes": {
+      "yes": 823,
+      "no": 356,
+      "total": 1179
+    },
+    "percentage": {
+      "yes": 69.8,
+      "no": 30.2
+    }
+  },
+  {
+    "precinct": "540700",
+    "votes": {
+      "yes": 974,
+      "no": 462,
+      "total": 1436
+    },
+    "percentage": {
+      "yes": 67.83,
+      "no": 32.17
+    }
+  },
+  {
+    "precinct": "542000",
+    "votes": {
+      "yes": 521,
+      "no": 228,
+      "total": 749
+    },
+    "percentage": {
+      "yes": 69.56,
+      "no": 30.44
+    }
+  },
+  {
+    "precinct": "542100",
+    "votes": {
+      "yes": 114,
+      "no": 42,
+      "total": 156
+    },
+    "percentage": {
+      "yes": 73.08,
+      "no": 26.92
+    }
+  },
+  {
+    "precinct": "542300",
+    "votes": {
+      "yes": 47,
+      "no": 22,
+      "total": 69
+    },
+    "percentage": {
+      "yes": 68.12,
+      "no": 31.88
+    }
+  },
+  {
+    "precinct": "542310",
+    "votes": {
+      "yes": 6,
+      "no": 12,
+      "total": 18
+    },
+    "percentage": {
+      "yes": 33.33,
+      "no": 66.67
+    }
+  },
+  {
+    "precinct": "543300",
+    "votes": {
+      "yes": 326,
+      "no": 171,
+      "total": 497
+    },
+    "percentage": {
+      "yes": 65.59,
+      "no": 34.41
+    }
+  },
+  {
+    "precinct": "543500",
+    "votes": {
+      "yes": 0,
+      "no": 0,
+      "total": 0
+    },
+    "percentage": {
+      "yes": 0,
+      "no": 0
+    }
+  },
+  {
+    "precinct": "544200",
+    "votes": {
+      "yes": 125,
+      "no": 36,
+      "total": 161
+    },
+    "percentage": {
+      "yes": 77.64,
+      "no": 22.36
+    }
+  },
+  {
+    "precinct": "545500",
+    "votes": {
+      "yes": 533,
+      "no": 198,
+      "total": 731
+    },
+    "percentage": {
+      "yes": 72.91,
+      "no": 27.09
+    }
+  },
+  {
+    "precinct": "546010",
+    "votes": {
+      "yes": 0,
+      "no": 0,
+      "total": 0
+    },
+    "percentage": {
+      "yes": 0,
+      "no": 0
+    }
+  },
+  {
+    "precinct": "546100",
+    "votes": {
+      "yes": 649,
+      "no": 222,
+      "total": 871
+    },
+    "percentage": {
+      "yes": 74.51,
+      "no": 25.49
+    }
+  },
+  {
+    "precinct": "546200",
+    "votes": {
+      "yes": 571,
+      "no": 181,
+      "total": 752
+    },
+    "percentage": {
+      "yes": 75.93,
+      "no": 24.07
+    }
+  },
+  {
+    "precinct": "546400",
+    "votes": {
+      "yes": 0,
+      "no": 0,
+      "total": 0
+    },
+    "percentage": {
+      "yes": 0,
+      "no": 0
+    }
+  },
+  {
+    "precinct": "546710",
+    "votes": {
+      "yes": 39,
+      "no": 19,
+      "total": 58
+    },
+    "percentage": {
+      "yes": 67.24,
+      "no": 32.76
+    }
+  },
+  {
+    "precinct": "547720",
+    "votes": {
+      "yes": 627,
+      "no": 266,
+      "total": 893
+    },
+    "percentage": {
+      "yes": 70.21,
+      "no": 29.79
+    }
+  },
+  {
+    "precinct": "547760",
+    "votes": {
+      "yes": 447,
+      "no": 186,
+      "total": 633
+    },
+    "percentage": {
+      "yes": 70.62,
+      "no": 29.38
+    }
+  },
+  {
+    "precinct": "547770",
+    "votes": {
+      "yes": 300,
+      "no": 112,
+      "total": 412
+    },
+    "percentage": {
+      "yes": 72.82,
+      "no": 27.18
+    }
+  },
+  {
+    "precinct": "547900",
+    "votes": {
+      "yes": 416,
+      "no": 178,
+      "total": 594
+    },
+    "percentage": {
+      "yes": 70.03,
+      "no": 29.97
+    }
+  },
+  {
+    "precinct": "547910",
+    "votes": {
+      "yes": 18,
+      "no": 10,
+      "total": 28
+    },
+    "percentage": {
+      "yes": 64.29,
+      "no": 35.71
+    }
+  },
+  {
+    "precinct": "547930",
+    "votes": {
+      "yes": 12,
+      "no": 6,
+      "total": 18
+    },
+    "percentage": {
+      "yes": 66.67,
+      "no": 33.33
+    }
+  },
+  {
+    "precinct": "810910",
+    "votes": {
+      "yes": 0,
+      "no": 0,
+      "total": 0
+    },
+    "percentage": {
+      "yes": 0,
+      "no": 0
+    }
+  },
+  {
+    "precinct": "815140",
+    "votes": {
+      "yes": 0,
+      "no": 0,
+      "total": 0
+    },
+    "percentage": {
+      "yes": 0,
+      "no": 0
+    }
+  },
+  {
+    "precinct": "819010",
+    "votes": {
+      "yes": 0,
+      "no": 0,
+      "total": 0
+    },
+    "percentage": {
+      "yes": 0,
+      "no": 0
+    }
+  },
+  {
+    "precinct": "819100",
+    "votes": {
+      "yes": 0,
+      "no": 0,
+      "total": 0
+    },
+    "percentage": {
+      "yes": 0,
+      "no": 0
+    }
+  },
+  {
+    "precinct": "820000",
+    "votes": {
+      "yes": 0,
+      "no": 0,
+      "total": 0
+    },
+    "percentage": {
+      "yes": 0,
+      "no": 0
+    }
+  },
+  {
+    "precinct": "820010",
+    "votes": {
+      "yes": 0,
+      "no": 0,
+      "total": 0
+    },
+    "percentage": {
+      "yes": 0,
+      "no": 0
+    }
+  },
+  {
+    "precinct": "821110",
+    "votes": {
+      "yes": 472,
+      "no": 149,
+      "total": 621
+    },
+    "percentage": {
+      "yes": 76.01,
+      "no": 23.99
+    }
+  },
+  {
+    "precinct": "821120",
+    "votes": {
+      "yes": 450,
+      "no": 178,
+      "total": 628
+    },
+    "percentage": {
+      "yes": 71.66,
+      "no": 28.34
+    }
+  },
+  {
+    "precinct": "821210",
+    "votes": {
+      "yes": 712,
+      "no": 267,
+      "total": 979
+    },
+    "percentage": {
+      "yes": 72.73,
+      "no": 27.27
+    }
+  },
+  {
+    "precinct": "821230",
+    "votes": {
+      "yes": 27,
+      "no": 8,
+      "total": 35
+    },
+    "percentage": {
+      "yes": 77.14,
+      "no": 22.86
+    }
+  },
+  {
+    "precinct": "821700",
+    "votes": {
+      "yes": 678,
+      "no": 266,
+      "total": 944
+    },
+    "percentage": {
+      "yes": 71.82,
+      "no": 28.18
+    }
+  },
+  {
+    "precinct": "821800",
+    "votes": {
+      "yes": 773,
+      "no": 226,
+      "total": 999
+    },
+    "percentage": {
+      "yes": 77.38,
+      "no": 22.62
+    }
+  },
+  {
+    "precinct": "821900",
+    "votes": {
+      "yes": 518,
+      "no": 237,
+      "total": 755
+    },
+    "percentage": {
+      "yes": 68.61,
+      "no": 31.39
+    }
+  },
+  {
+    "precinct": "821920",
+    "votes": {
+      "yes": 38,
+      "no": 18,
+      "total": 56
+    },
+    "percentage": {
+      "yes": 67.86,
+      "no": 32.14
+    }
+  },
+  {
+    "precinct": "822030",
+    "votes": {
+      "yes": 0,
+      "no": 0,
+      "total": 0
+    },
+    "percentage": {
+      "yes": 0,
+      "no": 0
+    }
+  },
+  {
+    "precinct": "822200",
+    "votes": {
+      "yes": 928,
+      "no": 342,
+      "total": 1270
+    },
+    "percentage": {
+      "yes": 73.07,
+      "no": 26.93
+    }
+  },
+  {
+    "precinct": "822900",
+    "votes": {
+      "yes": 91,
+      "no": 42,
+      "total": 133
+    },
+    "percentage": {
+      "yes": 68.42,
+      "no": 31.58
+    }
+  },
+  {
+    "precinct": "823030",
+    "votes": {
+      "yes": 0,
+      "no": 0,
+      "total": 0
+    },
+    "percentage": {
+      "yes": 0,
+      "no": 0
+    }
+  },
+  {
+    "precinct": "823200",
+    "votes": {
+      "yes": 447,
+      "no": 119,
+      "total": 566
+    },
+    "percentage": {
+      "yes": 78.98,
+      "no": 21.02
+    }
+  },
+  {
+    "precinct": "823300",
+    "votes": {
+      "yes": 424,
+      "no": 134,
+      "total": 558
+    },
+    "percentage": {
+      "yes": 75.99,
+      "no": 24.01
+    }
+  },
+  {
+    "precinct": "823400",
+    "votes": {
+      "yes": 571,
+      "no": 180,
+      "total": 751
+    },
+    "percentage": {
+      "yes": 76.03,
+      "no": 23.97
+    }
+  },
+  {
+    "precinct": "823500",
+    "votes": {
+      "yes": 403,
+      "no": 173,
+      "total": 576
+    },
+    "percentage": {
+      "yes": 69.97,
+      "no": 30.03
+    }
+  },
+  {
+    "precinct": "823710",
+    "votes": {
+      "yes": 650,
+      "no": 211,
+      "total": 861
+    },
+    "percentage": {
+      "yes": 75.49,
+      "no": 24.51
+    }
+  },
+  {
+    "precinct": "823720",
+    "votes": {
+      "yes": 182,
+      "no": 89,
+      "total": 271
+    },
+    "percentage": {
+      "yes": 67.16,
+      "no": 32.84
+    }
+  },
+  {
+    "precinct": "824100",
+    "votes": {
+      "yes": 380,
+      "no": 153,
+      "total": 533
+    },
+    "percentage": {
+      "yes": 71.29,
+      "no": 28.71
+    }
+  },
+  {
+    "precinct": "830320",
+    "votes": {
+      "yes": 531,
+      "no": 176,
+      "total": 707
+    },
+    "percentage": {
+      "yes": 75.11,
+      "no": 24.89
+    }
+  },
+  {
+    "precinct": "830400",
+    "votes": {
+      "yes": 0,
+      "no": 0,
+      "total": 0
+    },
+    "percentage": {
+      "yes": 0,
+      "no": 0
+    }
+  },
+  {
+    "precinct": "830410",
+    "votes": {
+      "yes": 0,
+      "no": 0,
+      "total": 0
+    },
+    "percentage": {
+      "yes": 0,
+      "no": 0
+    }
+  },
+  {
+    "precinct": "830500",
+    "votes": {
+      "yes": 806,
+      "no": 307,
+      "total": 1113
+    },
+    "percentage": {
+      "yes": 72.42,
+      "no": 27.58
+    }
+  },
+  {
+    "precinct": "831000",
+    "votes": {
+      "yes": 1016,
+      "no": 378,
+      "total": 1394
+    },
+    "percentage": {
+      "yes": 72.88,
+      "no": 27.12
+    }
+  },
+  {
+    "precinct": "831200",
+    "votes": {
+      "yes": 490,
+      "no": 205,
+      "total": 695
+    },
+    "percentage": {
+      "yes": 70.5,
+      "no": 29.5
+    }
+  },
+  {
+    "precinct": "831410",
+    "votes": {
+      "yes": 952,
+      "no": 406,
+      "total": 1358
+    },
+    "percentage": {
+      "yes": 70.1,
+      "no": 29.9
+    }
+  },
+  {
+    "precinct": "831500",
+    "votes": {
+      "yes": 991,
+      "no": 475,
+      "total": 1466
+    },
+    "percentage": {
+      "yes": 67.6,
+      "no": 32.4
+    }
+  },
+  {
+    "precinct": "831710",
+    "votes": {
+      "yes": 115,
+      "no": 61,
+      "total": 176
+    },
+    "percentage": {
+      "yes": 65.34,
+      "no": 34.66
+    }
+  },
+  {
+    "precinct": "831730",
+    "votes": {
+      "yes": 474,
+      "no": 205,
+      "total": 679
+    },
+    "percentage": {
+      "yes": 69.81,
+      "no": 30.19
+    }
+  },
+  {
+    "precinct": "831810",
+    "votes": {
+      "yes": 586,
+      "no": 291,
+      "total": 877
+    },
+    "percentage": {
+      "yes": 66.82,
+      "no": 33.18
+    }
+  },
+  {
+    "precinct": "831930",
+    "votes": {
+      "yes": 450,
+      "no": 173,
+      "total": 623
+    },
+    "percentage": {
+      "yes": 72.23,
+      "no": 27.77
+    }
+  },
+  {
+    "precinct": "832010",
+    "votes": {
+      "yes": 271,
+      "no": 110,
+      "total": 381
+    },
+    "percentage": {
+      "yes": 71.13,
+      "no": 28.87
+    }
+  },
+  {
+    "precinct": "832200",
+    "votes": {
+      "yes": 616,
+      "no": 271,
+      "total": 887
+    },
+    "percentage": {
+      "yes": 69.45,
+      "no": 30.55
+    }
+  },
+  {
+    "precinct": "832400",
+    "votes": {
+      "yes": 774,
+      "no": 348,
+      "total": 1122
+    },
+    "percentage": {
+      "yes": 68.98,
+      "no": 31.02
+    }
+  },
+  {
+    "precinct": "832500",
+    "votes": {
+      "yes": 479,
+      "no": 247,
+      "total": 726
+    },
+    "percentage": {
+      "yes": 65.98,
+      "no": 34.02
+    }
+  },
+  {
+    "precinct": "832600",
+    "votes": {
+      "yes": 828,
+      "no": 380,
+      "total": 1208
+    },
+    "percentage": {
+      "yes": 68.54,
+      "no": 31.46
+    }
+  },
+  {
+    "precinct": "832620",
+    "votes": {
+      "yes": 413,
+      "no": 167,
+      "total": 580
+    },
+    "percentage": {
+      "yes": 71.21,
+      "no": 28.79
+    }
+  },
+  {
+    "precinct": "833010",
+    "votes": {
+      "yes": 578,
+      "no": 214,
+      "total": 792
+    },
+    "percentage": {
+      "yes": 72.98,
+      "no": 27.02
+    }
+  },
+  {
+    "precinct": "833200",
+    "votes": {
+      "yes": 631,
+      "no": 258,
+      "total": 889
+    },
+    "percentage": {
+      "yes": 70.98,
+      "no": 29.02
+    }
+  },
+  {
+    "precinct": "833300",
+    "votes": {
+      "yes": 700,
+      "no": 352,
+      "total": 1052
+    },
+    "percentage": {
+      "yes": 66.54,
+      "no": 33.46
+    }
+  },
+  {
+    "precinct": "833400",
+    "votes": {
+      "yes": 664,
+      "no": 279,
+      "total": 943
+    },
+    "percentage": {
+      "yes": 70.41,
+      "no": 29.59
+    }
+  },
+  {
+    "precinct": "833410",
+    "votes": {
+      "yes": 508,
+      "no": 307,
+      "total": 815
+    },
+    "percentage": {
+      "yes": 62.33,
+      "no": 37.67
+    }
+  },
+  {
+    "precinct": "833710",
+    "votes": {
+      "yes": 362,
+      "no": 172,
+      "total": 534
+    },
+    "percentage": {
+      "yes": 67.79,
+      "no": 32.21
+    }
+  },
+  {
+    "precinct": "834020",
+    "votes": {
+      "yes": 0,
+      "no": 0,
+      "total": 0
+    },
+    "percentage": {
+      "yes": 0,
+      "no": 0
+    }
+  },
+  {
+    "precinct": "834200",
+    "votes": {
+      "yes": 710,
+      "no": 258,
+      "total": 968
+    },
+    "percentage": {
+      "yes": 73.35,
+      "no": 26.65
+    }
+  },
+  {
+    "precinct": "834600",
+    "votes": {
+      "yes": 457,
+      "no": 174,
+      "total": 631
+    },
+    "percentage": {
+      "yes": 72.42,
+      "no": 27.58
+    }
+  },
+  {
+    "precinct": "834700",
+    "votes": {
+      "yes": 311,
+      "no": 103,
+      "total": 414
+    },
+    "percentage": {
+      "yes": 75.12,
+      "no": 24.88
+    }
+  },
+  {
+    "precinct": "835020",
+    "votes": {
+      "yes": 282,
+      "no": 121,
+      "total": 403
+    },
+    "percentage": {
+      "yes": 69.98,
+      "no": 30.02
+    }
+  },
+  {
+    "precinct": "835200",
+    "votes": {
+      "yes": 134,
+      "no": 40,
+      "total": 174
+    },
+    "percentage": {
+      "yes": 77.01,
+      "no": 22.99
+    }
+  },
+  {
+    "precinct": "835310",
+    "votes": {
+      "yes": 438,
+      "no": 156,
+      "total": 594
+    },
+    "percentage": {
+      "yes": 73.74,
+      "no": 26.26
+    }
+  },
+  {
+    "precinct": "835500",
+    "votes": {
+      "yes": 123,
+      "no": 45,
+      "total": 168
+    },
+    "percentage": {
+      "yes": 73.21,
+      "no": 26.79
+    }
+  },
+  {
+    "precinct": "835710",
+    "votes": {
+      "yes": 523,
+      "no": 183,
+      "total": 706
+    },
+    "percentage": {
+      "yes": 74.08,
+      "no": 25.92
+    }
+  },
+  {
+    "precinct": "835830",
+    "votes": {
+      "yes": 283,
+      "no": 96,
+      "total": 379
+    },
+    "percentage": {
+      "yes": 74.67,
+      "no": 25.33
+    }
+  },
+  {
+    "precinct": "836010",
+    "votes": {
+      "yes": 901,
+      "no": 402,
+      "total": 1303
+    },
+    "percentage": {
+      "yes": 69.15,
+      "no": 30.85
+    }
+  },
+  {
+    "precinct": "836500",
+    "votes": {
+      "yes": 792,
+      "no": 375,
+      "total": 1167
+    },
+    "percentage": {
+      "yes": 67.87,
+      "no": 32.13
+    }
+  },
+  {
+    "precinct": "837100",
+    "votes": {
+      "yes": 410,
+      "no": 182,
+      "total": 592
+    },
+    "percentage": {
+      "yes": 69.26,
+      "no": 30.74
+    }
+  },
+  {
+    "precinct": "837300",
+    "votes": {
+      "yes": 425,
+      "no": 157,
+      "total": 582
+    },
+    "percentage": {
+      "yes": 73.02,
+      "no": 26.98
+    }
+  },
+  {
+    "precinct": "837600",
+    "votes": {
+      "yes": 851,
+      "no": 414,
+      "total": 1265
+    },
+    "percentage": {
+      "yes": 67.27,
+      "no": 32.73
+    }
+  },
+  {
+    "precinct": "837700",
+    "votes": {
+      "yes": 466,
+      "no": 174,
+      "total": 640
+    },
+    "percentage": {
+      "yes": 72.81,
+      "no": 27.19
+    }
+  },
+  {
+    "precinct": "838000",
+    "votes": {
+      "yes": 372,
+      "no": 234,
+      "total": 606
+    },
+    "percentage": {
+      "yes": 61.39,
+      "no": 38.61
+    }
+  },
+  {
+    "precinct": "838120",
+    "votes": {
+      "yes": 268,
+      "no": 110,
+      "total": 378
+    },
+    "percentage": {
+      "yes": 70.9,
+      "no": 29.1
+    }
+  },
+  {
+    "precinct": "838700",
+    "votes": {
+      "yes": 768,
+      "no": 352,
+      "total": 1120
+    },
+    "percentage": {
+      "yes": 68.57,
+      "no": 31.43
+    }
+  },
+  {
+    "precinct": "839040",
+    "votes": {
+      "yes": 349,
+      "no": 165,
+      "total": 514
+    },
+    "percentage": {
+      "yes": 67.9,
+      "no": 32.1
+    }
+  },
+  {
+    "precinct": "839100",
+    "votes": {
+      "yes": 187,
+      "no": 95,
+      "total": 282
+    },
+    "percentage": {
+      "yes": 66.31,
+      "no": 33.69
+    }
+  },
+  {
+    "precinct": "839220",
+    "votes": {
+      "yes": 0,
+      "no": 0,
+      "total": 0
+    },
+    "percentage": {
+      "yes": 0,
+      "no": 0
+    }
+  },
+  {
+    "precinct": "839240",
+    "votes": {
+      "yes": 248,
+      "no": 100,
+      "total": 348
+    },
+    "percentage": {
+      "yes": 71.26,
+      "no": 28.74
+    }
+  },
+  {
+    "precinct": "839300",
+    "votes": {
+      "yes": 3,
+      "no": 9,
+      "total": 12
+    },
+    "percentage": {
+      "yes": 25.0,
+      "no": 75.0
+    }
+  },
+  {
+    "precinct": "850330",
+    "votes": {
+      "yes": 888,
+      "no": 371,
+      "total": 1259
+    },
+    "percentage": {
+      "yes": 70.53,
+      "no": 29.47
+    }
+  },
+  {
+    "precinct": "850500",
+    "votes": {
+      "yes": 910,
+      "no": 395,
+      "total": 1305
+    },
+    "percentage": {
+      "yes": 69.73,
+      "no": 30.27
+    }
+  },
+  {
+    "precinct": "850800",
+    "votes": {
+      "yes": 362,
+      "no": 128,
+      "total": 490
+    },
+    "percentage": {
+      "yes": 73.88,
+      "no": 26.12
+    }
+  },
+  {
+    "precinct": "851000",
+    "votes": {
+      "yes": 853,
+      "no": 348,
+      "total": 1201
+    },
+    "percentage": {
+      "yes": 71.02,
+      "no": 28.98
+    }
+  },
+  {
+    "precinct": "851520",
+    "votes": {
+      "yes": 1047,
+      "no": 413,
+      "total": 1460
+    },
+    "percentage": {
+      "yes": 71.71,
+      "no": 28.29
+    }
+  },
+  {
+    "precinct": "852010",
+    "votes": {
+      "yes": 860,
+      "no": 392,
+      "total": 1252
+    },
+    "percentage": {
+      "yes": 68.69,
+      "no": 31.31
+    }
+  },
+  {
+    "precinct": "866800",
+    "votes": {
+      "yes": 130,
+      "no": 73,
+      "total": 203
+    },
+    "percentage": {
+      "yes": 64.04,
+      "no": 35.96
+    }
+  },
+  {
+    "precinct": "866830",
+    "votes": {
+      "yes": 19,
+      "no": 25,
+      "total": 44
+    },
+    "percentage": {
+      "yes": 43.18,
+      "no": 56.82
+    }
+  },
+  {
+    "precinct": "866910",
+    "votes": {
+      "yes": 2,
+      "no": 10,
+      "total": 12
+    },
+    "percentage": {
+      "yes": 16.67,
+      "no": 83.33
+    }
+  },
+  {
+    "precinct": "866920",
+    "votes": {
+      "yes": 0,
+      "no": 0,
+      "total": 0
+    },
+    "percentage": {
+      "yes": 0,
+      "no": 0
+    }
+  },
+  {
+    "precinct": "867110",
+    "votes": {
+      "yes": 0,
+      "no": 0,
+      "total": 0
+    },
+    "percentage": {
+      "yes": 0,
+      "no": 0
+    }
+  },
+  {
+    "precinct": "867200",
+    "votes": {
+      "yes": 0,
+      "no": 0,
+      "total": 0
+    },
+    "percentage": {
+      "yes": 0,
+      "no": 0
+    }
+  },
+  {
+    "precinct": "867310",
+    "votes": {
+      "yes": 0,
+      "no": 0,
+      "total": 0
+    },
+    "percentage": {
+      "yes": 0,
+      "no": 0
+    }
+  },
+  {
+    "precinct": "870010",
+    "votes": {
+      "yes": 8,
+      "no": 10,
+      "total": 18
+    },
+    "percentage": {
+      "yes": 44.44,
+      "no": 55.56
+    }
+  },
+  {
+    "precinct": "870100",
+    "votes": {
+      "yes": 0,
+      "no": 0,
+      "total": 0
+    },
+    "percentage": {
+      "yes": 0,
+      "no": 0
+    }
+  },
+  {
+    "precinct": "870110",
+    "votes": {
+      "yes": 0,
+      "no": 0,
+      "total": 0
+    },
+    "percentage": {
+      "yes": 0,
+      "no": 0
+    }
+  },
+  {
+    "precinct": "870120",
+    "votes": {
+      "yes": 0,
+      "no": 0,
+      "total": 0
+    },
+    "percentage": {
+      "yes": 0,
+      "no": 0
+    }
+  },
+  {
+    "precinct": "880220",
+    "votes": {
+      "yes": 0,
+      "no": 0,
+      "total": 0
+    },
+    "percentage": {
+      "yes": 0,
+      "no": 0
+    }
+  },
+  {
+    "precinct": "880400",
+    "votes": {
+      "yes": 0,
+      "no": 0,
+      "total": 0
+    },
+    "percentage": {
+      "yes": 0,
+      "no": 0
+    }
+  },
+  {
+    "precinct": "880500",
+    "votes": {
+      "yes": 0,
+      "no": 0,
+      "total": 0
+    },
+    "percentage": {
+      "yes": 0,
+      "no": 0
+    }
+  }
+]
