@@ -194,6 +194,7 @@ function zoomToFeature(e) {
 var selectedPrecincts = [];
 var isSelectionMode = false;
 var currentCityName = null;
+var voteMethodSectionExpanded = false;
 
 // Hash-based URL parsing and building (works with static file servers)
 function parseHashParams() {
@@ -1231,13 +1232,13 @@ function generateVoteMethodBarGraph(config) {
     }
     
     var html = `
-        <div style="margin-bottom: ${SIZES.MARGIN_BOTTOM_MEDIUM};">
-            <div style="display: flex; justify-content: space-between; align-items: center; position: relative; margin-bottom: ${SIZES.MARGIN_BOTTOM_SMALL}; font-size: ${SIZES.PERCENTAGE_FONT_SIZE}; font-weight: 500; color: ${OPACITY.TEXT_PRIMARY};">
+        <div class="vote-method-bar-wrapper" style="margin-bottom: ${SIZES.MARGIN_BOTTOM_MEDIUM};">
+            <div class="vote-method-label-row" style="position: relative; margin-bottom: ${SIZES.MARGIN_BOTTOM_SMALL}; font-size: ${SIZES.PERCENTAGE_FONT_SIZE}; font-weight: 500; color: ${OPACITY.TEXT_PRIMARY}; padding: 0; width: 100%;">
                 <span>${yesPct.toFixed(1)}%</span>
                 <span style="position: absolute; left: 50%; transform: translateX(-50%); font-size: ${SIZES.LABEL_FONT_SIZE}; color: ${OPACITY.TEXT_SECONDARY}; font-weight: normal;">${label} – ${totalVotes.toLocaleString()} votes</span>
                 <span>${noPct.toFixed(1)}%</span>
             </div>
-            <div class="bar-graph" style="height: ${SIZES.BAR_GRAPH_HEIGHT}; position: relative; display: flex; overflow: hidden; border-radius: ${SIZES.BAR_GRAPH_BORDER_RADIUS}; background: ${OPACITY.BACKGROUND_LIGHT};">
+            <div class="bar-graph" style="height: ${SIZES.BAR_GRAPH_HEIGHT}; position: relative; display: flex; overflow: hidden; border-radius: ${SIZES.BAR_GRAPH_BORDER_RADIUS}; background: ${OPACITY.BACKGROUND_LIGHT}; margin: 0; width: 100%;">
                 <div class="bar-graph-yes" style="width: ${yesPct}%; height: 100%; background: ${yesColor}; flex-shrink: 0;"></div>
                 <div class="bar-graph-no" style="width: ${noPct}%; height: 100%; background: ${noColor}; flex-shrink: 0;"></div>
                 ${countyAvgPct !== undefined ? `
@@ -1449,30 +1450,54 @@ function generateVoteMethodBreakdownHTML(props, voteData) {
     
     return `
         <div class="vote-method-breakdown" style="margin-top: ${SIZES.MARGIN_TOP_SECTION}; padding-top: ${SIZES.MARGIN_TOP_SECTION}; border-top: 1px solid ${OPACITY.BORDER_LIGHT};">
-            <div style="font-size: ${SIZES.SECTION_FONT_SIZE}; font-weight: 500; color: ${OPACITY.TEXT_SECONDARY}; margin-bottom: ${SIZES.MARGIN_BOTTOM_MEDIUM}; text-transform: uppercase; letter-spacing: 0.5px;">Vote Method</div>
-            ${generateVoteMethodBarGraph({
-                yesPct: mailInYesPct,
-                noPct: mailInNoPct,
-                totalVotes: safeGet(mailInVotes, 'total', 0) || 0,
-                label: 'MAIL IN',
-                countyAvgPct: countyTotals.mailInYesPct
-            })}
-            ${generateVoteMethodBarGraph({
-                yesPct: inPersonYesPct,
-                noPct: inPersonNoPct,
-                totalVotes: safeGet(inPersonVotes, 'total', 0) || 0,
-                label: 'IN PERSON',
-                countyAvgPct: countyTotals.inPersonYesPct
-            })}
-            ${generateMethodBreakdownBarGraph({
-                mailInPct: mailInPctOfTotal,
-                inPersonPct: inPersonPctOfTotal,
-                totalVotes: methodBreakdownTotal,
-                countyAvgPct: countyTotals.mailInPctOfTotal
-            })}
+            <div class="vote-method-header" onclick="toggleVoteMethodSection(this)">
+                <span>Vote Method</span>
+                <span class="vote-method-arrow">▶</span>
+            </div>
+            <div class="vote-method-content">
+                ${generateVoteMethodBarGraph({
+                    yesPct: mailInYesPct,
+                    noPct: mailInNoPct,
+                    totalVotes: safeGet(mailInVotes, 'total', 0) || 0,
+                    label: 'MAIL IN',
+                    countyAvgPct: countyTotals.mailInYesPct
+                })}
+                ${generateVoteMethodBarGraph({
+                    yesPct: inPersonYesPct,
+                    noPct: inPersonNoPct,
+                    totalVotes: safeGet(inPersonVotes, 'total', 0) || 0,
+                    label: 'IN PERSON',
+                    countyAvgPct: countyTotals.inPersonYesPct
+                })}
+                ${generateMethodBreakdownBarGraph({
+                    mailInPct: mailInPctOfTotal,
+                    inPersonPct: inPersonPctOfTotal,
+                    totalVotes: methodBreakdownTotal,
+                    countyAvgPct: countyTotals.mailInPctOfTotal
+                })}
+            </div>
         </div>
     `;
 }
+
+// Toggle vote method section
+function toggleVoteMethodSection(header) {
+    var content = header.nextElementSibling;
+    var arrow = header.querySelector('.vote-method-arrow');
+    
+    if (content.classList.contains('expanded')) {
+        content.classList.remove('expanded');
+        arrow.classList.remove('expanded');
+        voteMethodSectionExpanded = false;
+    } else {
+        content.classList.add('expanded');
+        arrow.classList.add('expanded');
+        voteMethodSectionExpanded = true;
+    }
+}
+
+// Make toggleVoteMethodSection globally accessible
+window.toggleVoteMethodSection = toggleVoteMethodSection;
 
 // Update info section in bottom panel
 function updateInfoSection(props) {
@@ -1506,6 +1531,19 @@ function updateInfoSection(props) {
         }
         
         infoSection.innerHTML = content;
+        
+        // Restore vote method section expanded state if it was previously expanded
+        if (voteMethodSectionExpanded) {
+            var voteMethodHeader = infoSection.querySelector('.vote-method-header');
+            if (voteMethodHeader) {
+                var voteMethodContent = voteMethodHeader.nextElementSibling;
+                var voteMethodArrow = voteMethodHeader.querySelector('.vote-method-arrow');
+                if (voteMethodContent && voteMethodArrow) {
+                    voteMethodContent.classList.add('expanded');
+                    voteMethodArrow.classList.add('expanded');
+                }
+            }
+        }
         
         // Get new height and transition
         setTimeout(function() {
