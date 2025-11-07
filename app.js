@@ -1,5 +1,5 @@
 // Initialize map centered on Alameda County
-var map = L.map('map').setView([37.8044, -122.2712], 10);
+var map = L.map('map', { zoomControl: false }).setView([37.8044, -122.2712], 10);
 
 // Add CartoDB Positron (Light) tile layer
 L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
