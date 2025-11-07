@@ -79,7 +79,13 @@ function resetHighlight(e) {
     } else {
         geojsonLayer.resetStyle(layer);
     }
-    updateInfoSection(null);
+    
+    // If precincts are selected, show aggregated totals; otherwise show county totals
+    if (selectedPrecincts.length > 0) {
+        updateAggregatedTotals();
+    } else {
+        updateInfoSection(null);
+    }
 }
 
 // Zoom to feature on click
@@ -332,7 +338,9 @@ function restoreSelectionFromURL() {
                 var lngDiff = east - west;
                 
                 // Shift center north to account for bottom panel (add more padding to south)
-                var southPadding = latDiff * padding * 3; // More padding on south
+                var isMobile = window.innerWidth <= 768;
+                var southPaddingMultiplier = isMobile ? 4 : 3; // Even more padding on mobile
+                var southPadding = latDiff * padding * southPaddingMultiplier; // More padding on south
                 var northPadding = latDiff * padding * 0.3; // Less padding on north
                 
                 var paddedBounds = L.latLngBounds([
@@ -341,7 +349,11 @@ function restoreSelectionFromURL() {
                 ]);
                 
                 // Add more padding to bottom to account for bottom panel
-                map.fitBounds(paddedBounds, { padding: [50, 50, 250, 50] }); // top, right, bottom, left
+                // Calculate bottom panel height dynamically
+                var bottomPanel = document.getElementById('bottom-panel');
+                var bottomPadding = bottomPanel ? bottomPanel.offsetHeight + (isMobile ? 30 : 20) : (isMobile ? 350 : 250);
+                
+                map.fitBounds(paddedBounds, { padding: [50, 50, bottomPadding, 50] }); // top, right, bottom, left
             }
         }
     }, 1000);
