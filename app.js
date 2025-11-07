@@ -389,12 +389,10 @@ function toggleMapMode() {
     // Update URL parameter
     updateModeURL();
     
-    // Update button text (show what you'll switch TO next time)
+    // Update button text to show current mode
     var btn = document.getElementById('toggle-mode-btn');
     if (btn) {
-        // If currently in proportional, button says "Switch to Shaded"
-        // If currently in shaded, button says "Switch to Proportional Symbols"
-        btn.textContent = mapMode === 'proportional' ? 'Switch to Shaded' : 'Switch to Proportional Symbols';
+        btn.textContent = mapMode === 'proportional' ? 'Mode – Proportional Districts' : 'Mode – Shaded Districts';
     }
     
     if (mapMode === 'proportional') {
@@ -1185,7 +1183,7 @@ Promise.all([
         // Update button text based on initial mode
         var btn = document.getElementById('toggle-mode-btn');
         if (btn) {
-            btn.textContent = mapMode === 'proportional' ? 'Switch to Shaded' : 'Switch to Proportional Symbols';
+            btn.textContent = mapMode === 'proportional' ? 'Mode – Proportional Districts' : 'Mode – Shaded Districts';
         }
         
         // Restore selection from URL if present (do this first to set currentCityName)
