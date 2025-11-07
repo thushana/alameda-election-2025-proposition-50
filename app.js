@@ -470,12 +470,40 @@ function updateAggregatedTotals() {
         count: selectedPrecincts.length
     };
     
+    // Aggregate vote_method data
+    var mailInAggregated = {
+        yes: 0,
+        no: 0,
+        total: 0
+    };
+    var inPersonAggregated = {
+        yes: 0,
+        no: 0,
+        total: 0
+    };
+    
     selectedPrecincts.forEach(function(item) {
         var props = item.feature.properties;
         if (props.votes) {
             if (props.votes.yes) aggregated.yes += props.votes.yes;
             if (props.votes.no) aggregated.no += props.votes.no;
             if (props.votes.total) aggregated.total += props.votes.total;
+        }
+        
+        // Aggregate vote_method data
+        if (props.vote_method) {
+            if (props.vote_method.mail_in && props.vote_method.mail_in.votes) {
+                var mailIn = props.vote_method.mail_in.votes;
+                if (mailIn.yes) mailInAggregated.yes += mailIn.yes;
+                if (mailIn.no) mailInAggregated.no += mailIn.no;
+                if (mailIn.total) mailInAggregated.total += mailIn.total;
+            }
+            if (props.vote_method.in_person && props.vote_method.in_person.votes) {
+                var inPerson = props.vote_method.in_person.votes;
+                if (inPerson.yes) inPersonAggregated.yes += inPerson.yes;
+                if (inPerson.no) inPersonAggregated.no += inPerson.no;
+                if (inPerson.total) inPersonAggregated.total += inPerson.total;
+            }
         }
     });
     
@@ -486,6 +514,29 @@ function updateAggregatedTotals() {
     } else {
         aggregated.yesPct = 0;
         aggregated.noPct = 0;
+    }
+    
+    // Calculate vote_method percentages
+    var voteMethod = null;
+    if (mailInAggregated.total > 0 || inPersonAggregated.total > 0) {
+        voteMethod = {
+            mail_in: {
+                votes: mailInAggregated,
+                percentage: {
+                    yes: mailInAggregated.total > 0 ? (mailInAggregated.yes / mailInAggregated.total) * 100 : 0,
+                    no: mailInAggregated.total > 0 ? (mailInAggregated.no / mailInAggregated.total) * 100 : 0
+                },
+                percentage_of_total: aggregated.total > 0 ? (mailInAggregated.total / aggregated.total) * 100 : 0
+            },
+            in_person: {
+                votes: inPersonAggregated,
+                percentage: {
+                    yes: inPersonAggregated.total > 0 ? (inPersonAggregated.yes / inPersonAggregated.total) * 100 : 0,
+                    no: inPersonAggregated.total > 0 ? (inPersonAggregated.no / inPersonAggregated.total) * 100 : 0
+                },
+                percentage_of_total: aggregated.total > 0 ? (inPersonAggregated.total / aggregated.total) * 100 : 0
+            }
+        };
     }
     
     // Create aggregated properties object
@@ -503,6 +554,11 @@ function updateAggregatedTotals() {
             no: aggregated.noPct
         }
     };
+    
+    // Add vote_method if available
+    if (voteMethod) {
+        aggregatedProps.vote_method = voteMethod;
+    }
     
     updateInfoSection(aggregatedProps);
 }
@@ -597,6 +653,40 @@ function restoreSelectionFromURL() {
         console.log('restoreSelectionFromURL: geojsonLayer not ready');
         return;
     }
+    
+    // Clear existing selection first to prevent accumulation
+    // Reset visual styles of previously selected precincts
+    selectedPrecincts.forEach(function(item) {
+        if (item.layer) {
+            var isCircle = item.layer instanceof L.CircleMarker;
+            var yesPct = item.feature && item.feature.properties.percentage ? 
+                        item.feature.properties.percentage.yes : null;
+            
+            if (isCircle) {
+                var voteCount = item.feature && item.feature.properties.votes ? 
+                              item.feature.properties.votes.total : 0;
+                item.layer.setStyle({
+                    radius: getCircleRadius(voteCount),
+                    fillColor: getColor(yesPct),
+                    color: '#fff',
+                    weight: 1,
+                    fillOpacity: 0.7
+                });
+            } else {
+                // Reset polygon style
+                item.layer.setStyle({
+                    weight: 1,
+                    color: yesPct === null ? '#999999' : 'white',
+                    fillOpacity: 0.7,
+                    dashArray: yesPct === null ? '5,5' : '3',
+                    fillColor: getColor(yesPct)
+                });
+            }
+        }
+    });
+    
+    selectedPrecincts = [];
+    isSelectionMode = false;
     
     var precinctIds = [];
     var hashParams = parseHashParams();
@@ -819,27 +909,110 @@ if (mapMode === 'shaded') {
 var countyTotals = {
     yes: 0,
     no: 0,
-    total: 0
+    total: 0,
+    mailInTotal: 0,
+    mailInYes: 0,
+    mailInNo: 0,
+    inPersonTotal: 0,
+    inPersonYes: 0,
+    inPersonNo: 0
 };
 
-// Load GeoJSON data
-fetch('precincts_consolidated.geojson')
-    .then(response => {
+// Load GeoJSON data and results.json
+Promise.all([
+    fetch('precincts_consolidated.geojson').then(response => {
         if (!response.ok) {
             throw new Error('Network response was not ok: ' + response.status + ' ' + response.statusText);
         }
         return response.json();
+    }),
+    fetch('results.json').then(response => {
+        if (!response.ok) {
+            throw new Error('Could not load results.json: ' + response.status + ' ' + response.statusText);
+        }
+        return response.json();
     })
-    .then(data => {
+])
+    .then(function(results) {
+        var data = results[0];
+        var resultsData = results[1];
+        
         console.log('Loaded GeoJSON with', data.features.length, 'features');
         
-        // Calculate county totals
+        if (!resultsData || !Array.isArray(resultsData)) {
+            throw new Error('results.json is invalid or empty');
+        }
+        
+        // Create a map of all vote data from results.json
+        var resultsMap = {};
+        resultsData.forEach(function(result) {
+            if (result.precinct) {
+                resultsMap[result.precinct] = {
+                    votes: result.votes || null,
+                    percentage: result.percentage || null,
+                    vote_method: result.vote_method || null
+                };
+            }
+        });
+        
+        // Merge all vote data from results.json into GeoJSON features
         data.features.forEach(function(feature) {
-            if (feature.properties && feature.properties.votes) {
-                var votes = feature.properties.votes;
+            var precinctId = feature.properties.Precinct_ID || 
+                            feature.properties['Precinct_ID'] || 
+                            feature.properties.precinct || 
+                            feature.properties['precinct'] ||
+                            feature.properties.ID || 
+                            feature.properties['ID'];
+            
+            if (precinctId && resultsMap[precinctId.toString()]) {
+                var voteData = resultsMap[precinctId.toString()];
+                if (voteData.votes) {
+                    feature.properties.votes = voteData.votes;
+                }
+                if (voteData.percentage) {
+                    feature.properties.percentage = voteData.percentage;
+                }
+                if (voteData.vote_method) {
+                    feature.properties.vote_method = voteData.vote_method;
+                }
+            }
+        });
+        
+        console.log('Merged vote data from results.json');
+        
+        // Reset county totals before calculation to prevent accumulation
+        countyTotals.yes = 0;
+        countyTotals.no = 0;
+        countyTotals.total = 0;
+        countyTotals.mailInTotal = 0;
+        countyTotals.mailInYes = 0;
+        countyTotals.mailInNo = 0;
+        countyTotals.inPersonTotal = 0;
+        countyTotals.inPersonYes = 0;
+        countyTotals.inPersonNo = 0;
+        
+        // Calculate county totals from results.json
+        resultsData.forEach(function(result) {
+            if (result.votes) {
+                var votes = result.votes;
                 if (votes.yes) countyTotals.yes += votes.yes;
                 if (votes.no) countyTotals.no += votes.no;
                 if (votes.total) countyTotals.total += votes.total;
+            }
+            // Calculate county-level vote method totals
+            if (result.vote_method) {
+                if (result.vote_method.mail_in && result.vote_method.mail_in.votes) {
+                    var mailInVotes = result.vote_method.mail_in.votes;
+                    if (mailInVotes.total) countyTotals.mailInTotal += mailInVotes.total;
+                    if (mailInVotes.yes) countyTotals.mailInYes += mailInVotes.yes;
+                    if (mailInVotes.no) countyTotals.mailInNo += mailInVotes.no;
+                }
+                if (result.vote_method.in_person && result.vote_method.in_person.votes) {
+                    var inPersonVotes = result.vote_method.in_person.votes;
+                    if (inPersonVotes.total) countyTotals.inPersonTotal += inPersonVotes.total;
+                    if (inPersonVotes.yes) countyTotals.inPersonYes += inPersonVotes.yes;
+                    if (inPersonVotes.no) countyTotals.inPersonNo += inPersonVotes.no;
+                }
             }
         });
         
@@ -850,6 +1023,27 @@ fetch('precincts_consolidated.geojson')
         } else {
             countyTotals.yesPct = 0;
             countyTotals.noPct = 0;
+        }
+        
+        // Calculate county-level mail-in percentage of total votes
+        if (countyTotals.total > 0) {
+            countyTotals.mailInPctOfTotal = (countyTotals.mailInTotal / countyTotals.total) * 100;
+        } else {
+            countyTotals.mailInPctOfTotal = 0;
+        }
+        
+        // Calculate county-level mail-in YES percentage
+        if (countyTotals.mailInTotal > 0) {
+            countyTotals.mailInYesPct = (countyTotals.mailInYes / countyTotals.mailInTotal) * 100;
+        } else {
+            countyTotals.mailInYesPct = 0;
+        }
+        
+        // Calculate county-level in-person YES percentage
+        if (countyTotals.inPersonTotal > 0) {
+            countyTotals.inPersonYesPct = (countyTotals.inPersonYes / countyTotals.inPersonTotal) * 100;
+        } else {
+            countyTotals.inPersonYesPct = 0;
         }
         
         // Add data based on current mode
@@ -927,9 +1121,9 @@ fetch('precincts_consolidated.geojson')
         });
     })
     .catch(error => {
-        console.error('Error loading GeoJSON:', error);
+        console.error('Error loading data:', error);
         console.error('Error details:', error.message, error.stack);
-        alert('Error loading map data: ' + error.message + '\n\nMake sure precincts_consolidated.geojson is in the same directory as this HTML file and that you are accessing the page through a web server (not file://).');
+        alert('Error loading map data: ' + error.message + '\n\nMake sure precincts_consolidated.geojson and results.json are in the same directory as this HTML file and that you are accessing the page through a web server (not file://).');
     });
 
 // Update info section in bottom panel
@@ -1064,20 +1258,111 @@ function updateInfoSection(props) {
         
         content += '</div>';
         
-        // Add bar graph - always show structure to maintain bounding box
-        var yesPct = (hasVotes && props.votes.total > 0 && props.percentage) ? props.percentage.yes : 0;
-        var noPct = (hasVotes && props.votes.total > 0 && props.percentage) ? props.percentage.no : 0;
-        content += '<div class="bar-graph">';
-        content += '<div class="bar-graph-yes" style="width: ' + yesPct + '%;"></div>';
-        content += '<div class="bar-graph-no" style="width: ' + noPct + '%;"></div>';
-        // Add county average line for all data (precinct and aggregated)
-        if (hasVotes && props.votes.total > 0 && countyTotals.yesPct !== undefined) {
-            content += '<div class="bar-graph-county-marker" style="left: ' + countyTotals.yesPct + '%;">';
-            content += '<div class="bar-graph-county-line"></div>';
-            content += '<div class="bar-graph-county-label">County</div>';
+        // Always add main bar graph for overall totals
+        if (hasVotes && props.votes.total > 0) {
+            var yesPct = props.percentage ? props.percentage.yes : 0;
+            var noPct = props.percentage ? props.percentage.no : 0;
+            content += '<div class="bar-graph">';
+            content += '<div class="bar-graph-yes" style="width: ' + yesPct + '%;"></div>';
+            content += '<div class="bar-graph-no" style="width: ' + noPct + '%;"></div>';
+            // Add county average line for all data (precinct and aggregated)
+            if (countyTotals.yesPct !== undefined) {
+                content += '<div class="bar-graph-county-marker" style="left: ' + countyTotals.yesPct + '%;">';
+                content += '<div class="bar-graph-county-line"></div>';
+                content += '<div class="bar-graph-county-label">County</div>';
+                content += '</div>';
+            }
             content += '</div>';
         }
-        content += '</div>';
+        
+        // Add vote method bar graphs if available (below the main bar graph)
+        if (hasVotes && props.votes.total > 0 && props.vote_method) {
+            var mailIn = props.vote_method.mail_in || {};
+            var inPerson = props.vote_method.in_person || {};
+            var mailInVotes = mailIn.votes || {};
+            var inPersonVotes = inPerson.votes || {};
+            var mailInPct = mailIn.percentage || {};
+            var inPersonPct = inPerson.percentage || {};
+            
+            var mailInYesPct = mailInPct.yes || 0;
+            var mailInNoPct = mailInPct.no || 0;
+            var inPersonYesPct = inPersonPct.yes || 0;
+            var inPersonNoPct = inPersonPct.no || 0;
+            
+            content += '<div class="vote-method-breakdown" style="margin-top: 16px; padding-top: 16px; border-top: 1px solid rgba(0, 0, 0, 0.12);">';
+            content += '<div style="font-size: 12px; font-weight: 500; color: rgba(0, 0, 0, 0.6); margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Vote Method</div>';
+            
+            // Mail-in bar graph
+            if (mailInVotes.total > 0) {
+                content += '<div style="margin-bottom: 12px;">';
+                content += '<div style="display: flex; justify-content: space-between; align-items: center; position: relative; margin-bottom: 2px; font-size: 13px; font-weight: 500; color: rgba(0, 0, 0, 0.87);">';
+                content += '<span>' + mailInYesPct.toFixed(1) + '%</span>';
+                content += '<span style="position: absolute; left: 50%; transform: translateX(-50%); font-size: 11px; color: rgba(0, 0, 0, 0.6); font-weight: normal;">MAIL IN – ' + mailInVotes.total.toLocaleString() + ' votes</span>';
+                content += '<span>' + mailInNoPct.toFixed(1) + '%</span>';
+                content += '</div>';
+                content += '<div class="bar-graph" style="height: 12px; position: relative; display: flex; overflow: hidden; border-radius: 6px; background: rgba(0, 0, 0, 0.1);">';
+                content += '<div class="bar-graph-yes" style="width: ' + mailInYesPct + '%; height: 100%; background: #41ab5d; flex-shrink: 0;"></div>';
+                content += '<div class="bar-graph-no" style="width: ' + mailInNoPct + '%; height: 100%; background: #e74c3c; flex-shrink: 0;"></div>';
+                // Add county average line for mail-in
+                if (countyTotals.mailInYesPct !== undefined) {
+                    content += '<div class="bar-graph-county-marker" style="left: ' + countyTotals.mailInYesPct + '%;">';
+                    content += '<div class="bar-graph-county-line"></div>';
+                    content += '<div class="bar-graph-county-label">County</div>';
+                    content += '</div>';
+                }
+                content += '</div>';
+                content += '</div>';
+            }
+            
+            // In-person bar graph
+            if (inPersonVotes.total > 0) {
+                content += '<div style="margin-bottom: 12px;">';
+                content += '<div style="display: flex; justify-content: space-between; align-items: center; position: relative; margin-bottom: 2px; font-size: 13px; font-weight: 500; color: rgba(0, 0, 0, 0.87);">';
+                content += '<span>' + inPersonYesPct.toFixed(1) + '%</span>';
+                content += '<span style="position: absolute; left: 50%; transform: translateX(-50%); font-size: 11px; color: rgba(0, 0, 0, 0.6); font-weight: normal;">IN PERSON – ' + inPersonVotes.total.toLocaleString() + ' votes</span>';
+                content += '<span>' + inPersonNoPct.toFixed(1) + '%</span>';
+                content += '</div>';
+                content += '<div class="bar-graph" style="height: 12px; position: relative; display: flex; overflow: hidden; border-radius: 6px; background: rgba(0, 0, 0, 0.1);">';
+                content += '<div class="bar-graph-yes" style="width: ' + inPersonYesPct + '%; height: 100%; background: #41ab5d; flex-shrink: 0;"></div>';
+                content += '<div class="bar-graph-no" style="width: ' + inPersonNoPct + '%; height: 100%; background: #e74c3c; flex-shrink: 0;"></div>';
+                // Add county average line for in-person
+                if (countyTotals.inPersonYesPct !== undefined) {
+                    content += '<div class="bar-graph-county-marker" style="left: ' + countyTotals.inPersonYesPct + '%;">';
+                    content += '<div class="bar-graph-county-line"></div>';
+                    content += '<div class="bar-graph-county-label">County</div>';
+                    content += '</div>';
+                }
+                content += '</div>';
+                content += '</div>';
+            }
+            
+            // Method breakdown: mail-in vs in-person percentage of total
+            var mailInPctOfTotal = mailIn.percentage_of_total || 0;
+            var inPersonPctOfTotal = inPerson.percentage_of_total || 0;
+            if (mailInPctOfTotal > 0 || inPersonPctOfTotal > 0) {
+                var methodBreakdownTotal = (mailInVotes.total || 0) + (inPersonVotes.total || 0);
+                content += '<div>';
+                content += '<div style="display: flex; justify-content: space-between; align-items: center; position: relative; margin-bottom: 2px; font-size: 13px; font-weight: 500; color: rgba(0, 0, 0, 0.87);">';
+                content += '<span>' + mailInPctOfTotal.toFixed(1) + '% – MAIL IN</span>';
+                content += '<span style="position: absolute; left: 50%; transform: translateX(-50%); font-size: 11px; color: rgba(0, 0, 0, 0.6); font-weight: normal;">METHOD BREAKDOWN – ' + methodBreakdownTotal.toLocaleString() + ' votes</span>';
+                content += '<span>IN PERSON – ' + inPersonPctOfTotal.toFixed(1) + '%</span>';
+                content += '</div>';
+                content += '<div class="bar-graph" style="height: 12px; position: relative; display: flex; overflow: hidden; border-radius: 6px; background: rgba(0, 0, 0, 0.1);">';
+                content += '<div style="width: ' + mailInPctOfTotal + '%; height: 100%; background: #78909C; flex-shrink: 0;"></div>';
+                content += '<div style="width: ' + inPersonPctOfTotal + '%; height: 100%; background: #CFD8DC; flex-shrink: 0;"></div>';
+                // Add county average line for method breakdown
+                if (countyTotals.mailInPctOfTotal !== undefined) {
+                    content += '<div class="bar-graph-county-marker" style="left: ' + countyTotals.mailInPctOfTotal + '%;">';
+                    content += '<div class="bar-graph-county-line"></div>';
+                    content += '<div class="bar-graph-county-label">County</div>';
+                    content += '</div>';
+                }
+                content += '</div>';
+                content += '</div>';
+            }
+            
+            content += '</div>';
+        }
         
         infoSection.innerHTML = content;
         
