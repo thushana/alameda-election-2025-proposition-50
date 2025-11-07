@@ -1657,7 +1657,8 @@ function applyMobileVerticalBias() {
     var size = map.getSize();
     var desiredFractionFromTop = 0.33; // 33% down from top
     var deltaY = (0.5 - desiredFractionFromTop) * size.y; // positive means move up
-    // Pan map view so the visual center shifts upward
-    map.panBy([0, -deltaY], { animate: false });
+    var extraPixels = 200; // additional upward shift requested
+    // Pan map view so the visual center shifts upward further by 200px
+    map.panBy([0, -(deltaY + extraPixels)], { animate: false });
 }
 
