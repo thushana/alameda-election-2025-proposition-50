@@ -197,7 +197,13 @@ function zoomToFeature(e) {
             var tmpLayer = L.geoJSON(feature);
             var bounds = tmpLayer.getBounds();
             if (bounds && bounds.isValid()) {
-                map.fitBounds(bounds);
+                var isMobile = window.innerWidth <= 768;
+                var bottomPanel = document.getElementById('bottom-panel');
+                var bottomPadding = bottomPanel ? bottomPanel.offsetHeight + (isMobile ? 140 : 80) : (isMobile ? 360 : 240);
+                map.fitBounds(bounds, {
+                    paddingTopLeft: L.point(20, 20),
+                    paddingBottomRight: L.point(20, bottomPadding)
+                });
                 return;
             }
         } catch (err) {
@@ -206,7 +212,13 @@ function zoomToFeature(e) {
     }
     // Fallbacks only if geometry bounds cannot be computed
     if (target && typeof target.getBounds === 'function') {
-        map.fitBounds(target.getBounds());
+        var isMobileFB = window.innerWidth <= 768;
+        var bottomPanelFB = document.getElementById('bottom-panel');
+        var bottomPaddingFB = bottomPanelFB ? bottomPanelFB.offsetHeight + (isMobileFB ? 140 : 80) : (isMobileFB ? 360 : 240);
+        map.fitBounds(target.getBounds(), {
+            paddingTopLeft: L.point(20, 20),
+            paddingBottomRight: L.point(20, bottomPaddingFB)
+        });
     } else if (target && typeof target.getLatLng === 'function') {
         map.setView(target.getLatLng());
     }
@@ -904,9 +916,12 @@ function restoreSelectionFromURL() {
                 // Add more padding to bottom to account for bottom panel
                 // Calculate bottom panel height dynamically
                 var bottomPanel = document.getElementById('bottom-panel');
-                var bottomPadding = bottomPanel ? bottomPanel.offsetHeight + (isMobile ? 30 : 20) : (isMobile ? 350 : 250);
+                var bottomPadding = bottomPanel ? bottomPanel.offsetHeight + (isMobile ? 160 : 100) : (isMobile ? 380 : 260);
                 
-                map.fitBounds(paddedBounds, { padding: [50, 50, bottomPadding, 50] }); // top, right, bottom, left
+                map.fitBounds(paddedBounds, {
+                    paddingTopLeft: L.point(20, 20),
+                    paddingBottomRight: L.point(20, bottomPadding)
+                }); // asymmetric padding to shift view up
             }
         }
     }, 1000);
@@ -1163,9 +1178,25 @@ Promise.all([
             baseDistrictBounds = geojsonLayer.getBounds();
         }
         if (baseDistrictBounds) {
-            map.fitBounds(baseDistrictBounds);
+            var isMobileInit = window.innerWidth <= 768;
+            var bottomPanelInit = document.getElementById('bottom-panel');
+            var bottomPaddingInit = bottomPanelInit ? bottomPanelInit.offsetHeight + (isMobileInit ? 140 : 80) : (isMobileInit ? 360 : 240);
+            var sidePaddingInit = isMobileInit ? 20 : 50;
+            var topPaddingInit = isMobileInit ? 20 : 50;
+            map.fitBounds(baseDistrictBounds, {
+                paddingTopLeft: L.point(sidePaddingInit, topPaddingInit),
+                paddingBottomRight: L.point(sidePaddingInit, bottomPaddingInit)
+            });
         } else if (geojsonLayer.getBounds && geojsonLayer.getBounds().isValid()) {
-            map.fitBounds(geojsonLayer.getBounds());
+            var isMobileInitB = window.innerWidth <= 768;
+            var bottomPanelInitB = document.getElementById('bottom-panel');
+            var bottomPaddingInitB = bottomPanelInitB ? bottomPanelInitB.offsetHeight + (isMobileInitB ? 140 : 80) : (isMobileInitB ? 360 : 240);
+            var sidePaddingInitB = isMobileInitB ? 20 : 50;
+            var topPaddingInitB = isMobileInitB ? 20 : 50;
+            map.fitBounds(geojsonLayer.getBounds(), {
+                paddingTopLeft: L.point(sidePaddingInitB, topPaddingInitB),
+                paddingBottomRight: L.point(sidePaddingInitB, bottomPaddingInitB)
+            });
         } else {
             console.error('Invalid bounds');
         }

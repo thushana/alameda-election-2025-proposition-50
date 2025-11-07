@@ -1,26 +1,27 @@
-# Alameda City and County – Proposition 50 Vote Results Map
+# Alameda City and County – image.pngProposition 50 Vote Results Map
 
 An interactive map showing Proposition 50 vote results by precinct for Alameda County in the November 2025 Election.
 
 [Proposition 50](https://voterguide.sos.ca.gov/quick-reference-guide/50.htm) was approved by voters on November 4, 2025, with 64% support, temporarily replacing the state's independent redistricting commission's congressional maps with Democrat-drawn districts through 2030. The measure, promoted by Governor Newsom as a response to Trump-backed Republican redistricting in Texas, could flip up to five GOP-held House seats to Democrats in the 2026 midterms.
 
 ## The Tool
-I geeked out building this Election Results map for the November 2025 special election with data from Alameda County. My goal was to see how Alameda Island's voters went for Prop. 50 – a very partisan ballot item – as well as analyze the "Cast Voter Record" data files.* This tool allows you to see city-wide as well as county-wide data at the precinct level. Hover or click a precinct for specific details including vote breakdowns as well as mail-in/in-person tallies, with a comparison against the county average. There's also a mode switch button that changes from geographical boundary shading (choropleth) to proportional bubbles; it's particularly useful at a county level to see it in that mode since some precincts had very low vote counts. I wouldn't say there are major takeaways beyond Alameda's slightly increased swing leftward compared to last year's Harris/Trump breakdown.
+I geeked out building this Election Results map for the November 2025 special election with data from Alameda County. My goal was to see how Alameda Island's voters went for Prop. 50 – a very partisan ballot item – as well as analyze the "Cast Voter Record" data files from the county.* This tool allows you to see city-wide and county-wide data at the precinct level. Hover or click a precinct for specific details including vote breakdowns as well as mail-in/in-person tallies, with a comparison against the county average. There's also a mode switch button that changes from [geographical boundary shading (choropleth)](https://thushana.github.io/alameda-election-2025-proposition-50/#mode/shaded/city/alameda) to [proportional circles of the total votes](https://thushana.github.io/alameda-election-2025-proposition-50/#mode/proportional/city/alameda/precincts/300110+300130+300150+300300+301900+302200+302700+303800+304800+305110+305500+305700). It's particularly useful at a county level to see it in that mode since some precincts had very low vote counts. [Land doesn't vote](https://storymaps.arcgis.com/stories/0e636a652d44484b9457f953994b212b). I wouldn't say there are major takeaways beyond Alameda's slightly increased swing leftward compared to last year's Harris/Trump breakdown, and the slight variabilty in neighborhood voting.
 
-I wanted to do this for last year's election but – _incomprehensibly_ – they only had PDFs of the raw JSON datafiles, making any scripting on top of it very hard. Not the case for this year, and sources are listed below.
+I wanted to do this for last year's election but – _incomprehensibly_ – they only had PDFs of the raw JSON data files, making any scripting on top of it nigh-impossible. Not the case for this year. Data sources are listed below.
 
 ## Analysis
-- Islandwide in Alameda, Prop. 50 earned 83.4% of the vote.
-- In November 2024, the Harris/Trump breakdown was 79.6%/20.4%, suggesting a +3.8% shift away from Trump from 2024 to 2025.
-- Alameda as a whole, and most city precincts, voted at higher levels of "Yes" than the county average. The three precincts in Bay Farm voted below the county average.
-- Turnout was 21,374 voters, 40.4% of the 52,931 registered voters in Alameda for this special off-cycle election. This was just a tad more than half of the 2024 General Election turnout of 38,349 and 72.5% of estimated registered voters. (There is no easily accessible city-level registered voter data for last year. Countywide registration was 1% smaller in 2024; if we apply that to a city level, there were an estimated 52,661 registered voters.) This is also slightly better than the 38.7% statewide registered voter turnout.
-- Mail-in votes dominated the returns at 93.1%. Interestingly, there's a noticeable delta between in-person votes vs. mailed, with those voters significantly more likely to vote "No" at 24.5% (vs. 16.0% for mail-in).
+- Islandwide Prop. 50 earned 83.4% of the vote.
+- In November 2024, the Harris/Trump breakdown was 79.6%/20.4%, suggesting a +3.8% shift leftwards from 2024 to 2025.
+- Alameda as a whole, and most city precincts, voted at higher levels of "Yes" than the county average. The three precincts in Bay Farm voted _below_ the county average for "Yes", and more likely to be against it.
+- Turnout for Alameda was 21,374 voters, at 40.4% of the 52,931 registered voters in Alameda for this special off-cycle election. This was just a tad more than half of the 2024 General Election turnout of 38,349 and 72.5% of estimated registered voters. (There is no easily accessible city-level registered voter data for last year. Countywide registration was 1% smaller in 2024; if we apply that to a city level, there were an estimated 52,661 registered voters.) This is also slightly better than the 38.7% statewide registered voter turnout.
+- Mail-in votes dominated the returns at 93.1%. 
+- Interestingly, there's a noticeable delta between in-person votes vs. mailed, with those voting in-person significantly more likely to vote "No" at 24.5% (vs. 16.0% for mail-in).
 
-Feel free to send me a [pull request](https://github.com/thushana/alameda-election-2025-proposition-50) / [ping me](mailto:thushan@thushan.net) if you see something off.
+If you see something off, feel free to send me a [pull request](https://github.com/thushana/alameda-election-2025-proposition-50) / [email me](mailto:thushan@thushan.net).
 
 ## Methodology
 
-Uses data from Alameda County Registrar of Voters:
+This tool uses data from the Alameda County Registrar of Voters and others:
 
 - ["Alameda County - Statewide Special Election - November 04, 2025 - Unofficial Final Results](https://alamedacountyca.gov/rovresults/258/)
 - ["Alameda County - Cast Voter Records](https://airtable.com/appzbg5Z60K8CbQiB/shr1TpBYl4CY91fkS)
@@ -29,7 +30,8 @@ Uses data from Alameda County Registrar of Voters:
 - ["State of California – Statewide Special Election Voter Turnout"](https://electionresults.sos.ca.gov/returns/maps/voter-turnout)
 - ["The New York Times – An Extremely Detailed Map of the 2024 Election"](https://www.nytimes.com/interactive/2025/us/elections/2024-election-map-precinct-results.html)
 
-* To be wildly transparent, I actively canvassed for Prop. 50 at Alameda's ferries a couple times, and had a lawn sign in support of this proposition in our yard.
+
+*_To be wildly transparent, I actively canvassed for Prop. 50 at Alameda's ferries a couple times, and had a lawn sign in support of this proposition in our yard._
 
 
 ## Features
