@@ -1126,6 +1126,79 @@ Promise.all([
         alert('Error loading map data: ' + error.message + '\n\nMake sure precincts_consolidated.geojson and results.json are in the same directory as this HTML file and that you are accessing the page through a web server (not file://).');
     });
 
+// Helper function to generate a vote method bar graph
+function generateVoteMethodBarGraph(config) {
+    var yesPct = config.yesPct || 0;
+    var noPct = config.noPct || 0;
+    var totalVotes = config.totalVotes || 0;
+    var label = config.label || '';
+    var countyAvgPct = config.countyAvgPct;
+    var yesColor = config.yesColor || '#41ab5d';
+    var noColor = config.noColor || '#e74c3c';
+    
+    if (totalVotes === 0) {
+        return '';
+    }
+    
+    var html = `
+        <div style="margin-bottom: 12px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; position: relative; margin-bottom: 2px; font-size: 13px; font-weight: 500; color: rgba(0, 0, 0, 0.87);">
+                <span>${yesPct.toFixed(1)}%</span>
+                <span style="position: absolute; left: 50%; transform: translateX(-50%); font-size: 11px; color: rgba(0, 0, 0, 0.6); font-weight: normal;">${label} – ${totalVotes.toLocaleString()} votes</span>
+                <span>${noPct.toFixed(1)}%</span>
+            </div>
+            <div class="bar-graph" style="height: 12px; position: relative; display: flex; overflow: hidden; border-radius: 6px; background: rgba(0, 0, 0, 0.1);">
+                <div class="bar-graph-yes" style="width: ${yesPct}%; height: 100%; background: ${yesColor}; flex-shrink: 0;"></div>
+                <div class="bar-graph-no" style="width: ${noPct}%; height: 100%; background: ${noColor}; flex-shrink: 0;"></div>
+                ${countyAvgPct !== undefined ? `
+                <div class="bar-graph-county-marker" style="left: ${countyAvgPct}%;">
+                    <div class="bar-graph-county-line"></div>
+                    <div class="bar-graph-county-label">County</div>
+                </div>
+                ` : ''}
+            </div>
+        </div>
+    `;
+    
+    return html;
+}
+
+// Helper function to generate method breakdown bar graph
+function generateMethodBreakdownBarGraph(config) {
+    var mailInPct = config.mailInPct || 0;
+    var inPersonPct = config.inPersonPct || 0;
+    var totalVotes = config.totalVotes || 0;
+    var countyAvgPct = config.countyAvgPct;
+    var mailInColor = config.mailInColor || '#78909C';
+    var inPersonColor = config.inPersonColor || '#CFD8DC';
+    
+    if (mailInPct === 0 && inPersonPct === 0) {
+        return '';
+    }
+    
+    var html = `
+        <div>
+            <div style="display: flex; justify-content: space-between; align-items: center; position: relative; margin-bottom: 2px; font-size: 13px; font-weight: 500; color: rgba(0, 0, 0, 0.87);">
+                <span>${mailInPct.toFixed(1)}% – MAIL IN</span>
+                <span style="position: absolute; left: 50%; transform: translateX(-50%); font-size: 11px; color: rgba(0, 0, 0, 0.6); font-weight: normal;">METHOD BREAKDOWN – ${totalVotes.toLocaleString()} votes</span>
+                <span>IN PERSON – ${inPersonPct.toFixed(1)}%</span>
+            </div>
+            <div class="bar-graph" style="height: 12px; position: relative; display: flex; overflow: hidden; border-radius: 6px; background: rgba(0, 0, 0, 0.1);">
+                <div style="width: ${mailInPct}%; height: 100%; background: ${mailInColor}; flex-shrink: 0;"></div>
+                <div style="width: ${inPersonPct}%; height: 100%; background: ${inPersonColor}; flex-shrink: 0;"></div>
+                ${countyAvgPct !== undefined ? `
+                <div class="bar-graph-county-marker" style="left: ${countyAvgPct}%;">
+                    <div class="bar-graph-county-line"></div>
+                    <div class="bar-graph-county-label">County</div>
+                </div>
+                ` : ''}
+            </div>
+        </div>
+    `;
+    
+    return html;
+}
+
 // Update info section in bottom panel
 function updateInfoSection(props) {
     var infoSection = document.getElementById('info-section');
@@ -1141,34 +1214,30 @@ function updateInfoSection(props) {
     setTimeout(function() {
         if (!props) {
             // Show county totals
-            var content = '<div class="precinct-name">Alameda County</div>';
-            content += '<div class="data-columns">';
-            
-            // YES column
-            content += '<div class="data-column">';
-            content += '<div class="data-column-header">YES</div>';
-            content += '<div class="data-column-votes">' + countyTotals.yes.toLocaleString() + ' votes</div>';
-            content += '<div class="data-column-percent">' + countyTotals.yesPct.toFixed(1) + '%</div>';
-            content += '</div>';
-            // Total column
-            content += '<div class="data-column">';
-            content += '<div class="data-column-header">Total</div>';
-            content += '<div class="data-column-votes">' + countyTotals.total.toLocaleString() + ' votes</div>';
-            content += '<div class="data-column-percent">—</div>';
-            content += '</div>';
-            // NO column
-            content += '<div class="data-column">';
-            content += '<div class="data-column-header">NO</div>';
-            content += '<div class="data-column-votes">' + countyTotals.no.toLocaleString() + ' votes</div>';
-            content += '<div class="data-column-percent">' + countyTotals.noPct.toFixed(1) + '%</div>';
-            content += '</div>';
-            content += '</div>';
-            
-            // Add bar graph
-            content += '<div class="bar-graph">';
-            content += '<div class="bar-graph-yes" style="width: ' + countyTotals.yesPct + '%;"></div>';
-            content += '<div class="bar-graph-no" style="width: ' + countyTotals.noPct + '%;"></div>';
-            content += '</div>';
+            var content = `
+                <div class="precinct-name">Alameda County</div>
+                <div class="data-columns">
+                    <div class="data-column">
+                        <div class="data-column-header">YES</div>
+                        <div class="data-column-votes">${countyTotals.yes.toLocaleString()} votes</div>
+                        <div class="data-column-percent">${countyTotals.yesPct.toFixed(1)}%</div>
+                    </div>
+                    <div class="data-column">
+                        <div class="data-column-header">Total</div>
+                        <div class="data-column-votes">${countyTotals.total.toLocaleString()} votes</div>
+                        <div class="data-column-percent">—</div>
+                    </div>
+                    <div class="data-column">
+                        <div class="data-column-header">NO</div>
+                        <div class="data-column-votes">${countyTotals.no.toLocaleString()} votes</div>
+                        <div class="data-column-percent">${countyTotals.noPct.toFixed(1)}%</div>
+                    </div>
+                </div>
+                <div class="bar-graph">
+                    <div class="bar-graph-yes" style="width: ${countyTotals.yesPct}%;"></div>
+                    <div class="bar-graph-no" style="width: ${countyTotals.noPct}%;"></div>
+                </div>
+            `;
             
             infoSection.innerHTML = content;
             
@@ -1189,10 +1258,10 @@ function updateInfoSection(props) {
         }
     
         // Check if this is aggregated data
+        var title, hasVotes;
         if (props.aggregated) {
-            var title = props.cityName ? 'City of ' + props.cityName.charAt(0).toUpperCase() + props.cityName.slice(1) : props.count + ' Precincts Selected';
-            var content = '<div class="precinct-name">' + title + '</div>';
-            var hasVotes = props.votes && props.votes.total !== undefined;
+            title = props.cityName ? 'City of ' + props.cityName.charAt(0).toUpperCase() + props.cityName.slice(1) : props.count + ' Precincts Selected';
+            hasVotes = props.votes && props.votes.total !== undefined;
         } else {
             // Try multiple ways to get the precinct name
             var precinctName = props.Precinct_ID || 
@@ -1203,77 +1272,48 @@ function updateInfoSection(props) {
                               props['ID'] || 
                               'N/A';
             
-            var hasVotes = props.votes && props.votes.total !== undefined;
-            
-            var content = '<div class="precinct-name">Precinct ' + precinctName + '</div>';
+            hasVotes = props.votes && props.votes.total !== undefined;
+            title = 'Precinct ' + precinctName;
         }
         
-        content += '<div class="data-columns">';
+        var yesPct = hasVotes && props.votes.total > 0 ? (props.percentage ? props.percentage.yes : 0) : 0;
+        var yesVotes = hasVotes && props.votes.total > 0 ? (props.votes.yes || 0) : 0;
+        var noPct = hasVotes && props.votes.total > 0 ? (props.percentage ? props.percentage.no : 0) : 0;
+        var noVotes = hasVotes && props.votes.total > 0 ? (props.votes.no || 0) : 0;
+        var totalVotes = hasVotes && props.votes.total > 0 ? (props.votes.total || 0) : 0;
         
-        if (hasVotes && props.votes.total > 0) {
-            var yesPct = props.percentage ? props.percentage.yes : 0;
-            var yesVotes = props.votes.yes || 0;
-            var noPct = props.percentage ? props.percentage.no : 0;
-            var noVotes = props.votes.no || 0;
-            var totalVotes = props.votes.total || 0;
-            
-            // YES column
-            content += '<div class="data-column">';
-            content += '<div class="data-column-header">YES</div>';
-            content += '<div class="data-column-votes">' + yesVotes.toLocaleString() + ' votes</div>';
-            content += '<div class="data-column-percent">' + yesPct.toFixed(1) + '%</div>';
-            content += '</div>';
-            // Total column
-            content += '<div class="data-column">';
-            content += '<div class="data-column-header">Total</div>';
-            content += '<div class="data-column-votes">' + totalVotes.toLocaleString() + ' votes</div>';
-            content += '<div class="data-column-percent">—</div>';
-            content += '</div>';
-            // NO column
-            content += '<div class="data-column">';
-            content += '<div class="data-column-header">NO</div>';
-            content += '<div class="data-column-votes">' + noVotes.toLocaleString() + ' votes</div>';
-            content += '<div class="data-column-percent">' + noPct.toFixed(1) + '%</div>';
-            content += '</div>';
-        } else {
-            // YES column - empty
-            content += '<div class="data-column">';
-            content += '<div class="data-column-header">YES</div>';
-            content += '<div class="data-column-votes">&nbsp;</div>';
-            content += '<div class="data-column-percent">&nbsp;</div>';
-            content += '</div>';
-            // Total column - empty
-            content += '<div class="data-column">';
-            content += '<div class="data-column-header">Total</div>';
-            content += '<div class="data-column-votes">&nbsp;</div>';
-            content += '<div class="data-column-percent">—</div>';
-            content += '</div>';
-            // NO column - empty
-            content += '<div class="data-column">';
-            content += '<div class="data-column-header">NO</div>';
-            content += '<div class="data-column-votes">&nbsp;</div>';
-            content += '<div class="data-column-percent">&nbsp;</div>';
-            content += '</div>';
-        }
-        
-        content += '</div>';
-        
-        // Always add main bar graph for overall totals
-        if (hasVotes && props.votes.total > 0) {
-            var yesPct = props.percentage ? props.percentage.yes : 0;
-            var noPct = props.percentage ? props.percentage.no : 0;
-            content += '<div class="bar-graph">';
-            content += '<div class="bar-graph-yes" style="width: ' + yesPct + '%;"></div>';
-            content += '<div class="bar-graph-no" style="width: ' + noPct + '%;"></div>';
-            // Add county average line for all data (precinct and aggregated)
-            if (countyTotals.yesPct !== undefined) {
-                content += '<div class="bar-graph-county-marker" style="left: ' + countyTotals.yesPct + '%;">';
-                content += '<div class="bar-graph-county-line"></div>';
-                content += '<div class="bar-graph-county-label">County</div>';
-                content += '</div>';
-            }
-            content += '</div>';
-        }
+        var content = `
+            <div class="precinct-name">${title}</div>
+            <div class="data-columns">
+                <div class="data-column">
+                    <div class="data-column-header">YES</div>
+                    <div class="data-column-votes">${hasVotes && props.votes.total > 0 ? yesVotes.toLocaleString() + ' votes' : '&nbsp;'}</div>
+                    <div class="data-column-percent">${hasVotes && props.votes.total > 0 ? yesPct.toFixed(1) + '%' : '&nbsp;'}</div>
+                </div>
+                <div class="data-column">
+                    <div class="data-column-header">Total</div>
+                    <div class="data-column-votes">${hasVotes && props.votes.total > 0 ? totalVotes.toLocaleString() + ' votes' : '&nbsp;'}</div>
+                    <div class="data-column-percent">—</div>
+                </div>
+                <div class="data-column">
+                    <div class="data-column-header">NO</div>
+                    <div class="data-column-votes">${hasVotes && props.votes.total > 0 ? noVotes.toLocaleString() + ' votes' : '&nbsp;'}</div>
+                    <div class="data-column-percent">${hasVotes && props.votes.total > 0 ? noPct.toFixed(1) + '%' : '&nbsp;'}</div>
+                </div>
+            </div>
+            ${hasVotes && props.votes.total > 0 ? `
+            <div class="bar-graph">
+                <div class="bar-graph-yes" style="width: ${yesPct}%;"></div>
+                <div class="bar-graph-no" style="width: ${noPct}%;"></div>
+                ${countyTotals.yesPct !== undefined ? `
+                <div class="bar-graph-county-marker" style="left: ${countyTotals.yesPct}%;">
+                    <div class="bar-graph-county-line"></div>
+                    <div class="bar-graph-county-label">County</div>
+                </div>
+                ` : ''}
+            </div>
+            ` : ''}
+        `;
         
         // Add vote method bar graphs if available (below the main bar graph)
         if (hasVotes && props.votes.total > 0 && props.vote_method) {
@@ -1288,80 +1328,37 @@ function updateInfoSection(props) {
             var mailInNoPct = mailInPct.no || 0;
             var inPersonYesPct = inPersonPct.yes || 0;
             var inPersonNoPct = inPersonPct.no || 0;
-            
-            content += '<div class="vote-method-breakdown" style="margin-top: 16px; padding-top: 16px; border-top: 1px solid rgba(0, 0, 0, 0.12);">';
-            content += '<div style="font-size: 12px; font-weight: 500; color: rgba(0, 0, 0, 0.6); margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Vote Method</div>';
-            
-            // Mail-in bar graph
-            if (mailInVotes.total > 0) {
-                content += '<div style="margin-bottom: 12px;">';
-                content += '<div style="display: flex; justify-content: space-between; align-items: center; position: relative; margin-bottom: 2px; font-size: 13px; font-weight: 500; color: rgba(0, 0, 0, 0.87);">';
-                content += '<span>' + mailInYesPct.toFixed(1) + '%</span>';
-                content += '<span style="position: absolute; left: 50%; transform: translateX(-50%); font-size: 11px; color: rgba(0, 0, 0, 0.6); font-weight: normal;">MAIL IN – ' + mailInVotes.total.toLocaleString() + ' votes</span>';
-                content += '<span>' + mailInNoPct.toFixed(1) + '%</span>';
-                content += '</div>';
-                content += '<div class="bar-graph" style="height: 12px; position: relative; display: flex; overflow: hidden; border-radius: 6px; background: rgba(0, 0, 0, 0.1);">';
-                content += '<div class="bar-graph-yes" style="width: ' + mailInYesPct + '%; height: 100%; background: #41ab5d; flex-shrink: 0;"></div>';
-                content += '<div class="bar-graph-no" style="width: ' + mailInNoPct + '%; height: 100%; background: #e74c3c; flex-shrink: 0;"></div>';
-                // Add county average line for mail-in
-                if (countyTotals.mailInYesPct !== undefined) {
-                    content += '<div class="bar-graph-county-marker" style="left: ' + countyTotals.mailInYesPct + '%;">';
-                    content += '<div class="bar-graph-county-line"></div>';
-                    content += '<div class="bar-graph-county-label">County</div>';
-                    content += '</div>';
-                }
-                content += '</div>';
-                content += '</div>';
-            }
-            
-            // In-person bar graph
-            if (inPersonVotes.total > 0) {
-                content += '<div style="margin-bottom: 12px;">';
-                content += '<div style="display: flex; justify-content: space-between; align-items: center; position: relative; margin-bottom: 2px; font-size: 13px; font-weight: 500; color: rgba(0, 0, 0, 0.87);">';
-                content += '<span>' + inPersonYesPct.toFixed(1) + '%</span>';
-                content += '<span style="position: absolute; left: 50%; transform: translateX(-50%); font-size: 11px; color: rgba(0, 0, 0, 0.6); font-weight: normal;">IN PERSON – ' + inPersonVotes.total.toLocaleString() + ' votes</span>';
-                content += '<span>' + inPersonNoPct.toFixed(1) + '%</span>';
-                content += '</div>';
-                content += '<div class="bar-graph" style="height: 12px; position: relative; display: flex; overflow: hidden; border-radius: 6px; background: rgba(0, 0, 0, 0.1);">';
-                content += '<div class="bar-graph-yes" style="width: ' + inPersonYesPct + '%; height: 100%; background: #41ab5d; flex-shrink: 0;"></div>';
-                content += '<div class="bar-graph-no" style="width: ' + inPersonNoPct + '%; height: 100%; background: #e74c3c; flex-shrink: 0;"></div>';
-                // Add county average line for in-person
-                if (countyTotals.inPersonYesPct !== undefined) {
-                    content += '<div class="bar-graph-county-marker" style="left: ' + countyTotals.inPersonYesPct + '%;">';
-                    content += '<div class="bar-graph-county-line"></div>';
-                    content += '<div class="bar-graph-county-label">County</div>';
-                    content += '</div>';
-                }
-                content += '</div>';
-                content += '</div>';
-            }
-            
-            // Method breakdown: mail-in vs in-person percentage of total
             var mailInPctOfTotal = mailIn.percentage_of_total || 0;
             var inPersonPctOfTotal = inPerson.percentage_of_total || 0;
-            if (mailInPctOfTotal > 0 || inPersonPctOfTotal > 0) {
-                var methodBreakdownTotal = (mailInVotes.total || 0) + (inPersonVotes.total || 0);
-                content += '<div>';
-                content += '<div style="display: flex; justify-content: space-between; align-items: center; position: relative; margin-bottom: 2px; font-size: 13px; font-weight: 500; color: rgba(0, 0, 0, 0.87);">';
-                content += '<span>' + mailInPctOfTotal.toFixed(1) + '% – MAIL IN</span>';
-                content += '<span style="position: absolute; left: 50%; transform: translateX(-50%); font-size: 11px; color: rgba(0, 0, 0, 0.6); font-weight: normal;">METHOD BREAKDOWN – ' + methodBreakdownTotal.toLocaleString() + ' votes</span>';
-                content += '<span>IN PERSON – ' + inPersonPctOfTotal.toFixed(1) + '%</span>';
-                content += '</div>';
-                content += '<div class="bar-graph" style="height: 12px; position: relative; display: flex; overflow: hidden; border-radius: 6px; background: rgba(0, 0, 0, 0.1);">';
-                content += '<div style="width: ' + mailInPctOfTotal + '%; height: 100%; background: #78909C; flex-shrink: 0;"></div>';
-                content += '<div style="width: ' + inPersonPctOfTotal + '%; height: 100%; background: #CFD8DC; flex-shrink: 0;"></div>';
-                // Add county average line for method breakdown
-                if (countyTotals.mailInPctOfTotal !== undefined) {
-                    content += '<div class="bar-graph-county-marker" style="left: ' + countyTotals.mailInPctOfTotal + '%;">';
-                    content += '<div class="bar-graph-county-line"></div>';
-                    content += '<div class="bar-graph-county-label">County</div>';
-                    content += '</div>';
-                }
-                content += '</div>';
-                content += '</div>';
-            }
+            var methodBreakdownTotal = (mailInVotes.total || 0) + (inPersonVotes.total || 0);
             
-            content += '</div>';
+            var voteMethodHtml = `
+                <div class="vote-method-breakdown" style="margin-top: 16px; padding-top: 16px; border-top: 1px solid rgba(0, 0, 0, 0.12);">
+                    <div style="font-size: 12px; font-weight: 500; color: rgba(0, 0, 0, 0.6); margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Vote Method</div>
+                    ${generateVoteMethodBarGraph({
+                        yesPct: mailInYesPct,
+                        noPct: mailInNoPct,
+                        totalVotes: mailInVotes.total || 0,
+                        label: 'MAIL IN',
+                        countyAvgPct: countyTotals.mailInYesPct
+                    })}
+                    ${generateVoteMethodBarGraph({
+                        yesPct: inPersonYesPct,
+                        noPct: inPersonNoPct,
+                        totalVotes: inPersonVotes.total || 0,
+                        label: 'IN PERSON',
+                        countyAvgPct: countyTotals.inPersonYesPct
+                    })}
+                    ${generateMethodBreakdownBarGraph({
+                        mailInPct: mailInPctOfTotal,
+                        inPersonPct: inPersonPctOfTotal,
+                        totalVotes: methodBreakdownTotal,
+                        countyAvgPct: countyTotals.mailInPctOfTotal
+                    })}
+                </div>
+            `;
+            
+            content += voteMethodHtml;
         }
         
         infoSection.innerHTML = content;
