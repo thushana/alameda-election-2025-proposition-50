@@ -5,8 +5,8 @@ Interactive map showing Proposition 50 vote results by precinct for Alameda Coun
 ## Files
 
 - `index.html` - Main map page
-- `prop50_precincts_map.geojson` - Precinct boundaries with vote data
-- `prop50_precinct_results.json` - Vote results data
+- `precincts_consolidated.geojson` - Precinct boundaries with vote data
+- `results.json` - Vote results data
 
 ## GitHub Pages Setup
 
@@ -19,6 +19,6 @@ Interactive map showing Proposition 50 vote results by precinct for Alameda Coun
 
 Make sure these files are in the repository root:
 - `index.html`
-- `prop50_precincts_map.geojson`
+- `precincts_consolidated.geojson`
 
 The map uses relative paths, so it will work when served from GitHub Pages.

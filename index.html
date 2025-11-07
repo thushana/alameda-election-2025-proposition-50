@@ -168,7 +168,7 @@
         }).addTo(map);
 
         // Load GeoJSON data
-        fetch('prop50_precincts_map.geojson')
+        fetch('precincts_consolidated.geojson')
             .then(response => {
                 if (!response.ok) {
                     throw new Error('Network response was not ok');
@@ -186,7 +186,7 @@
             })
             .catch(error => {
                 console.error('Error loading GeoJSON:', error);
-                alert('Error loading map data. Make sure prop50_precincts_map.geojson is in the same directory as this HTML file.');
+                alert('Error loading map data. Make sure precincts_consolidated.geojson is in the same directory as this HTML file.');
             });
 
         // Info control
