@@ -189,7 +189,27 @@ function resetHighlight(e) {
 
 // Zoom to feature on click
 function zoomToFeature(e) {
-    map.fitBounds(e.target.getBounds());
+    var target = e.target;
+    var feature = target && target.feature;
+    // Always derive bounds from the polygon geometry when available
+    if (feature && feature.geometry) {
+        try {
+            var tmpLayer = L.geoJSON(feature);
+            var bounds = tmpLayer.getBounds();
+            if (bounds && bounds.isValid()) {
+                map.fitBounds(bounds);
+                return;
+            }
+        } catch (err) {
+            // fall through to other strategies
+        }
+    }
+    // Fallbacks only if geometry bounds cannot be computed
+    if (target && typeof target.getBounds === 'function') {
+        map.fitBounds(target.getBounds());
+    } else if (target && typeof target.getLatLng === 'function') {
+        map.setView(target.getLatLng());
+    }
 }
 
 // Selected precincts for aggregation
@@ -197,6 +217,8 @@ var selectedPrecincts = [];
 var isSelectionMode = false;
 var currentCityName = null;
 var voteMethodSectionExpanded = false;
+// Stable geographic bounds derived from precinct polygons (never circles)
+var baseDistrictBounds = null;
 
 // Hash-based URL parsing and building (works with static file servers)
 function parseHashParams() {
@@ -842,24 +864,12 @@ function restoreSelectionFromURL() {
             // Calculate bounds of selected precincts and center/zoom map
             var bounds = L.latLngBounds([]);
             selectedPrecincts.forEach(function(item) {
-                if (item.layer) {
-                    try {
-                        var isCircle = item.layer instanceof L.CircleMarker;
-                        if (isCircle && item.layer.getLatLng) {
-                            // For circles, use the center point
-                            var latlng = item.layer.getLatLng();
-                            bounds.extend(latlng);
-                        } else if (item.layer.getBounds) {
-                            // For polygons, use bounds
-                            var layerBounds = item.layer.getBounds();
-                            if (layerBounds.isValid()) {
-                                bounds.extend(layerBounds);
-                            }
-                        }
-                    } catch (e) {
-                        // Skip if bounds can't be calculated
-                    }
-                }
+                if (!item || !item.feature) return;
+                try {
+                    var tmp = L.geoJSON(item.feature);
+                    var b = tmp.getBounds();
+                    if (b && b.isValid()) bounds.extend(b);
+                } catch (e) {}
             });
             
             if (bounds.isValid()) {
@@ -1148,29 +1158,12 @@ Promise.all([
         }
         
         // Fit bounds
-        if (mapMode === 'proportional' && circleLayer) {
-            try {
-                // Check if circleLayer has layers and getBounds method
-                if (circleLayer.getLayers && circleLayer.getLayers().length > 0 && 
-                    typeof circleLayer.getBounds === 'function') {
-                    var bounds = circleLayer.getBounds();
-                    if (bounds && bounds.isValid && bounds.isValid()) {
-                        map.fitBounds(bounds);
-                    } else if (geojsonLayer.getBounds && geojsonLayer.getBounds().isValid()) {
-                        // Fallback to geojsonLayer bounds if circleLayer bounds not valid
-                        map.fitBounds(geojsonLayer.getBounds());
-                    }
-                } else if (geojsonLayer.getBounds && geojsonLayer.getBounds().isValid()) {
-                    // Fallback to geojsonLayer bounds if circleLayer not ready
-                    map.fitBounds(geojsonLayer.getBounds());
-                }
-            } catch (e) {
-                console.error('Error getting circleLayer bounds:', e);
-                // Fallback to geojsonLayer bounds
-                if (geojsonLayer.getBounds && geojsonLayer.getBounds().isValid()) {
-                    map.fitBounds(geojsonLayer.getBounds());
-                }
-            }
+        // Establish stable geographic bounds from polygon geometry only (circles can extend beyond)
+        if (!baseDistrictBounds && geojsonLayer.getBounds && geojsonLayer.getBounds().isValid()) {
+            baseDistrictBounds = geojsonLayer.getBounds();
+        }
+        if (baseDistrictBounds) {
+            map.fitBounds(baseDistrictBounds);
         } else if (geojsonLayer.getBounds && geojsonLayer.getBounds().isValid()) {
             map.fitBounds(geojsonLayer.getBounds());
         } else {
@@ -1270,7 +1263,7 @@ function generateMethodBreakdownBarGraph(config) {
         <div class="vote-method-bar-wrapper" style="margin-bottom: ${SIZES.MARGIN_BOTTOM_MEDIUM};">
             <div class="vote-method-label-row" style="position: relative; margin-bottom: ${SIZES.MARGIN_BOTTOM_SMALL}; font-size: ${SIZES.FONT_SMALL}; font-weight: 500; color: ${OPACITY.TEXT_PRIMARY}; padding: 0; width: 100%;">
                 <span>${mailInPct.toFixed(1)}% – MAIL IN</span>
-                <span style="position: absolute; left: 50%; transform: translateX(-50%); font-size: ${SIZES.FONT_XSMALL}; color: ${OPACITY.TEXT_SECONDARY}; font-weight: normal;">METHOD – ${totalVotes.toLocaleString()} votes</span>
+                <span style="position: absolute; left: 50%; transform: translateX(-50%); font-size: ${SIZES.FONT_XSMALL}; color: ${OPACITY.TEXT_SECONDARY}; font-weight: normal;">METHOD</span>
                 <span>IN PERSON – ${inPersonPct.toFixed(1)}%</span>
             </div>
             <div class="bar-graph" style="height: ${SIZES.BAR_GRAPH_HEIGHT}; position: relative; display: flex; overflow: hidden; border-radius: ${SIZES.BAR_GRAPH_BORDER_RADIUS}; background: ${OPACITY.BACKGROUND_LIGHT}; margin: 0; width: 100%;">
