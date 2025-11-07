@@ -71,7 +71,7 @@
         #top-header h2 {
             margin: 8px 0 0;
             font-family: 'Stack Sans Headline', sans-serif;
-            font-size: 18px;
+            font-size: 16px;
             font-weight: 500;
             color: rgba(0, 0, 0, 0.87);
             letter-spacing: 0.15px;
@@ -123,7 +123,7 @@
         .info i {
             color: rgba(0, 0, 0, 0.6);
             font-style: normal;
-            font-size: 13px;
+            font-size: 14px;
         }
         .legend {
             line-height: 20px;
@@ -194,7 +194,7 @@
         .info-section i {
             color: rgba(0, 0, 0, 0.6);
             font-style: normal;
-            font-size: 13px;
+            font-size: 14px;
         }
         .info-section .precinct-name {
             font-family: 'Stack Sans Headline', sans-serif;
@@ -287,13 +287,18 @@
         }
         .info-section .bar-graph-county-label {
             position: absolute;
-            bottom: -20px;
+            bottom: -18px;
             left: 50%;
             transform: translateX(-50%);
-            font-size: 11px;
+            font-size: 12px;
             font-weight: 500;
             color: #000;
             white-space: nowrap;
+            z-index: 11;
+        }
+        .vote-method-bar-wrapper {
+            position: relative;
+            padding-bottom: 20px;
         }
         .vote-method-breakdown {
             margin-top: 16px;
@@ -303,7 +308,7 @@
         .vote-method-header {
             display: flex;
             align-items: center;
-            justify-content: space-between;
+            justify-content: center;
             cursor: pointer;
             user-select: none;
             font-size: 12px;
@@ -314,16 +319,17 @@
             margin-bottom: 12px;
             padding: 4px 0;
             transition: color 0.2s ease;
+            gap: 8px;
         }
         .vote-method-header:hover {
             color: rgba(0, 0, 0, 0.87);
         }
         .vote-method-arrow {
             display: inline-block;
-            margin-left: 8px;
             transition: transform 0.3s ease;
-            font-size: 16px;
+            font-size: 12px;
             line-height: 1;
+            font-family: 'Stack Sans Headline', sans-serif;
         }
         .vote-method-arrow.expanded {
             transform: rotate(90deg);
@@ -363,11 +369,12 @@
         }
         .legend-section h4 {
             margin: 0 0 12px;
-            color: rgba(0, 0, 0, 0.87);
+            color: rgba(0, 0, 0, 0.6);
             font-weight: 500;
-            font-size: 16px;
-            letter-spacing: 0.15px;
+            font-size: 12px;
+            letter-spacing: 0.5px;
             text-align: center;
+            text-transform: uppercase;
         }
         .legend-horizontal {
             display: flex;
@@ -424,7 +431,7 @@
                 font-size: 12px;
             }
             .info-section .data-column-percent {
-                font-size: 20px;
+                font-size: 24px;
             }
         }
     </style>
@@ -440,7 +447,7 @@
         <div class="bottom-panel-content">
             <div class="info-section" id="info-section">
                 <h4>Proposition 50 Results</h4>
-                <span>Hover over a precinct</span>
+                <span>Hover or Tap a precinct</span>
             </div>
             <div class="legend-section">
                 <h4>Yes % – Key</h4>

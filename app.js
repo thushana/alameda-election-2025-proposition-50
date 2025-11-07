@@ -30,9 +30,11 @@ var COLORS = {
 var SIZES = {
     BAR_GRAPH_HEIGHT: '12px',
     BAR_GRAPH_BORDER_RADIUS: '6px',
-    PERCENTAGE_FONT_SIZE: '13px',
-    LABEL_FONT_SIZE: '11px',
-    SECTION_FONT_SIZE: '12px',
+    // Typography sizes (standardized to 4 sizes)
+    FONT_LARGE: '24px',      // Main titles, precinct names, large percentages
+    FONT_MEDIUM: '16px',     // Section headers, important labels
+    FONT_SMALL: '14px',      // Body text, data columns, buttons, vote method percentages
+    FONT_XSMALL: '12px',     // Labels, secondary text, vote method labels
     MARGIN_BOTTOM_SMALL: '2px',
     MARGIN_BOTTOM_MEDIUM: '12px',
     MARGIN_TOP_SECTION: '16px'
@@ -1233,9 +1235,9 @@ function generateVoteMethodBarGraph(config) {
     
     var html = `
         <div class="vote-method-bar-wrapper" style="margin-bottom: ${SIZES.MARGIN_BOTTOM_MEDIUM};">
-            <div class="vote-method-label-row" style="position: relative; margin-bottom: ${SIZES.MARGIN_BOTTOM_SMALL}; font-size: ${SIZES.PERCENTAGE_FONT_SIZE}; font-weight: 500; color: ${OPACITY.TEXT_PRIMARY}; padding: 0; width: 100%;">
+            <div class="vote-method-label-row" style="position: relative; margin-bottom: ${SIZES.MARGIN_BOTTOM_SMALL}; font-size: ${SIZES.FONT_SMALL}; font-weight: 500; color: ${OPACITY.TEXT_PRIMARY}; padding: 0; width: 100%;">
                 <span>${yesPct.toFixed(1)}%</span>
-                <span style="position: absolute; left: 50%; transform: translateX(-50%); font-size: ${SIZES.LABEL_FONT_SIZE}; color: ${OPACITY.TEXT_SECONDARY}; font-weight: normal;">${label} – ${totalVotes.toLocaleString()} votes</span>
+                <span style="position: absolute; left: 50%; transform: translateX(-50%); font-size: ${SIZES.FONT_XSMALL}; color: ${OPACITY.TEXT_SECONDARY}; font-weight: normal;">${label} – ${totalVotes.toLocaleString()} votes</span>
                 <span>${noPct.toFixed(1)}%</span>
             </div>
             <div class="bar-graph" style="height: ${SIZES.BAR_GRAPH_HEIGHT}; position: relative; display: flex; overflow: hidden; border-radius: ${SIZES.BAR_GRAPH_BORDER_RADIUS}; background: ${OPACITY.BACKGROUND_LIGHT}; margin: 0; width: 100%;">
@@ -1244,7 +1246,6 @@ function generateVoteMethodBarGraph(config) {
                 ${countyAvgPct !== undefined ? `
                 <div class="bar-graph-county-marker" style="left: ${countyAvgPct}%;">
                     <div class="bar-graph-county-line"></div>
-                    <div class="bar-graph-county-label">County</div>
                 </div>
                 ` : ''}
             </div>
@@ -1268,19 +1269,18 @@ function generateMethodBreakdownBarGraph(config) {
     }
     
     var html = `
-        <div>
-            <div style="display: flex; justify-content: space-between; align-items: center; position: relative; margin-bottom: ${SIZES.MARGIN_BOTTOM_SMALL}; font-size: ${SIZES.PERCENTAGE_FONT_SIZE}; font-weight: 500; color: ${OPACITY.TEXT_PRIMARY};">
+        <div class="vote-method-bar-wrapper" style="margin-bottom: ${SIZES.MARGIN_BOTTOM_MEDIUM};">
+            <div class="vote-method-label-row" style="position: relative; margin-bottom: ${SIZES.MARGIN_BOTTOM_SMALL}; font-size: ${SIZES.FONT_SMALL}; font-weight: 500; color: ${OPACITY.TEXT_PRIMARY}; padding: 0; width: 100%;">
                 <span>${mailInPct.toFixed(1)}% – MAIL IN</span>
-                <span style="position: absolute; left: 50%; transform: translateX(-50%); font-size: ${SIZES.LABEL_FONT_SIZE}; color: ${OPACITY.TEXT_SECONDARY}; font-weight: normal;">METHOD BREAKDOWN – ${totalVotes.toLocaleString()} votes</span>
+                <span style="position: absolute; left: 50%; transform: translateX(-50%); font-size: ${SIZES.FONT_XSMALL}; color: ${OPACITY.TEXT_SECONDARY}; font-weight: normal;">METHOD BREAKDOWN – ${totalVotes.toLocaleString()} votes</span>
                 <span>IN PERSON – ${inPersonPct.toFixed(1)}%</span>
             </div>
-            <div class="bar-graph" style="height: ${SIZES.BAR_GRAPH_HEIGHT}; position: relative; display: flex; overflow: hidden; border-radius: ${SIZES.BAR_GRAPH_BORDER_RADIUS}; background: ${OPACITY.BACKGROUND_LIGHT};">
+            <div class="bar-graph" style="height: ${SIZES.BAR_GRAPH_HEIGHT}; position: relative; display: flex; overflow: hidden; border-radius: ${SIZES.BAR_GRAPH_BORDER_RADIUS}; background: ${OPACITY.BACKGROUND_LIGHT}; margin: 0; width: 100%;">
                 <div style="width: ${mailInPct}%; height: 100%; background: ${mailInColor}; flex-shrink: 0;"></div>
                 <div style="width: ${inPersonPct}%; height: 100%; background: ${inPersonColor}; flex-shrink: 0;"></div>
                 ${countyAvgPct !== undefined ? `
                 <div class="bar-graph-county-marker" style="left: ${countyAvgPct}%;">
                     <div class="bar-graph-county-line"></div>
-                    <div class="bar-graph-county-label">County</div>
                 </div>
                 ` : ''}
             </div>
@@ -1385,15 +1385,21 @@ function generateMainBarGraphHTML(voteData) {
     var countyMarker = (countyTotals.yesPct !== undefined) ? `
         <div class="bar-graph-county-marker" style="left: ${countyTotals.yesPct}%;">
             <div class="bar-graph-county-line"></div>
-            <div class="bar-graph-county-label">County</div>
         </div>
     ` : '';
     
+    var countyLabel = (countyTotals.yesPct !== undefined) ? `
+        <div class="bar-graph-county-label" style="position: absolute; left: ${countyTotals.yesPct}%; transform: translateX(-50%); bottom: -18px; padding-bottom: 2px;">County Avg.</div>
+    ` : '';
+    
     return `
-        <div class="bar-graph">
-            <div class="bar-graph-yes" style="width: ${voteData.yesPct}%;"></div>
-            <div class="bar-graph-no" style="width: ${voteData.noPct}%;"></div>
-            ${countyMarker}
+        <div style="position: relative;">
+            <div class="bar-graph">
+                <div class="bar-graph-yes" style="width: ${voteData.yesPct}%;"></div>
+                <div class="bar-graph-no" style="width: ${voteData.noPct}%;"></div>
+                ${countyMarker}
+            </div>
+            ${countyLabel}
         </div>
     `;
 }
@@ -1452,7 +1458,7 @@ function generateVoteMethodBreakdownHTML(props, voteData) {
         <div class="vote-method-breakdown" style="margin-top: ${SIZES.MARGIN_TOP_SECTION}; padding-top: ${SIZES.MARGIN_TOP_SECTION}; border-top: 1px solid ${OPACITY.BORDER_LIGHT};">
             <div class="vote-method-header" onclick="toggleVoteMethodSection(this)">
                 <span>Vote Method</span>
-                <span class="vote-method-arrow">▶</span>
+                <span class="vote-method-arrow">›</span>
             </div>
             <div class="vote-method-content">
                 ${generateVoteMethodBarGraph({
