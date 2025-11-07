@@ -155,8 +155,8 @@
         }
         .info-section .precinct-name {
             font-family: 'Stack Sans Headline', sans-serif;
-            font-weight: 500;
-            font-size: 16px;
+            font-weight: 700;
+            font-size: 24px;
             color: rgba(0, 0, 0, 0.87);
             margin-bottom: 16px;
             transition: opacity 0.3s ease;
@@ -400,7 +400,25 @@
 
         // Reset highlight
         function resetHighlight(e) {
-            geojsonLayer.resetStyle(e.target);
+            var layer = e.target;
+            // Check if this layer is selected - if so, keep the black border
+            var isSelected = selectedPrecincts.some(function(item) {
+                return item.layer === layer;
+            });
+            
+            if (isSelected) {
+                // Keep selected style
+                var yesPct = layer.feature.properties.percentage ? layer.feature.properties.percentage.yes : null;
+                layer.setStyle({
+                    weight: 4,
+                    color: '#000000',
+                    fillOpacity: 0.8,
+                    dashArray: '',
+                    fillColor: getColor(yesPct)
+                });
+            } else {
+                geojsonLayer.resetStyle(layer);
+            }
             updateInfoSection(null);
         }
 
@@ -409,12 +427,287 @@
             map.fitBounds(e.target.getBounds());
         }
 
+        // Selected precincts for aggregation
+        var selectedPrecincts = [];
+        var isSelectionMode = false;
+        var currentCityName = null;
+
+        // Toggle precinct selection on command-click
+        function togglePrecinctSelection(e) {
+            if (e.originalEvent.metaKey || e.originalEvent.ctrlKey) {
+                e.originalEvent.preventDefault();
+                isSelectionMode = true;
+                var feature = e.target.feature;
+                var layer = e.target;
+                
+                // Clear city name when manually selecting
+                currentCityName = null;
+                
+                // Check if already selected
+                var index = selectedPrecincts.findIndex(function(p) {
+                    return p.feature === feature;
+                });
+                
+                if (index === -1) {
+                    // Add to selection
+                    selectedPrecincts.push({ feature: feature, layer: layer });
+                    var yesPct = feature.properties.percentage ? feature.properties.percentage.yes : null;
+                    layer.setStyle({
+                        weight: 4,
+                        color: '#000000',
+                        fillOpacity: 0.8,
+                        dashArray: '',
+                        fillColor: getColor(yesPct)
+                    });
+                    // Bring to front to ensure visibility
+                    if (!L.Browser.ie && !L.Browser.opera && !L.Browser.edge) {
+                        layer.bringToFront();
+                    }
+                } else {
+                    // Remove from selection
+                    selectedPrecincts.splice(index, 1);
+                    geojsonLayer.resetStyle(layer);
+                }
+                
+                // Update URL with selected precincts
+                updateURL();
+                
+                // Update aggregated totals
+                updateAggregatedTotals();
+            } else {
+                // Normal click - zoom
+                zoomToFeature(e);
+            }
+        }
+
+        // Calculate and display aggregated totals
+        function updateAggregatedTotals() {
+            if (selectedPrecincts.length === 0) {
+                updateInfoSection(null);
+                return;
+            }
+            
+            var aggregated = {
+                yes: 0,
+                no: 0,
+                total: 0,
+                count: selectedPrecincts.length
+            };
+            
+            selectedPrecincts.forEach(function(item) {
+                var props = item.feature.properties;
+                if (props.votes) {
+                    if (props.votes.yes) aggregated.yes += props.votes.yes;
+                    if (props.votes.no) aggregated.no += props.votes.no;
+                    if (props.votes.total) aggregated.total += props.votes.total;
+                }
+            });
+            
+            // Calculate percentages
+            if (aggregated.total > 0) {
+                aggregated.yesPct = (aggregated.yes / aggregated.total) * 100;
+                aggregated.noPct = (aggregated.no / aggregated.total) * 100;
+            } else {
+                aggregated.yesPct = 0;
+                aggregated.noPct = 0;
+            }
+            
+            // Create aggregated properties object
+            var aggregatedProps = {
+                aggregated: true,
+                count: aggregated.count,
+                cityName: currentCityName,
+                votes: {
+                    yes: aggregated.yes,
+                    no: aggregated.no,
+                    total: aggregated.total
+                },
+                percentage: {
+                    yes: aggregated.yesPct,
+                    no: aggregated.noPct
+                }
+            };
+            
+            updateInfoSection(aggregatedProps);
+        }
+
+        // Update URL with selected precinct numbers
+        function updateURL() {
+            // Get precinct IDs
+            var precinctIds = selectedPrecincts.map(function(item) {
+                var props = item.feature.properties;
+                return props.Precinct_ID || 
+                       props['Precinct_ID'] || 
+                       props.precinct || 
+                       props['precinct'] ||
+                       props.ID || 
+                       props['ID'] || 
+                       'N/A';
+            }).join('+');
+            
+            // Manually construct URL to preserve + signs
+            var url = new URL(window.location);
+            var baseUrl = url.protocol + '//' + url.host + url.pathname;
+            var params = new URLSearchParams(url.search);
+            
+            if (precinctIds) {
+                // Manually add precincts parameter with + signs
+                params.delete('precincts');
+                var queryString = params.toString();
+                var separator = queryString ? '&' : '?';
+                var newUrl = baseUrl + (queryString ? '?' + queryString + '&' : '?') + 'precincts=' + precinctIds;
+                window.history.replaceState({}, '', newUrl);
+            } else {
+                // Remove precinct parameter if no selection
+                params.delete('precincts');
+                var queryString = params.toString();
+                var newUrl = baseUrl + (queryString ? '?' + queryString : '');
+                window.history.replaceState({}, '', newUrl);
+            }
+        }
+
+        // City to precinct mapping
+        var cityPrecinctMap = {
+            'alameda': ['305110', '304800', '305500', '305700', '303800', '302700', '301900', '302200', '300300', '300130', '300150', '300110']
+        };
+
+        // Restore selection from URL on page load
+        function restoreSelectionFromURL() {
+            if (!geojsonLayer) {
+                return;
+            }
+            
+            var precinctIds = [];
+            
+            // Check for city parameter first
+            var urlParams = new URLSearchParams(window.location.search);
+            var cityParam = urlParams.get('city');
+            
+            if (cityParam && cityPrecinctMap[cityParam.toLowerCase()]) {
+                // Use city mapping
+                precinctIds = cityPrecinctMap[cityParam.toLowerCase()];
+                currentCityName = cityParam.toLowerCase();
+            } else {
+                currentCityName = null;
+                // Read raw query string to preserve + signs
+                var search = window.location.search;
+                var match = search.match(/[?&]precincts=([^&]*)/);
+                
+                if (!match) {
+                    return;
+                }
+                
+                // Handle both + and , for backwards compatibility
+                precinctIds = match[1].split(/[+,]/);
+            }
+            
+            if (precinctIds.length === 0) {
+                return;
+            }
+            
+            // Wait for geojsonLayer to be populated
+            setTimeout(function() {
+                var foundCount = 0;
+                geojsonLayer.eachLayer(function(layer) {
+                    var props = layer.feature.properties;
+                    var precinctId = props.Precinct_ID || 
+                                    props['Precinct_ID'] || 
+                                    props.precinct || 
+                                    props['precinct'] ||
+                                    props.ID || 
+                                    props['ID'] || 
+                                    null;
+                    
+                    // Convert to string for comparison
+                    var precinctIdStr = precinctId ? precinctId.toString() : null;
+                    
+                    if (precinctIdStr && precinctIds.indexOf(precinctIdStr) !== -1) {
+                        foundCount++;
+                        selectedPrecincts.push({ feature: layer.feature, layer: layer });
+                        // Set style with black border
+                        var yesPct = layer.feature.properties.percentage ? layer.feature.properties.percentage.yes : null;
+                        layer.setStyle({
+                            weight: 4,
+                            color: '#000000',
+                            fillOpacity: 0.8,
+                            dashArray: '',
+                            fillColor: getColor(yesPct)
+                        });
+                        // Bring to front to ensure visibility
+                        if (!L.Browser.ie && !L.Browser.opera && !L.Browser.edge) {
+                            layer.bringToFront();
+                        }
+                        isSelectionMode = true;
+                    }
+                });
+                
+                console.log('Restored ' + foundCount + ' precincts from URL. Looking for:', precinctIds);
+                
+                if (selectedPrecincts.length > 0) {
+                    updateAggregatedTotals();
+                    
+                    // Calculate bounds of selected precincts and center/zoom map
+                    var bounds = L.latLngBounds([]);
+                    selectedPrecincts.forEach(function(item) {
+                        if (item.layer && item.layer.getBounds) {
+                            try {
+                                var layerBounds = item.layer.getBounds();
+                                if (layerBounds.isValid()) {
+                                    bounds.extend(layerBounds);
+                                }
+                            } catch (e) {
+                                // Skip if bounds can't be calculated
+                            }
+                        }
+                    });
+                    
+                    if (bounds.isValid() && bounds.getNorth() !== bounds.getSouth() && bounds.getEast() !== bounds.getWest()) {
+                        // Add padding to bounds (10% on each side)
+                        var padding = 0.1;
+                        var north = bounds.getNorth();
+                        var south = bounds.getSouth();
+                        var east = bounds.getEast();
+                        var west = bounds.getWest();
+                        var latDiff = north - south;
+                        var lngDiff = east - west;
+                        
+                        // Shift center north to account for bottom panel (add more padding to south)
+                        var southPadding = latDiff * padding * 3; // More padding on south
+                        var northPadding = latDiff * padding * 0.3; // Less padding on north
+                        
+                        var paddedBounds = L.latLngBounds([
+                            [south - southPadding, west - (lngDiff * padding)],
+                            [north + northPadding, east + (lngDiff * padding)]
+                        ]);
+                        
+                        // Add more padding to bottom to account for bottom panel
+                        map.fitBounds(paddedBounds, { padding: [50, 50, 250, 50] }); // top, right, bottom, left
+                    }
+                }
+            }, 1000);
+        }
+
+        // Clear selection on Escape
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && isSelectionMode) {
+                // Reset all selected precincts
+                selectedPrecincts.forEach(function(item) {
+                    geojsonLayer.resetStyle(item.layer);
+                });
+                selectedPrecincts = [];
+                isSelectionMode = false;
+                currentCityName = null;
+                updateURL();
+                updateInfoSection(null);
+            }
+        });
+
         // Add event listeners
         function onEachFeature(feature, layer) {
             layer.on({
                 mouseover: highlightFeature,
                 mouseout: resetHighlight,
-                click: zoomToFeature
+                click: togglePrecinctSelection
             });
         }
 
@@ -470,6 +763,9 @@
                 
                 // Update info section with county totals
                 updateInfoSection(null);
+                
+                // Restore selection from URL if present
+                restoreSelectionFromURL();
             })
             .catch(error => {
                 console.error('Error loading GeoJSON:', error);
@@ -538,18 +834,25 @@
                     return;
                 }
             
-                // Try multiple ways to get the precinct name
-                var precinctName = props.Precinct_ID || 
-                                  props['Precinct_ID'] || 
-                                  props.precinct || 
-                                  props['precinct'] ||
-                                  props.ID || 
-                                  props['ID'] || 
-                                  'N/A';
-                
-                var hasVotes = props.votes && props.votes.total !== undefined;
-                
-                var content = '<div class="precinct-name">Precinct ' + precinctName + '</div>';
+                // Check if this is aggregated data
+                if (props.aggregated) {
+                    var title = props.cityName ? 'City of ' + props.cityName.charAt(0).toUpperCase() + props.cityName.slice(1) : props.count + ' Precincts Selected';
+                    var content = '<div class="precinct-name">' + title + '</div>';
+                    var hasVotes = props.votes && props.votes.total !== undefined;
+                } else {
+                    // Try multiple ways to get the precinct name
+                    var precinctName = props.Precinct_ID || 
+                                      props['Precinct_ID'] || 
+                                      props.precinct || 
+                                      props['precinct'] ||
+                                      props.ID || 
+                                      props['ID'] || 
+                                      'N/A';
+                    
+                    var hasVotes = props.votes && props.votes.total !== undefined;
+                    
+                    var content = '<div class="precinct-name">Precinct ' + precinctName + '</div>';
+                }
                 
                 content += '<div class="data-columns">';
                 
@@ -563,19 +866,19 @@
                     // YES column
                     content += '<div class="data-column">';
                     content += '<div class="data-column-header">YES</div>';
-                    content += '<div class="data-column-votes">' + yesVotes + ' votes</div>';
+                    content += '<div class="data-column-votes">' + yesVotes.toLocaleString() + ' votes</div>';
                     content += '<div class="data-column-percent">' + yesPct.toFixed(1) + '%</div>';
                     content += '</div>';
                     // Total column
                     content += '<div class="data-column">';
                     content += '<div class="data-column-header">Total</div>';
-                    content += '<div class="data-column-votes">' + totalVotes + ' votes</div>';
+                    content += '<div class="data-column-votes">' + totalVotes.toLocaleString() + ' votes</div>';
                     content += '<div class="data-column-percent">—</div>';
                     content += '</div>';
                     // NO column
                     content += '<div class="data-column">';
                     content += '<div class="data-column-header">NO</div>';
-                    content += '<div class="data-column-votes">' + noVotes + ' votes</div>';
+                    content += '<div class="data-column-votes">' + noVotes.toLocaleString() + ' votes</div>';
                     content += '<div class="data-column-percent">' + noPct.toFixed(1) + '%</div>';
                     content += '</div>';
                 } else {
@@ -607,7 +910,7 @@
                 content += '<div class="bar-graph">';
                 content += '<div class="bar-graph-yes" style="width: ' + yesPct + '%;"></div>';
                 content += '<div class="bar-graph-no" style="width: ' + noPct + '%;"></div>';
-                // Add county average line for precinct data
+                // Add county average line for all data (precinct and aggregated)
                 if (hasVotes && props.votes.total > 0 && countyTotals.yesPct !== undefined) {
                     content += '<div class="bar-graph-county-marker" style="left: ' + countyTotals.yesPct + '%;">';
                     content += '<div class="bar-graph-county-line"></div>';
