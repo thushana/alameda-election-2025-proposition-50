@@ -28,6 +28,7 @@ This tool uses data from the Alameda County Registrar of Voters and others:
 - ["Alameda County - Statewide Special Election - November 04, 2025 - Unofficial Final Results](https://alamedacountyca.gov/rovresults/258/)
 - ["Alameda County - Cast Voter Records](https://airtable.com/appzbg5Z60K8CbQiB/shr1TpBYl4CY91fkS)
 - ["Alameda County - Consolidated Precincts - November 4, 2025 Statewide Special Election"](https://data.acgov.org/datasets/5a0fa695ceb042c482d21ff7558628ff_0/explore)
+- Alameda County precinct data does not have location names attached with the polygons. To solve for that, I first found the ["Pole of Inaccessibility"](https://en.wikipedia.org/wiki/Pole_of_inaccessibility) of the precinct shape. This is the furthest point from all edges and is ensured to be inside the polygon, even in odd-shaped precincts. This location is then reverse geocoded with OpenStreetMap to get data about the spot that is used to label the precinct beyond its number. This is imperfect, but for the most part accurate and helps in usefulness.
 - ["Alameda County - Official Election Site of Alameda County - Data Page"](https://alamedacountyca.gov/rov_app/edata?reportType=totalRegistered)
 - ["State of California – Statewide Special Election Voter Turnout"](https://electionresults.sos.ca.gov/returns/maps/voter-turnout)
 - ["The New York Times – An Extremely Detailed Map of the 2024 Election"](https://www.nytimes.com/interactive/2025/us/elections/2024-election-map-precinct-results.html)
