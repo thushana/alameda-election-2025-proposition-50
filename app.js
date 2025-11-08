@@ -1292,8 +1292,8 @@ Promise.all([
             var isMobileInit = window.innerWidth <= 768;
             var bottomPanelInit = document.getElementById('bottom-panel');
             var bottomPaddingInit = bottomPanelInit ? bottomPanelInit.offsetHeight + (isMobileInit ? 140 : 80) : (isMobileInit ? 360 : 240);
-            var sidePaddingInit = isMobileInit ? 30 : 80; // Increased from 20/50 to zoom out more
-            var topPaddingInit = isMobileInit ? 30 : 80; // Increased from 20/50 to zoom out more
+            var sidePaddingInit = isMobileInit ? 50 : 80; // Mobile: zoomed out one more level, Desktop: unchanged
+            var topPaddingInit = isMobileInit ? 50 : 80; // Mobile: zoomed out one more level, Desktop: unchanged
             suppressBiasUpdates = true;
             map.fitBounds(boundsToFit, {
                 paddingTopLeft: L.point(sidePaddingInit, topPaddingInit),
