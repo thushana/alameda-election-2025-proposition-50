@@ -171,6 +171,45 @@ function resetHighlight(e) {
 function zoomToFeature(e) {
     var target = e.target;
     var feature = target && target.feature;
+    
+    // Update URL to show this single precinct
+    if (feature && feature.properties) {
+        var props = feature.properties;
+        var precinctId = getPrecinctId(props);
+        
+        if (precinctId) {
+            // Clear existing selection and set to just this precinct
+            selectedPrecincts.forEach(function(item) {
+                if (item.layer && item.feature) {
+                    var itemProps = item.feature.properties;
+                    var itemYesPct = getYesPercentage(itemProps);
+                    resetLayerStyle(item.layer, itemYesPct);
+                }
+            });
+            
+            // Select just this precinct
+            selectedPrecincts = [{ feature: feature, layer: target }];
+            var yesPct = getYesPercentage(props);
+            var isCircle = target instanceof L.CircleMarker;
+            
+            if (isCircle) {
+                var voteCount = getVoteCount(props);
+                setCircleStyle(target, yesPct, voteCount, true);
+            } else {
+                setPolygonStyle(target, yesPct, true);
+            }
+            
+            // Bring to front
+            if (!L.Browser.ie && !L.Browser.opera && !L.Browser.edge) {
+                target.bringToFront();
+            }
+            
+            // Update URL and aggregated totals
+            updateURL();
+            updateAggregatedTotals();
+        }
+    }
+    
     // Always derive bounds from the polygon geometry when available
     if (feature && feature.geometry) {
         try {
@@ -505,9 +544,9 @@ function toggleMapMode() {
 // Make toggleMapMode globally accessible
 window.toggleMapMode = toggleMapMode;
 
-// Toggle precinct selection on command-click
+// Toggle precinct selection on command-click or option-click
 function togglePrecinctSelection(e) {
-    if (e.originalEvent.metaKey || e.originalEvent.ctrlKey) {
+    if (e.originalEvent.metaKey || e.originalEvent.ctrlKey || e.originalEvent.altKey) {
         e.originalEvent.preventDefault();
         var feature = e.target.feature;
         var layer = e.target;
@@ -557,7 +596,7 @@ function togglePrecinctSelection(e) {
         // Update aggregated totals
         updateAggregatedTotals();
     } else {
-        // Normal click - zoom
+        // Normal click - zoom and update URL
         zoomToFeature(e);
     }
 }
