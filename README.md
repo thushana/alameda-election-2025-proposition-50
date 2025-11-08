@@ -11,9 +11,9 @@ I wanted to do this for last year's election but – _incomprehensibly_ – they
 
 ## Analysis
 - Islandwide Prop. 50 earned 83.9% of the vote.
-- In November 2024, the Harris/Trump breakdown was 79.6%/20.4%, suggesting a +4.3% shift leftwards from 2024 to 2025.
-- Alameda as a whole, and most city precincts, voted at higher levels of "Yes" than the county average. The three precincts in Bay Farm voted _below_ the county average for "Yes", and more likely to be against it.
-- Turnout for Alameda was 27,207 voters, at 51.4% of the 52,931 registered voters in Alameda for this special off-cycle election. This ~70% of the 2024 General Election turnout of 38,349 and 72.5% of estimated registered voters. (There is no easily accessible city-level registered voter data for last year. Countywide registration was 1% smaller in 2024; if we apply that to a city level, there were an estimated 52,661 registered voters.) This is also slightly better than the 38.7% statewide registered voter turnout.
+- In November 2024, the Harris/Trump breakdown was 79.6%/20.4%, suggesting a +4.3% shift leftwards from 2024 to 2025 for ALameda voters who turned out.
+- Alameda as a whole, and most city precincts, voted at higher levels of "Yes" than the county average. The three precincts in Bay Farm voted _below_ the county average for "Yes".
+- Turnout in this election in Alameda was 27,207 voters. That's 51.4% of the 52,931 registered voters in Alameda for this special off-cycle election. This is ~70% of the 2024 General Election turnout, which was 38,349 or 72.5% of estimated registered voters. (There is no easily accessible city-level registered voter data for last year. Countywide registration was 1% smaller in 2024; if we apply that to a city level, there were an estimated 52,661 registered voters.) This is also slightly better than the [43.4% statewide registered voter turnout](https://electionresults.sos.ca.gov/returns/maps/voter-turnout).
 - Mail-in votes dominated the returns at 94.6%. 
 - Interestingly, there's a noticeable delta between in-person votes vs. mailed, with those voting in-person significantly more likely to vote "No" at 24.5% (vs. 15.7% for mail-in).
 
