@@ -17,7 +17,7 @@ I wanted to do this for last year's election but – _incomprehensibly_ – they
 - Mail-in votes dominated the returns at 93.1%. 
 - Interestingly, there's a noticeable delta between in-person votes vs. mailed, with those voting in-person significantly more likely to vote "No" at 24.5% (vs. 16.0% for mail-in).
 
-If you see something off, feel free to send me a [pull request](https://github.com/thushana/alameda-election-2025-proposition-50) / [email me](mailto:thushan@thushan.net).
+If you see something off, feel free to [email me](mailto:thushan@thushan.net).
 
 ## Methodology
 
