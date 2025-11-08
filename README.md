@@ -23,6 +23,8 @@ I wanted to do this for last year's election but – _incomprehensibly_ – they
 
 If you see something off, feel free to [email me](mailto:thushan@thushan.net).
 
+*_To be wildly transparent, I actively canvassed for Prop. 50 at Alameda's ferries a couple times, and had a lawn sign in support of this proposition in our yard._
+
 ## Methodology
 
 This tool uses data from the Alameda County Registrar of Voters and others:
@@ -34,9 +36,6 @@ This tool uses data from the Alameda County Registrar of Voters and others:
 - ["Alameda County - Official Election Site of Alameda County - Data Page"](https://alamedacountyca.gov/rov_app/edata?reportType=totalRegistered)
 - ["State of California – Statewide Special Election Voter Turnout"](https://electionresults.sos.ca.gov/returns/maps/voter-turnout)
 - ["The New York Times – An Extremely Detailed Map of the 2024 Election"](https://www.nytimes.com/interactive/2025/us/elections/2024-election-map-precinct-results.html)
-
-
-*_To be wildly transparent, I actively canvassed for Prop. 50 at Alameda's ferries a couple times, and had a lawn sign in support of this proposition in our yard._
 
 
 ## Features
