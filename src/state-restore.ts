@@ -12,7 +12,7 @@ import { setCircleStyle, setPolygonStyle, resetLayerStyle } from './map-styling.
 import { updateAggregatedTotals } from './selection.js';
 import { updateCityButtonText } from './ui-city-dropdown.js';
 import { updateInfoSection } from './ui-info-section.js';
-import { applyMobileVerticalBias } from './map-utils.js';
+// Bias adjustment not needed for city restoration - removed to prevent visual jump
 import { toggleMapMode } from './map-mode.js';
 import type { GeoJSONFeature } from './types.js';
 
@@ -131,11 +131,13 @@ export function restoreSelectionFromURL(): void {
           const isMobile = window.innerWidth <= 768;
           const bottomPanel = document.getElementById('bottom-panel');
           const bottomPadding = bottomPanel ? bottomPanel.offsetHeight + (isMobile ? 140 : 80) : (isMobile ? 360 : 240);
+          const sidePadding = isMobile ? 50 : 80;
+          const topPadding = isMobile ? 50 : 80;
           state.map.fitBounds(cityBounds, {
-            paddingTopLeft: leaflet.point(20, 20),
-            paddingBottomRight: leaflet.point(20, bottomPadding)
+            paddingTopLeft: leaflet.point(sidePadding, topPadding),
+            paddingBottomRight: leaflet.point(sidePadding, bottomPadding)
           });
-          applyMobileVerticalBias();
+          // No bias adjustment needed - initial centering is correct
         }
         
         state.restoreInProgress = false;
