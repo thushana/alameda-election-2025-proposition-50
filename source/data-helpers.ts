@@ -50,15 +50,16 @@ export function safeGet<T>(
 
 // Get centroid of a feature
 export function getCentroid(feature: GeoJSONFeature): [number, number] | null {
+  if (!feature.geometry) return null;
+
   // Use Leaflet's built-in method if available, otherwise calculate manually
   if (
-    feature.geometry &&
-    (feature.geometry.type === 'Polygon' ||
-      feature.geometry.type === 'MultiPolygon' ||
-      feature.geometry.type === 'Point' ||
-      feature.geometry.type === 'LineString' ||
-      feature.geometry.type === 'MultiLineString' ||
-      feature.geometry.type === 'MultiPoint')
+    feature.geometry.type === 'Polygon' ||
+    feature.geometry.type === 'MultiPolygon' ||
+    feature.geometry.type === 'Point' ||
+    feature.geometry.type === 'LineString' ||
+    feature.geometry.type === 'MultiLineString' ||
+    feature.geometry.type === 'MultiPoint'
   ) {
     const coords = (feature.geometry as { coordinates: unknown }).coordinates;
     let lng = 0,
@@ -67,36 +68,56 @@ export function getCentroid(feature: GeoJSONFeature): [number, number] | null {
 
     function processCoordinates(coords: unknown): void {
       if (!Array.isArray(coords)) return;
-      if (Array.isArray(coords[0]) && typeof coords[0][0] === 'number') {
-        // Array of coordinates
-        (coords as number[][]).forEach(function (coord: number[]) {
-          if (Array.isArray(coord[0]) && Array.isArray(coord[0][0])) {
-            processCoordinates(coord);
-          } else if (Array.isArray(coord[0]) && typeof coord[0] === 'number') {
-            // GeoJSON format: [lng, lat]
-            const coordArray = coord as number[];
-            lng += coordArray[0];
-            lat += coordArray[1];
-            count++;
-          }
-        });
-      } else if (typeof coords[0] === 'number') {
-        // Single coordinate [lng, lat]
-        const coordArray = coords as number[];
-        lng += coordArray[0];
-        lat += coordArray[1];
+
+      // Check if this is a coordinate pair [lng, lat]
+      if (coords.length >= 2 && typeof coords[0] === 'number' && typeof coords[1] === 'number') {
+        lng += coords[0] as number;
+        lat += coords[1] as number;
         count++;
+        return;
+      }
+
+      // Otherwise, it's a nested array - recurse
+      if (Array.isArray(coords[0])) {
+        (coords as unknown[]).forEach((item: unknown) => {
+          processCoordinates(item);
+        });
       }
     }
 
     if (feature.geometry.type === 'Polygon') {
       const polygonCoords = coords as number[][][];
-      processCoordinates(polygonCoords[0]); // Use outer ring
+      if (polygonCoords && polygonCoords[0]) {
+        // Process outer ring (first ring)
+        processCoordinates(polygonCoords[0]);
+      }
     } else if (feature.geometry.type === 'MultiPolygon') {
       const multiPolygonCoords = coords as number[][][][];
-      multiPolygonCoords.forEach(function (polygon: number[][][]) {
-        processCoordinates(polygon[0]); // Use outer ring of each polygon
-      });
+      if (multiPolygonCoords) {
+        multiPolygonCoords.forEach((polygon: number[][][]) => {
+          if (polygon && polygon[0]) {
+            // Process outer ring of each polygon
+            processCoordinates(polygon[0]);
+          }
+        });
+      }
+    } else if (feature.geometry.type === 'Point') {
+      const pointCoords = coords as number[];
+      if (pointCoords && pointCoords.length >= 2) {
+        lng = pointCoords[0];
+        lat = pointCoords[1];
+        count = 1;
+      }
+    } else if (feature.geometry.type === 'LineString' || feature.geometry.type === 'MultiPoint') {
+      const lineCoords = coords as number[][];
+      if (lineCoords) {
+        processCoordinates(lineCoords);
+      }
+    } else if (feature.geometry.type === 'MultiLineString') {
+      const multiLineCoords = coords as number[][][];
+      if (multiLineCoords) {
+        processCoordinates(multiLineCoords);
+      }
     }
 
     // Return as [lat, lng] for Leaflet

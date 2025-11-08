@@ -40,41 +40,56 @@ export function createProportionalSymbols(data: GeoJSONData): void {
 
   // Create circle markers
   const circles: CircleMarker[] = [];
+  let circlesCreated = 0;
+  let noCentroid = 0;
+  let noVotes = 0;
   data.features.forEach((feature) => {
     const props = feature.properties;
     const voteCount = getVoteCount(props);
     const yesPct = getYesPercentage(props);
 
     const centroid = getCentroid(feature);
-    if (centroid && voteCount > 0) {
-      const radius = getCircleRadius(voteCount);
-      const color = getColor(yesPct);
-
-      const circle = leaflet.circleMarker([centroid[0], centroid[1]], {
-        radius: radius,
-        fillColor: color,
-        color: '#fff',
-        weight: 1,
-        opacity: 0.8,
-        fillOpacity: 0.7,
-      });
-
-      // Store feature properties for hover/click
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Leaflet layer extension
-      (circle as any).feature = feature;
-
-      // Add event listeners
-      circle.on({
-        mouseover: highlightFeature,
-        mouseout: resetHighlight,
-        click: togglePrecinctSelection,
-      });
-
-      circles.push(circle);
+    if (!centroid) {
+      noCentroid++;
+      return;
     }
+    if (voteCount <= 0) {
+      noVotes++;
+      return;
+    }
+
+    const radius = getCircleRadius(voteCount);
+    const color = getColor(yesPct);
+
+    const circle = leaflet.circleMarker([centroid[0], centroid[1]], {
+      radius: radius,
+      fillColor: color,
+      color: '#fff',
+      weight: 1,
+      opacity: 0.8,
+      fillOpacity: 0.7,
+    });
+
+    // Store feature properties for hover/click
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Leaflet layer extension
+    (circle as any).feature = feature;
+
+    // Add event listeners
+    circle.on({
+      mouseover: highlightFeature,
+      mouseout: resetHighlight,
+      click: togglePrecinctSelection,
+    });
+
+    circles.push(circle);
+    circlesCreated++;
   });
 
+  console.log(
+    `Created ${circlesCreated} circles out of ${data.features.length} features. No centroid: ${noCentroid}, No votes: ${noVotes}`
+  );
   circleLayer = leaflet.layerGroup(circles).addTo(state.map);
+  console.log(`Added ${circles.length} circles to map`);
 }
 
 // Toggle map mode
