@@ -341,7 +341,8 @@ function loadData() {
             ? 360
             : 240;
         const sidePaddingInit = isMobileInit ? 50 : 80;
-        const topPaddingInit = isMobileInit ? 50 : 80;
+        // Shift city down by 100px on mobile (increase top padding)
+        const topPaddingInit = isMobileInit ? 150 : 80;
         state.map.fitBounds(boundsToFit, {
           paddingTopLeft: leaflet.point(sidePaddingInit, topPaddingInit),
           paddingBottomRight: leaflet.point(sidePaddingInit, bottomPaddingInit),

@@ -66,7 +66,7 @@ export function buildCityDropdown(): void {
   });
   dropdownContent.appendChild(countyItem);
 
-  // Add each city
+  // Add each city (all cities are included, scrolling enabled on mobile)
   cities.forEach((city) => {
     const cityItem = document.createElement('div');
     cityItem.className = 'city-dropdown-item';
@@ -100,13 +100,22 @@ export function toggleCityDropdown(): void {
   state.cityDropdownOpen = !state.cityDropdownOpen;
 
   if (state.cityDropdownOpen) {
-    // Position dropdown relative to button
+    // Position dropdown relative to button - ensure it's above info pane
     const btnRect = btn.getBoundingClientRect();
     dropdown.style.position = 'fixed';
     dropdown.style.top = btnRect.bottom + 8 + 'px';
-    dropdown.style.left = btnRect.left + btnRect.width / 2 + 'px';
+    // Ensure dropdown is not cropped on left - use max to prevent negative values
+    // Also ensure it doesn't go off-screen on the right
+    const screenWidth = window.innerWidth;
+    const dropdownWidth = 300; // max-width from CSS
+    const leftPos = Math.max(
+      10,
+      Math.min(btnRect.left + btnRect.width / 2, screenWidth - dropdownWidth / 2 - 10)
+    );
+    dropdown.style.left = leftPos + 'px';
     dropdown.style.transform = 'translateX(-50%)';
     dropdown.style.display = 'block';
+    // Ensure dropdown appears above info pane (z-index already set in CSS to 10001)
   } else {
     dropdown.style.display = 'none';
   }

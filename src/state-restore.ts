@@ -137,7 +137,8 @@ export function restoreSelectionFromURL(): void {
               ? 360
               : 240;
           const sidePadding = isMobile ? 50 : 80;
-          const topPadding = isMobile ? 50 : 80;
+          // Shift city down by 100px on mobile (increase top padding)
+          const topPadding = isMobile ? 150 : 80;
           state.map.fitBounds(cityBounds, {
             paddingTopLeft: leaflet.point(sidePadding, topPadding),
             paddingBottomRight: leaflet.point(sidePadding, bottomPadding),
