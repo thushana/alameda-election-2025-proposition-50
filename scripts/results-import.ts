@@ -6,14 +6,49 @@ import { pipeline } from 'node:stream';
 import streamJson from 'stream-json';
 import pickPkg from 'stream-json/filters/Pick.js';
 import streamArrayPkg from 'stream-json/streamers/StreamArray.js';
-const { parser } = streamJson as { parser: (...args: unknown[]) => any };
-const { pick } = pickPkg as { pick: (args: { filter: string }) => any };
-const { streamArray } = streamArrayPkg as { streamArray: (...args: unknown[]) => any };
+
+// Type definitions for stream-json (external library types)
+type StreamJsonParser = (...args: unknown[]) => NodeJS.ReadWriteStream;
+type StreamJsonPick = (args: { filter: string }) => NodeJS.ReadWriteStream;
+type StreamJsonStreamArray = (...args: unknown[]) => NodeJS.ReadWriteStream;
+
+const { parser } = streamJson as { parser: StreamJsonParser };
+const { pick } = pickPkg as { pick: StreamJsonPick };
+const { streamArray } = streamArrayPkg as { streamArray: StreamJsonStreamArray };
 
 type VoteCounts = { yes: number; no: number; total: number };
 type MethodVotes = Record<number, VoteCounts>;
 type PrecinctTotals = Record<string, VoteCounts>;
 type PrecinctMethods = Record<string, MethodVotes>;
+
+// CVR data structure types
+interface CvrMark {
+  IsVote?: boolean;
+  CandidateId?: number;
+}
+
+interface CvrContest {
+  Id?: number;
+  Marks?: CvrMark[];
+}
+
+interface CvrCard {
+  Contests?: CvrContest[];
+}
+
+interface CvrOriginal {
+  PrecinctPortionId?: number;
+  Cards?: CvrCard[];
+}
+
+interface CvrRecord {
+  Original?: CvrOriginal;
+  CountingGroupId?: number;
+}
+
+interface CvrStreamValue {
+  value: CvrRecord;
+}
 
 function readJsonFile<T>(filePath: string): T {
   const raw = fs.readFileSync(filePath, 'utf-8');
@@ -208,7 +243,7 @@ function resolveCvrFile(inputDir: string): string {
   );
 }
 
-function safeGetArray<T = unknown>(value: unknown): T[] {
+function safeGetArray<T>(value: unknown): T[] {
   return Array.isArray(value) ? (value as T[]) : [];
 }
 
@@ -308,17 +343,17 @@ async function main(): Promise<void> {
     const sessionsPicker = pick({ filter: 'Sessions' });
     const sessionsArray = streamArray();
 
-    sessionsArray.on('data', ({ value }: { value: any }) => {
+    sessionsArray.on('data', ({ value }: CvrStreamValue) => {
       processed += 1;
       if (processed % 100000 === 0) {
         console.log(`  Processed ${processed.toLocaleString()} records...`);
       }
 
-      const record = value ?? {};
-      const original = (record.Original ?? {}) as any;
-      const cards = safeGetArray<any>(original.Cards);
-      const precinctPortionId = original.PrecinctPortionId as number | undefined;
-      const countingGroupId = record.CountingGroupId as number | undefined;
+      const record: CvrRecord = value ?? {};
+      const original: CvrOriginal = (record.Original ?? {}) as CvrOriginal;
+      const cards = safeGetArray<CvrCard>(original.Cards);
+      const precinctPortionId = original.PrecinctPortionId;
+      const countingGroupId = record.CountingGroupId;
 
       if (!precinctPortionId) return;
       const precinctId = portionToPrecinctId.get(precinctPortionId);
@@ -327,11 +362,11 @@ async function main(): Promise<void> {
       if (!precinctName) return;
 
       for (const card of cards) {
-        const contests = safeGetArray<any>(card.Contests);
+        const contests = safeGetArray<CvrContest>(card.Contests);
         for (const contest of contests) {
-          const contestId = contest?.Id as number | undefined;
+          const contestId = contest?.Id;
           if (contestId !== 1) continue;
-          const marks = safeGetArray<any>(contest.Marks);
+          const marks = safeGetArray<CvrMark>(contest.Marks);
           if (marks.length === 0) continue;
 
           ensurePrecinct(precinctName);
