@@ -8,6 +8,7 @@ import { getYesPercentage, getVoteCount } from './data-helpers.js';
 import type { FeatureProperties, GeoJSONFeature } from './types.js';
 
 import { maxVotes } from './map-mode.js';
+import { state } from './state.js';
 
 // Calculate circle radius based on vote count
 export function getCircleRadius(voteCount: number): number {
@@ -19,6 +20,30 @@ export function getCircleRadius(voteCount: number): number {
   const maxRadius = 30;
   const ratio = voteCount / maxVotes;
   return minRadius + (maxRadius - minRadius) * Math.sqrt(ratio); // Use sqrt for better visual scaling
+}
+
+// Calculate stroke weight based on zoom level
+// At higher zoom levels, use thinner strokes to avoid obfuscating shapes
+export function getStrokeWeight(isSelected: boolean, zoom?: number | null): number {
+  // Get zoom from map if not provided
+  const currentZoom = zoom ?? (state.map ? state.map.getZoom() : 10);
+
+  // Base weights
+  const baseWeight = isSelected ? 4 : 1;
+
+  // At higher zoom levels (15+), reduce weight significantly
+  // At medium zoom (12-14), reduce slightly
+  // At lower zoom (<12), use base weight
+  if (currentZoom >= 15) {
+    // High zoom: very thin strokes
+    return isSelected ? 1.5 : 0.5;
+  } else if (currentZoom >= 12) {
+    // Medium zoom: slightly thinner
+    return isSelected ? 2.5 : 0.75;
+  } else {
+    // Low zoom: base weights
+    return baseWeight;
+  }
 }
 
 // Color scale for YES percentage
@@ -53,7 +78,7 @@ export function style(feature: GeoJSONFeature): PathOptions {
   const yesPct = getYesPercentage(props);
   return {
     fillColor: getColor(yesPct),
-    weight: 1,
+    weight: getStrokeWeight(false),
     opacity: 1,
     color: yesPct === null ? COLORS.BORDER_NO_DATA : COLORS.BORDER_DEFAULT,
     dashArray: yesPct === null ? '5,5' : '3',
@@ -92,7 +117,7 @@ export function setPolygonStyle(layer: any, yesPct: number | null, isSelected: b
   const style: PathOptions = {
     fillColor: getColor(yesPct),
     fillOpacity: isSelected ? OPACITY.FILL_SELECTED : OPACITY.FILL_DEFAULT,
-    weight: isSelected ? 4 : 1,
+    weight: getStrokeWeight(isSelected),
     color: isSelected
       ? COLORS.BORDER_SELECTED
       : yesPct === null

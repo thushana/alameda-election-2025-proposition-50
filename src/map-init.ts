@@ -4,6 +4,37 @@
 
 import { state } from './state.js';
 import { getL } from './leaflet-helper.js';
+import { setPolygonStyle } from './map-styling.js';
+import { getYesPercentage } from './data-helpers.js';
+import type { GeoJSONFeature } from './types.js';
+
+// Update all polygon styles based on current zoom level
+function updatePolygonStylesOnZoom(): void {
+  if (!state.geojsonLayer || !state.map) return;
+
+  const leaflet = getL();
+
+  // Update all polygon layers
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Leaflet layer iteration API
+  state.geojsonLayer.eachLayer((layer: any) => {
+    const feature = layer.feature as GeoJSONFeature | undefined;
+    if (!feature) return;
+
+    // Skip circle markers (proportional mode)
+    if (layer instanceof leaflet.CircleMarker) return;
+
+    const props = feature.properties;
+    const yesPct = getYesPercentage(props);
+
+    // Check if this layer is selected
+    const isSelected = state.selectedPrecincts.some((item) => {
+      return item.layer === layer;
+    });
+
+    // Update style with current zoom level
+    setPolygonStyle(layer, yesPct, isSelected);
+  });
+}
 
 // Wait for Leaflet to be available (loaded via script tag)
 function initMap() {
@@ -27,6 +58,11 @@ function initMap() {
         maxZoom: 19,
       })
       .addTo(mapInstance);
+
+    // Add zoom event listener to update polygon stroke weights
+    mapInstance.on('zoomend', () => {
+      updatePolygonStylesOnZoom();
+    });
   } catch (_e) {
     // Retry if Leaflet not loaded yet
     setTimeout(initMap, 10);
