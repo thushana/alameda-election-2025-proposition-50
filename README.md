@@ -1,4 +1,6 @@
-# Alameda City and County – image.pngProposition 50 Vote Results Map
+# Alameda City and County – Proposition 50 Vote Results Map
+
+![Alameda Election Map Preview](preview.jpg)
 
 An interactive map showing Proposition 50 vote results by precinct for Alameda County in the November 2025 Election. The data in it comes from a ACVote's Nov 7th, 2025 @ 3:09 PM data release.
 
