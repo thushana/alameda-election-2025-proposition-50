@@ -65,6 +65,60 @@ L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
     maxZoom: 19
 }).addTo(map);
 
+// Update URL bias values when the user pans/zooms and the center changes
+function updateBiasFromPan() {
+    try {
+        if (suppressBiasUpdates) {
+            console.log('[bias] moveend suppressed (programmatic fitBounds)');
+            return;
+        }
+        if (!biasBaselineCenter) return;
+        var z = map.getZoom();
+        var p0 = map.project(biasBaselineCenter, z);
+        var p1 = map.project(map.getCenter(), z);
+        var dy = p0.y - p1.y; // positive if we moved map down / content up
+        var newExtra = Math.round(biasExtraBasePx + dy);
+        var newTotal = Math.round(biasInitialPx + newExtra);
+        console.log('[bias] moveend dy=', dy, 'initial=', biasInitialPx, 'baseExtra=', biasExtraBasePx, 'newExtra=', newExtra, 'total=', newTotal);
+        updateBiasURL(biasInitialPx, newExtra, newTotal);
+    } catch (e) { console.warn('[bias] updateBiasFromPan error', e); }
+}
+map.on('moveend', updateBiasFromPan);
+
+// Apply explicit bias from URL after initial fit; returns true if applied
+function applyBiasFromURLIfPresent() {
+    try {
+        var hash = parseHashParams();
+        if (!hash || !hash.bias) return false;
+        var parts = ('' + hash.bias).split(',');
+        var initialPx = parseInt(parts[0] || '0', 10) || 0;
+        var extraPx = parseInt(parts[1] || '0', 10) || 0;
+        var totalPx = parseInt(parts[2] || (initialPx + extraPx), 10) || (initialPx + extraPx);
+        // Establish baseline and pan by total
+        var centerBefore = map.getCenter();
+        biasBaselineCenter = centerBefore;
+        biasInitialPx = initialPx;
+        biasExtraBasePx = extraPx;
+        console.log('[bias] applying from URL -> initial=', initialPx, 'extra=', extraPx, 'total=', totalPx, 'will pan by', -totalPx);
+        if (totalPx !== 0) {
+            suppressBiasUpdates = true;
+            map.panBy([0, -totalPx], { animate: false });
+            setTimeout(function() {
+                suppressBiasUpdates = false;
+                // Re-establish baseline after pan
+                biasBaselineCenter = map.getCenter();
+            }, 50);
+        } else {
+            biasBaselineCenter = map.getCenter();
+        }
+        // Don't update URL here - it's already correct
+        return true;
+    } catch (e) {
+        console.warn('[bias] applyBiasFromURLIfPresent error', e);
+        return false;
+    }
+}
+
 // Color scale for YES percentage
 // 0-50% as red shades, 50-100% as green shades
 function getColor(yesPct) {
@@ -233,12 +287,22 @@ var currentCityName = null;
 var voteMethodSectionExpanded = false;
 // Stable geographic bounds derived from precinct polygons (never circles)
 var baseDistrictBounds = null;
+// Bias tracking for URL updates on pan
+var biasInitialPx = 0;
+var biasExtraBasePx = 0;
+var biasBaselineCenter = null;
+// Guards to avoid duplicate listeners and repeated restores
+var hashListenerBound = false;
+var restoreInProgress = false;
+var lastRestoreSignature = '';
+// Flag to suppress bias updates during programmatic fitBounds
+var suppressBiasUpdates = false;
 
 // Hash-based URL parsing and building (works with static file servers)
 function parseHashParams() {
     var hash = window.location.hash;
     if (!hash || hash.length <= 1) {
-        return { mode: null, city: null, precincts: null };
+        return { mode: null, city: null, precincts: null, bias: null };
     }
     
     // Remove # from hash, handle both #/mode/... and #mode/...
@@ -251,7 +315,8 @@ function parseHashParams() {
     var params = {
         mode: null,
         city: null,
-        precincts: null
+        precincts: null,
+        bias: null
     };
     
     // Mode synonyms: choropleth -> shaded, bubble -> proportional
@@ -272,6 +337,9 @@ function parseHashParams() {
             i++;
         } else if (parts[i] === 'precincts' && i + 1 < parts.length) {
             params.precincts = parts[i + 1];
+            i++;
+        } else if (parts[i] === 'bias' && i + 1 < parts.length) {
+            params.bias = parts[i + 1];
             i++;
         }
     }
@@ -299,7 +367,32 @@ function buildHashParams(params) {
         pathParts.push('precincts', params.precincts);
     }
     
+    // Add bias if present (format: initialPx,extraPx,totalPx)
+    if (params.bias) {
+        pathParts.push('bias', params.bias);
+    }
+    
     return '#' + pathParts.join('/');
+}
+
+// Helper to update bias values in the URL while preserving other params
+function updateBiasURL(initialPx, extraPx, totalPx) {
+    try {
+        var hashParams = parseHashParams();
+        hashParams.bias = [Math.round(initialPx), Math.round(extraPx), Math.round(totalPx)].join(',');
+        var newHash = buildHashParams(hashParams);
+        // Update the URL without triggering a hashchange (which would reset view)
+        if (window.history && window.history.replaceState) {
+            var newUrl = window.location.pathname + (window.location.search || '') + newHash;
+            console.log('[bias] replaceState ->', newHash);
+            window.history.replaceState(null, '', newUrl);
+        } else {
+            console.log('[bias] set hash ->', newHash);
+            window.location.hash = newHash; // fallback
+        }
+    } catch (e) {
+        // fail safe: do nothing
+    }
 }
 
 // Map visualization mode: 'shaded' or 'proportional'
@@ -744,6 +837,19 @@ function restoreSelectionFromURL() {
         console.log('restoreSelectionFromURL: geojsonLayer not ready');
         return;
     }
+    // Guard against repeated identical calls
+    var sigObj = parseHashParams();
+    var sig = JSON.stringify(sigObj);
+    if (restoreInProgress) {
+        console.log('restoreSelectionFromURL: skip (in progress)');
+        return;
+    }
+    if (sig === lastRestoreSignature) {
+        console.log('restoreSelectionFromURL: skip (same signature)');
+        return;
+    }
+    restoreInProgress = true;
+    lastRestoreSignature = sig;
     
     // Clear existing selection first to prevent accumulation
     // Reset visual styles of previously selected precincts
@@ -780,7 +886,7 @@ function restoreSelectionFromURL() {
     isSelectionMode = false;
     
     var precinctIds = [];
-    var hashParams = parseHashParams();
+    var hashParams = sigObj;
     console.log('restoreSelectionFromURL: hashParams =', hashParams);
     
     // Check for city parameter first
@@ -799,12 +905,14 @@ function restoreSelectionFromURL() {
             console.log('restoreSelectionFromURL: Found precincts in URL:', precinctIds.length);
         } else {
             console.log('restoreSelectionFromURL: No city or precincts found');
+            restoreInProgress = false;
             return;
         }
     }
     
     if (precinctIds.length === 0) {
         console.log('restoreSelectionFromURL: No precinct IDs to restore');
+        restoreInProgress = false;
         return;
     }
     
@@ -814,6 +922,7 @@ function restoreSelectionFromURL() {
         var layerSource = mapMode === 'proportional' && circleLayer ? circleLayer : geojsonLayer;
         
         if (!layerSource) {
+            restoreInProgress = false;
             return;
         }
         
@@ -874,58 +983,11 @@ function restoreSelectionFromURL() {
         
         if (selectedPrecincts.length > 0) {
             updateAggregatedTotals();
-            
-            // Calculate bounds of selected precincts and center/zoom map
-            var bounds = L.latLngBounds([]);
-            selectedPrecincts.forEach(function(item) {
-                if (!item || !item.feature) return;
-                try {
-                    var tmp = L.geoJSON(item.feature);
-                    var b = tmp.getBounds();
-                    if (b && b.isValid()) bounds.extend(b);
-                } catch (e) {}
-            });
-            
-            if (bounds.isValid()) {
-                // If bounds are too small (same point), add padding
-                var north = bounds.getNorth();
-                var south = bounds.getSouth();
-                var east = bounds.getEast();
-                var west = bounds.getWest();
-                var latDiff = north - south;
-                var lngDiff = east - west;
-                
-                // If bounds are too small, add minimum padding
-                if (latDiff === 0 || lngDiff === 0) {
-                    latDiff = 0.01; // ~1km
-                    lngDiff = 0.01;
-                }
-                
-                // Add padding to bounds (10% on each side)
-                var padding = 0.1;
-                
-                // Shift center north to account for bottom panel (add more padding to south)
-                var isMobile = window.innerWidth <= 768;
-                var southPaddingMultiplier = isMobile ? 4 : 3; // Even more padding on mobile
-                var southPadding = latDiff * padding * southPaddingMultiplier; // More padding on south
-                var northPadding = latDiff * padding * 0.3; // Less padding on north
-                
-                var paddedBounds = L.latLngBounds([
-                    [south - southPadding, west - (lngDiff * padding)],
-                    [north + northPadding, east + (lngDiff * padding)]
-                ]);
-                
-                // Add more padding to bottom to account for bottom panel
-                // Calculate bottom panel height dynamically
-                var bottomPanel = document.getElementById('bottom-panel');
-                var bottomPadding = bottomPanel ? bottomPanel.offsetHeight + (isMobile ? 160 : 100) : (isMobile ? 380 : 260);
-                
-                map.fitBounds(paddedBounds, {
-                    paddingTopLeft: L.point(20, 20),
-                    paddingBottomRight: L.point(20, bottomPadding)
-                }); // asymmetric padding to shift view up
-                applyMobileVerticalBias();
-            }
+            // Don't do fitBounds here - it was already done in initial load if city/precincts were in URL
+            // Just restore the styling
+            restoreInProgress = false;
+        } else {
+            restoreInProgress = false;
         }
     }, 1000);
 }
@@ -1180,28 +1242,72 @@ Promise.all([
         if (!baseDistrictBounds && geojsonLayer.getBounds && geojsonLayer.getBounds().isValid()) {
             baseDistrictBounds = geojsonLayer.getBounds();
         }
-        if (baseDistrictBounds) {
+        
+        // Check if city/precincts are in URL - if so, fit to those instead of all districts
+        var hashParams = parseHashParams();
+        var precinctIds = [];
+        if (hashParams.city && cityPrecinctMap[hashParams.city.toLowerCase()]) {
+            precinctIds = cityPrecinctMap[hashParams.city.toLowerCase()];
+        } else if (hashParams.precincts) {
+            precinctIds = hashParams.precincts.split(/[+,]/);
+        }
+        
+        var boundsToFit = null;
+        if (precinctIds.length > 0) {
+            // Calculate bounds of selected precincts
+            var selectedBounds = L.latLngBounds([]);
+            geojsonLayer.eachLayer(function(layer) {
+                var feature = layer.feature;
+                if (!feature) return;
+                var props = feature.properties;
+                var precinctId = props.Precinct_ID || 
+                                props['Precinct_ID'] || 
+                                props.precinct || 
+                                props['precinct'] ||
+                                props.ID || 
+                                props['ID'] || 
+                                null;
+                var precinctIdStr = precinctId ? precinctId.toString() : null;
+                if (precinctIdStr && precinctIds.indexOf(precinctIdStr) !== -1) {
+                    try {
+                        var tmp = L.geoJSON(feature);
+                        var b = tmp.getBounds();
+                        if (b && b.isValid()) selectedBounds.extend(b);
+                    } catch (e) {}
+                }
+            });
+            if (selectedBounds.isValid()) {
+                boundsToFit = selectedBounds;
+                console.log('[bias] initial fitBounds to selected precincts:', precinctIds.length);
+            }
+        }
+        
+        // If no selected bounds, use all districts
+        if (!boundsToFit) {
+            boundsToFit = baseDistrictBounds || (geojsonLayer.getBounds && geojsonLayer.getBounds().isValid() ? geojsonLayer.getBounds() : null);
+            console.log('[bias] initial fitBounds to all districts');
+        }
+        
+        if (boundsToFit) {
             var isMobileInit = window.innerWidth <= 768;
             var bottomPanelInit = document.getElementById('bottom-panel');
             var bottomPaddingInit = bottomPanelInit ? bottomPanelInit.offsetHeight + (isMobileInit ? 140 : 80) : (isMobileInit ? 360 : 240);
-            var sidePaddingInit = isMobileInit ? 20 : 50;
-            var topPaddingInit = isMobileInit ? 20 : 50;
-            map.fitBounds(baseDistrictBounds, {
+            var sidePaddingInit = isMobileInit ? 30 : 80; // Increased from 20/50 to zoom out more
+            var topPaddingInit = isMobileInit ? 30 : 80; // Increased from 20/50 to zoom out more
+            suppressBiasUpdates = true;
+            map.fitBounds(boundsToFit, {
                 paddingTopLeft: L.point(sidePaddingInit, topPaddingInit),
                 paddingBottomRight: L.point(sidePaddingInit, bottomPaddingInit)
             });
-            applyMobileVerticalBias();
-        } else if (geojsonLayer.getBounds && geojsonLayer.getBounds().isValid()) {
-            var isMobileInitB = window.innerWidth <= 768;
-            var bottomPanelInitB = document.getElementById('bottom-panel');
-            var bottomPaddingInitB = bottomPanelInitB ? bottomPanelInitB.offsetHeight + (isMobileInitB ? 140 : 80) : (isMobileInitB ? 360 : 240);
-            var sidePaddingInitB = isMobileInitB ? 20 : 50;
-            var topPaddingInitB = isMobileInitB ? 20 : 50;
-            map.fitBounds(geojsonLayer.getBounds(), {
-                paddingTopLeft: L.point(sidePaddingInitB, topPaddingInitB),
-                paddingBottomRight: L.point(sidePaddingInitB, bottomPaddingInitB)
-            });
-            applyMobileVerticalBias();
+            setTimeout(function() {
+                if (!applyBiasFromURLIfPresent()) {
+                    applyMobileVerticalBias();
+                    applyDesktopDefaultBiasIfNeeded();
+                } else {
+                    console.log('[bias] URL bias applied; skipping mobile/desktop defaults');
+                }
+                suppressBiasUpdates = false;
+            }, 100);
         } else {
             console.error('Invalid bounds');
         }
@@ -1226,19 +1332,22 @@ Promise.all([
         }
         
         // Listen for hash changes (back/forward navigation)
-        window.addEventListener('hashchange', function() {
-            var hashParams = parseHashParams();
-            var newMode = (hashParams.mode === 'proportional') ? 'proportional' : 'shaded';
-            
-            // Update mode if changed
-            if (newMode !== mapMode) {
-                mapMode = newMode;
-                toggleMapMode();
-            }
-            
-            // Restore selection
-            restoreSelectionFromURL();
-        });
+        if (!hashListenerBound) {
+            window.addEventListener('hashchange', function() {
+                var hashParams = parseHashParams();
+                var newMode = (hashParams.mode === 'proportional') ? 'proportional' : 'shaded';
+                
+                // Update mode if changed
+                if (newMode !== mapMode) {
+                    mapMode = newMode;
+                    toggleMapMode();
+                }
+                
+                // Restore selection
+                restoreSelectionFromURL();
+            });
+            hashListenerBound = true;
+        }
     })
     .catch(error => {
         console.error('Error loading data:', error);
@@ -1652,13 +1761,33 @@ createHorizontalLegend();
 
 // Utility: On mobile, bias the map's visual center to 33% from the top
 function applyMobileVerticalBias() {
-    var isMobile = window.innerWidth <= 768;
-    if (!isMobile || !map) return;
+    if (!map) return;
     var size = map.getSize();
     var desiredFractionFromTop = 0.33; // 33% down from top
     var deltaY = (0.5 - desiredFractionFromTop) * size.y; // positive means move up
-    var extraPixels = 50; // additional upward shift requested
-    // Pan map view so the visual center shifts upward further by X pixels
-    map.panBy([0, -(deltaY + extraPixels)], { animate: false });
+    var isMobile = window.innerWidth <= 768;
+    var extraPixels = isMobile ? 50 : 0; // only apply extra physical pan on mobile
+    if (isMobile) {
+        console.log('[bias] mobile bias panBy', -(deltaY + extraPixels));
+        map.panBy([0, -(deltaY + extraPixels)], { animate: false });
+    } else {
+        console.log('[bias] mobile bias skipped on desktop');
+    }
+    biasInitialPx = Math.round(deltaY);
+    biasExtraBasePx = Math.round(extraPixels);
+    biasBaselineCenter = map.getCenter();
+    updateBiasURL(biasInitialPx, biasExtraBasePx, (biasInitialPx + biasExtraBasePx));
+}
+
+// Utility: On desktop, apply a simple default upward bias if none is specified in URL
+function applyDesktopDefaultBiasIfNeeded() {
+    if (!map) return;
+    var isMobile = window.innerWidth <= 768;
+    if (isMobile) return; // desktop only
+    var hash = parseHashParams();
+    if (hash && hash.bias) { console.log('[bias] desktop default skipped due to URL bias'); return; }
+    var DEFAULT_DESKTOP_BIAS_PX = 200; // shift up by 200px by default
+    console.log('[bias] desktop default panBy', -DEFAULT_DESKTOP_BIAS_PX);
+    map.panBy([0, -DEFAULT_DESKTOP_BIAS_PX], { animate: false });
 }
 
