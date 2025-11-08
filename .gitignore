@@ -1,23 +1,19 @@
-# Python
-__pycache__/
-*.py[cod]
-*$py.class
-*.so
-.Python
-env/
-venv/
-ENV/
+# Dependencies
+node_modules/
 
-# Data files (optional - uncomment if you don't want to commit large files)
-# *.geojson
-# *.json
+# Build output (keep js/ for GitHub Pages)
+# Note: js/ contains compiled TypeScript output and should be committed
 
-# OS
-.DS_Store
-Thumbs.db
+# TypeScript
+*.tsbuildinfo
 
 # IDE
 .vscode/
 .idea/
 *.swp
 *.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db

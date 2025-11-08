@@ -1,69 +1,72 @@
 // ============================================================================
 // SELECTION
 // ============================================================================
-
+import { state } from './state.js';
+import { updateInfoSection } from './ui-info-section.js';
 // Calculate and display aggregated totals
-function updateAggregatedTotals() {
-    if (selectedPrecincts.length === 0) {
+export function updateAggregatedTotals() {
+    if (state.selectedPrecincts.length === 0) {
         updateInfoSection(null);
         return;
     }
-    
-    var aggregated = {
+    const aggregated = {
         yes: 0,
         no: 0,
         total: 0,
-        count: selectedPrecincts.length
+        count: state.selectedPrecincts.length
     };
-    
     // Aggregate vote_method data
-    var mailInAggregated = {
+    const mailInAggregated = {
         yes: 0,
         no: 0,
         total: 0
     };
-    var inPersonAggregated = {
+    const inPersonAggregated = {
         yes: 0,
         no: 0,
         total: 0
     };
-    
-    selectedPrecincts.forEach(function(item) {
-        var props = item.feature.properties;
+    state.selectedPrecincts.forEach((item) => {
+        const props = item.feature.properties;
         if (props.votes) {
-            if (props.votes.yes) aggregated.yes += props.votes.yes;
-            if (props.votes.no) aggregated.no += props.votes.no;
-            if (props.votes.total) aggregated.total += props.votes.total;
+            if (props.votes.yes)
+                aggregated.yes += props.votes.yes;
+            if (props.votes.no)
+                aggregated.no += props.votes.no;
+            if (props.votes.total)
+                aggregated.total += props.votes.total;
         }
-        
         // Aggregate vote_method data
         if (props.vote_method) {
             if (props.vote_method.mail_in && props.vote_method.mail_in.votes) {
-                var mailIn = props.vote_method.mail_in.votes;
-                if (mailIn.yes) mailInAggregated.yes += mailIn.yes;
-                if (mailIn.no) mailInAggregated.no += mailIn.no;
-                if (mailIn.total) mailInAggregated.total += mailIn.total;
+                const mailIn = props.vote_method.mail_in.votes;
+                if (mailIn.yes)
+                    mailInAggregated.yes += mailIn.yes;
+                if (mailIn.no)
+                    mailInAggregated.no += mailIn.no;
+                if (mailIn.total)
+                    mailInAggregated.total += mailIn.total;
             }
             if (props.vote_method.in_person && props.vote_method.in_person.votes) {
-                var inPerson = props.vote_method.in_person.votes;
-                if (inPerson.yes) inPersonAggregated.yes += inPerson.yes;
-                if (inPerson.no) inPersonAggregated.no += inPerson.no;
-                if (inPerson.total) inPersonAggregated.total += inPerson.total;
+                const inPerson = props.vote_method.in_person.votes;
+                if (inPerson.yes)
+                    inPersonAggregated.yes += inPerson.yes;
+                if (inPerson.no)
+                    inPersonAggregated.no += inPerson.no;
+                if (inPerson.total)
+                    inPersonAggregated.total += inPerson.total;
             }
         }
     });
-    
     // Calculate percentages
+    let yesPct = 0;
+    let noPct = 0;
     if (aggregated.total > 0) {
-        aggregated.yesPct = (aggregated.yes / aggregated.total) * 100;
-        aggregated.noPct = (aggregated.no / aggregated.total) * 100;
-    } else {
-        aggregated.yesPct = 0;
-        aggregated.noPct = 0;
+        yesPct = (aggregated.yes / aggregated.total) * 100;
+        noPct = (aggregated.no / aggregated.total) * 100;
     }
-    
     // Calculate vote_method percentages
-    var voteMethod = null;
+    let voteMethod = null;
     if (mailInAggregated.total > 0 || inPersonAggregated.total > 0) {
         voteMethod = {
             mail_in: {
@@ -84,28 +87,24 @@ function updateAggregatedTotals() {
             }
         };
     }
-    
     // Create aggregated properties object
-    var aggregatedProps = {
+    const aggregatedProps = {
         aggregated: true,
         count: aggregated.count,
-        cityName: currentCityName,
+        cityName: state.currentCityName || undefined,
         votes: {
             yes: aggregated.yes,
             no: aggregated.no,
             total: aggregated.total
         },
         percentage: {
-            yes: aggregated.yesPct,
-            no: aggregated.noPct
+            yes: yesPct,
+            no: noPct
         }
     };
-    
     // Add vote_method if available
     if (voteMethod) {
         aggregatedProps.vote_method = voteMethod;
     }
-    
     updateInfoSection(aggregatedProps);
 }
-

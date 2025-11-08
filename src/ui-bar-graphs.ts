@@ -1,20 +1,25 @@
 // ============================================================================
 // UI BAR GRAPHS
 // ============================================================================
+
 import { COLORS, SIZES, OPACITY } from './constants.js';
+import type { VoteMethodBarGraphConfig, MethodBreakdownBarGraphConfig } from './types.js';
+
 // Helper function to generate a vote method bar graph
-export function generateVoteMethodBarGraph(config) {
-    const yesPct = config.yesPct || 0;
-    const noPct = config.noPct || 0;
-    const totalVotes = config.totalVotes || 0;
-    const label = config.label || '';
-    const countyAvgPct = config.countyAvgPct;
-    const yesColor = config.yesColor || COLORS.YES;
-    const noColor = config.noColor || COLORS.NO;
-    if (totalVotes === 0) {
-        return '';
-    }
-    const html = `
+export function generateVoteMethodBarGraph(config: VoteMethodBarGraphConfig): string {
+  const yesPct = config.yesPct || 0;
+  const noPct = config.noPct || 0;
+  const totalVotes = config.totalVotes || 0;
+  const label = config.label || '';
+  const countyAvgPct = config.countyAvgPct;
+  const yesColor = config.yesColor || COLORS.YES;
+  const noColor = config.noColor || COLORS.NO;
+  
+  if (totalVotes === 0) {
+    return '';
+  }
+  
+  const html = `
     <div class="vote-method-bar-wrapper" style="margin-bottom: ${SIZES.MARGIN_BOTTOM_MEDIUM};">
       <div class="vote-method-label-row" style="position: relative; margin-bottom: ${SIZES.MARGIN_BOTTOM_SMALL}; font-size: ${SIZES.FONT_SMALL}; font-weight: 500; color: ${OPACITY.TEXT_PRIMARY}; padding: 0; width: 100%;">
         <span>${yesPct.toFixed(1)}%</span>
@@ -32,19 +37,23 @@ export function generateVoteMethodBarGraph(config) {
       </div>
     </div>
   `;
-    return html;
+  
+  return html;
 }
+
 // Helper function to generate method breakdown bar graph
-export function generateMethodBreakdownBarGraph(config) {
-    const mailInPct = config.mailInPct || 0;
-    const inPersonPct = config.inPersonPct || 0;
-    const countyAvgPct = config.countyAvgPct;
-    const mailInColor = config.mailInColor || COLORS.METHOD_MAIL_IN;
-    const inPersonColor = config.inPersonColor || COLORS.METHOD_IN_PERSON;
-    if (mailInPct === 0 && inPersonPct === 0) {
-        return '';
-    }
-    const html = `
+export function generateMethodBreakdownBarGraph(config: MethodBreakdownBarGraphConfig): string {
+  const mailInPct = config.mailInPct || 0;
+  const inPersonPct = config.inPersonPct || 0;
+  const countyAvgPct = config.countyAvgPct;
+  const mailInColor = config.mailInColor || COLORS.METHOD_MAIL_IN;
+  const inPersonColor = config.inPersonColor || COLORS.METHOD_IN_PERSON;
+  
+  if (mailInPct === 0 && inPersonPct === 0) {
+    return '';
+  }
+  
+  const html = `
     <div class="vote-method-bar-wrapper" style="margin-bottom: ${SIZES.MARGIN_BOTTOM_MEDIUM};">
       <div class="vote-method-label-row" style="position: relative; margin-bottom: ${SIZES.MARGIN_BOTTOM_SMALL}; font-size: ${SIZES.FONT_SMALL}; font-weight: 500; color: ${OPACITY.TEXT_PRIMARY}; padding: 0; width: 100%;">
         <span>${mailInPct.toFixed(1)}% – MAIL IN</span>
@@ -62,5 +71,7 @@ export function generateMethodBreakdownBarGraph(config) {
       </div>
     </div>
   `;
-    return html;
+  
+  return html;
 }
+

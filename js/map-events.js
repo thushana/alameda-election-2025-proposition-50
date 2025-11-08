@@ -1,21 +1,31 @@
 // ============================================================================
 // MAP EVENTS
 // ============================================================================
-
+import L from 'leaflet';
+import { COLORS, OPACITY } from './constants.js';
+import { state } from './state.js';
+import { getYesPercentage, getVoteCount } from './data-helpers.js';
+import { setCircleStyle, setPolygonStyle, resetLayerStyle } from './map-styling.js';
+import { updateInfoSection } from './ui-info-section.js';
+import { updateAggregatedTotals } from './selection.js';
+import { updateURL } from './url-manager.js';
+import { updateCityButtonText } from './ui-city-dropdown.js';
+import { getPrecinctId } from './data-helpers.js';
+import { applyMobileVerticalBias } from './map-utils.js';
 // Highlight on hover
-function highlightFeature(e) {
-    var layer = e.target;
-    var isCircle = layer instanceof L.CircleMarker;
-    
+export function highlightFeature(e) {
+    const layer = e.target;
+    const isCircle = layer instanceof L.CircleMarker;
     if (isCircle) {
         // For circles, increase size and opacity
-        var currentRadius = layer.options.radius || 10;
+        const currentRadius = layer.options.radius || 10;
         layer.setStyle({
             radius: currentRadius * 1.2,
             fillOpacity: 0.9,
             weight: 2
         });
-    } else {
+    }
+    else {
         // For polygons
         layer.setStyle({
             weight: 3,
@@ -24,198 +34,190 @@ function highlightFeature(e) {
             fillOpacity: OPACITY.FILL_HOVER
         });
     }
-    
     if (!L.Browser.ie && !L.Browser.opera && !L.Browser.edge) {
         layer.bringToFront();
     }
-    updateInfoSection(layer.feature.properties);
+    if (layer.feature) {
+        updateInfoSection(layer.feature.properties);
+    }
 }
-
 // Reset highlight
-function resetHighlight(e) {
-    var layer = e.target;
-    var isCircle = layer instanceof L.CircleMarker;
-    
+export function resetHighlight(e) {
+    const layer = e.target;
+    const isCircle = layer instanceof L.CircleMarker;
     // Check if this layer is selected - if so, keep the black border
-    var isSelected = selectedPrecincts.some(function(item) {
+    const isSelected = state.selectedPrecincts.some((item) => {
         return item.layer === layer;
     });
-    
-    var props = layer.feature ? layer.feature.properties : {};
-    var yesPct = getYesPercentage(props);
-    
+    const props = layer.feature ? layer.feature.properties : {};
+    const yesPct = getYesPercentage(props);
     if (isSelected) {
         // Keep selected style
         if (isCircle) {
-            var voteCount = getVoteCount(props);
+            const voteCount = getVoteCount(props);
             setCircleStyle(layer, yesPct, voteCount, true);
-        } else {
+        }
+        else {
             setPolygonStyle(layer, yesPct, true);
         }
-    } else {
+    }
+    else {
         if (isCircle) {
-            var voteCount = getVoteCount(props);
+            const voteCount = getVoteCount(props);
             setCircleStyle(layer, yesPct, voteCount, false);
-        } else {
-            geojsonLayer.resetStyle(layer);
+        }
+        else if (state.geojsonLayer) {
+            state.geojsonLayer.resetStyle(layer);
         }
     }
-    
     // If precincts are selected, show aggregated totals; otherwise show county totals
-    if (selectedPrecincts.length > 0) {
+    if (state.selectedPrecincts.length > 0) {
         updateAggregatedTotals();
-    } else {
+    }
+    else {
         updateInfoSection(null);
     }
 }
-
 // Zoom to feature on click
-function zoomToFeature(e) {
-    var target = e.target;
-    var feature = target && target.feature;
-    
+export function zoomToFeature(e) {
+    const target = e.target;
+    const feature = target && target.feature;
+    if (!state.map)
+        return;
     // Update URL to show this single precinct
     if (feature && feature.properties) {
-        var props = feature.properties;
-        var precinctId = getPrecinctId(props);
-        
+        const props = feature.properties;
+        const precinctId = getPrecinctId(props);
         if (precinctId) {
             // Clear existing selection and set to just this precinct
-            selectedPrecincts.forEach(function(item) {
+            state.selectedPrecincts.forEach((item) => {
                 if (item.layer && item.feature) {
-                    var itemProps = item.feature.properties;
-                    var itemYesPct = getYesPercentage(itemProps);
+                    const itemProps = item.feature.properties;
+                    const itemYesPct = getYesPercentage(itemProps);
                     resetLayerStyle(item.layer, itemYesPct);
                 }
             });
-            
             // Clear city selection when clicking individual precinct
-            currentCityName = null;
-            
+            state.currentCityName = null;
             // Select just this precinct
-            selectedPrecincts = [{ feature: feature, layer: target }];
-            var yesPct = getYesPercentage(props);
-            var isCircle = target instanceof L.CircleMarker;
-            
+            state.selectedPrecincts.length = 0;
+            state.selectedPrecincts.push({ feature: feature, layer: target });
+            const yesPct = getYesPercentage(props);
+            const isCircle = target instanceof L.CircleMarker;
             if (isCircle) {
-                var voteCount = getVoteCount(props);
+                const voteCount = getVoteCount(props);
                 setCircleStyle(target, yesPct, voteCount, true);
-            } else {
+            }
+            else {
                 setPolygonStyle(target, yesPct, true);
             }
-            
             // Bring to front
             if (!L.Browser.ie && !L.Browser.opera && !L.Browser.edge) {
                 target.bringToFront();
             }
-            
             // Update city button text
             updateCityButtonText();
-            
             // Update URL and aggregated totals
             updateURL();
             updateAggregatedTotals();
         }
     }
-    
     // Always derive bounds from the polygon geometry when available
-    if (feature && feature.geometry) {
+    if (feature && feature.geometry && state.map) {
         try {
-            var tmpLayer = L.geoJSON(feature);
-            var bounds = tmpLayer.getBounds();
+            const tmpLayer = L.geoJSON(feature);
+            const bounds = tmpLayer.getBounds();
             if (bounds && bounds.isValid()) {
-                var isMobile = window.innerWidth <= 768;
-                var bottomPanel = document.getElementById('bottom-panel');
-                var bottomPadding = bottomPanel ? bottomPanel.offsetHeight + (isMobile ? 140 : 80) : (isMobile ? 360 : 240);
-                map.fitBounds(bounds, {
+                const isMobile = window.innerWidth <= 768;
+                const bottomPanel = document.getElementById('bottom-panel');
+                const bottomPadding = bottomPanel ? bottomPanel.offsetHeight + (isMobile ? 140 : 80) : (isMobile ? 360 : 240);
+                state.map.fitBounds(bounds, {
                     paddingTopLeft: L.point(20, 20),
                     paddingBottomRight: L.point(20, bottomPadding)
                 });
                 applyMobileVerticalBias();
                 return;
             }
-        } catch (err) {
+        }
+        catch (err) {
             // fall through to other strategies
         }
     }
     // Fallbacks only if geometry bounds cannot be computed
-    if (target && typeof target.getBounds === 'function') {
-        var isMobileFB = window.innerWidth <= 768;
-        var bottomPanelFB = document.getElementById('bottom-panel');
-        var bottomPaddingFB = bottomPanelFB ? bottomPanelFB.offsetHeight + (isMobileFB ? 140 : 80) : (isMobileFB ? 360 : 240);
-        map.fitBounds(target.getBounds(), {
-            paddingTopLeft: L.point(20, 20),
-            paddingBottomRight: L.point(20, bottomPaddingFB)
-        });
-        applyMobileVerticalBias();
-    } else if (target && typeof target.getLatLng === 'function') {
-        map.setView(target.getLatLng());
+    if (target && state.map) {
+        if (typeof target.getBounds === 'function') {
+            const isMobileFB = window.innerWidth <= 768;
+            const bottomPanelFB = document.getElementById('bottom-panel');
+            const bottomPaddingFB = bottomPanelFB ? bottomPanelFB.offsetHeight + (isMobileFB ? 140 : 80) : (isMobileFB ? 360 : 240);
+            state.map.fitBounds(target.getBounds(), {
+                paddingTopLeft: L.point(20, 20),
+                paddingBottomRight: L.point(20, bottomPaddingFB)
+            });
+            applyMobileVerticalBias();
+        }
+        else if (typeof target.getLatLng === 'function') {
+            state.map.setView(target.getLatLng());
+        }
     }
 }
-
 // Toggle precinct selection on command-click or option-click
-function togglePrecinctSelection(e) {
+export function togglePrecinctSelection(e) {
     if (e.originalEvent.metaKey || e.originalEvent.ctrlKey || e.originalEvent.altKey) {
         e.originalEvent.preventDefault();
-        var feature = e.target.feature;
-        var layer = e.target;
-        
+        const feature = e.target.feature;
+        const layer = e.target;
+        if (!feature || !state.geojsonLayer)
+            return;
         // Clear city name when manually selecting
-        currentCityName = null;
-        
+        state.currentCityName = null;
         // Check if already selected
-        var index = selectedPrecincts.findIndex(function(p) {
+        const index = state.selectedPrecincts.findIndex((p) => {
             return p.feature === feature;
         });
-        
-        var props = feature.properties;
-        var yesPct = getYesPercentage(props);
-        var isCircle = layer instanceof L.CircleMarker;
-        
+        const props = feature.properties;
+        const yesPct = getYesPercentage(props);
+        const isCircle = layer instanceof L.CircleMarker;
         if (index === -1) {
             // Add to selection
-            selectedPrecincts.push({ feature: feature, layer: layer });
-            
+            state.selectedPrecincts.push({ feature: feature, layer: layer });
             if (isCircle) {
-                var voteCount = getVoteCount(props);
+                const voteCount = getVoteCount(props);
                 setCircleStyle(layer, yesPct, voteCount, true);
-            } else {
+            }
+            else {
                 setPolygonStyle(layer, yesPct, true);
             }
-            
             // Bring to front to ensure visibility
             if (!L.Browser.ie && !L.Browser.opera && !L.Browser.edge) {
                 layer.bringToFront();
             }
-        } else {
+        }
+        else {
             // Remove from selection
-            selectedPrecincts.splice(index, 1);
-            
+            state.selectedPrecincts.splice(index, 1);
             if (isCircle) {
-                var voteCount = getVoteCount(props);
+                const voteCount = getVoteCount(props);
                 setCircleStyle(layer, yesPct, voteCount, false);
-            } else {
-                geojsonLayer.resetStyle(layer);
+            }
+            else {
+                state.geojsonLayer.resetStyle(layer);
             }
         }
-        
         // Update URL with selected precincts
         updateURL();
-        
         // Update aggregated totals
         updateAggregatedTotals();
-    } else {
+    }
+    else {
         // Normal click - zoom and update URL
         zoomToFeature(e);
     }
 }
-
 // Add event listeners
-function onEachFeature(feature, layer) {
+export function onEachFeature(_feature, layer) {
     layer.on({
         mouseover: highlightFeature,
         mouseout: resetHighlight,
         click: togglePrecinctSelection
     });
 }
-
