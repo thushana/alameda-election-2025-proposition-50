@@ -1,563 +1,628 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
-<head>
-    <title>Alameda County - November 2025 Election Results - Proposition 50 Vote Results by Precinct</title>
+  <head>
+    <title>
+      Alameda County - November 2025 Election Results - Proposition 50 Vote Results by Precinct
+    </title>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website" />
-    <meta property="og:title" content="Alameda County - November 2025 Election Results - Proposition 50" />
-    <meta property="og:description" content="Interactive map showing Proposition 50 vote results by precinct in Alameda County" />
+    <meta
+      property="og:title"
+      content="Alameda County - November 2025 Election Results - Proposition 50"
+    />
+    <meta
+      property="og:description"
+      content="Interactive map showing Proposition 50 vote results by precinct in Alameda County"
+    />
     <meta property="og:image" content="preview.jpg" />
     <meta property="og:url" content="" />
-    
+
     <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Alameda County - November 2025 Election Results - Proposition 50" />
-    <meta name="twitter:description" content="Interactive map showing Proposition 50 vote results by precinct in Alameda County" />
+    <meta
+      name="twitter:title"
+      content="Alameda County - November 2025 Election Results - Proposition 50"
+    />
+    <meta
+      name="twitter:description"
+      content="Interactive map showing Proposition 50 vote results by precinct in Alameda County"
+    />
     <meta name="twitter:image" content="preview.jpg" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <!-- Stack Sans Font -->
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Stack+Sans+Headline:wght@400;500;600;700&display=swap" />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Stack+Sans+Headline:wght@400;500;600;700&display=swap"
+    />
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons" />
     <style>
-        * {
-            box-sizing: border-box;
-        }
-        body {
-            margin: 0;
-            padding: 0;
-            font-family: 'Stack Sans Headline', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
-            -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
-        }
-        #map {
-            height: 100vh;
-            width: 100%;
-        }
-        #top-header {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            z-index: 1000;
-            padding: 20px 20px 60px;
-            /* Background/blur now handled by ::before so content stays crisp */
-            background: transparent;
-            text-align: center;
-            pointer-events: none;
-            /* Prevent header from clipping dropdown */
-            overflow: visible;
-        }
-        #top-header::before {
-            content: '';
-            position: absolute;
-            inset: 0;
-            /* Solid white overlay with blur */
-            background: rgba(255, 255, 255, 0.9);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            /* Fade the blurred layer to transparent (and thus 0 blur) - stop earlier to prevent stretching */
-            mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,0.85) 30%, rgba(0,0,0,0.3) 50%, rgba(0,0,0,0) 60%);
-            -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,0.85) 30%, rgba(0,0,0,0.3) 50%, rgba(0,0,0,0) 60%);
-            z-index: 0;
-            pointer-events: none;
-        }
-        #top-header * {
-            pointer-events: none;
-            position: relative;
-            z-index: 1;
-        }
-        #top-header button {
-            pointer-events: auto !important;
-            -webkit-mask-image: none !important;
-            mask-image: none !important;
-        }
-        #top-header h1 {
-            margin: 0;
-            font-family: 'Stack Sans Headline', sans-serif;
-            font-size: 24px;
-            font-weight: 600;
-            color: rgba(0, 0, 0, 0.87);
-            letter-spacing: 0.15px;
-        }
-        #top-header h2 {
-            margin: 8px 0 0;
-            font-family: 'Stack Sans Headline', sans-serif;
-            font-size: 16px;
-            font-weight: 500;
-            color: rgba(0, 0, 0, 0.87);
-            letter-spacing: 0.15px;
-        }
-        #toggle-mode-btn {
-            padding: 8px 16px;
-            font-family: 'Stack Sans Headline', sans-serif;
-            font-size: 14px;
-            font-weight: 500;
-            color: rgba(0, 0, 0, 0.87);
-            background: rgba(255, 255, 255, 1);
-            border: 1px solid rgba(0, 0, 0, 0.3);
-            border-radius: 6px;
-            cursor: pointer;
-            pointer-events: auto !important;
-            transition: background 0.2s ease;
-            display: inline-block;
-            position: relative;
-            z-index: 2;
-            box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
-        }
-        #toggle-mode-btn:hover {
-            border-color: rgba(0, 0, 0, 0.5);
-        }
-        .button-container {
-            display: flex;
-            gap: 8px;
-            justify-content: center;
-            flex-wrap: wrap;
-            margin-top: 12px;
-            width: 100%;
-            align-items: flex-start;
-            position: relative;
-        }
-        .button-container > * {
-            flex-shrink: 0;
-        }
-        /* Prevent layout shift when dropdown opens */
-        .button-container > button {
-            position: relative;
-            z-index: 1;
-        }
-        .button-container > .city-button-wrapper {
-            position: relative;
-            z-index: 1;
-            display: inline-block;
-            vertical-align: top;
-            /* Prevent wrapper from expanding when dropdown opens */
-            width: auto;
-            height: auto;
-        }
-        #city-selector-btn {
-            padding: 8px 16px;
-            font-family: 'Stack Sans Headline', sans-serif;
-            font-size: 14px;
-            font-weight: 500;
-            color: rgba(0, 0, 0, 0.87);
-            background: rgba(255, 255, 255, 1);
-            border: 1px solid rgba(0, 0, 0, 0.3);
-            border-radius: 6px;
-            cursor: pointer;
-            pointer-events: auto !important;
-            transition: background 0.2s ease;
-            display: inline-block;
-            position: relative;
-            z-index: 2;
-            box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
-        }
-        #city-selector-btn:hover {
-            border-color: rgba(0, 0, 0, 0.5);
-        }
-        .city-button-wrapper {
-            position: relative;
-            display: inline-block;
-            /* Prevent dropdown from affecting layout */
-            vertical-align: top;
-        }
-        .city-dropdown {
-            position: fixed;
-            /* Calculate position relative to button */
-            z-index: 10000;
-            min-width: 200px;
-            max-width: 300px;
-            max-height: 400px;
-            /* Don't clip rounded corners - use padding instead */
-            padding: 0;
-            pointer-events: auto !important;
-            /* Ensure dropdown is not clipped */
-            contain: none;
-            overflow: visible;
-        }
-        .city-dropdown-content {
-            background: rgba(255, 255, 255, 1);
-            border: 1px solid rgba(0, 0, 0, 0.3);
-            border-radius: 6px;
-            box-shadow: 0px 4px 6px -1px rgba(0,0,0,0.2), 0px 2px 4px -1px rgba(0,0,0,0.14), 0px 1px 3px 0px rgba(0,0,0,0.12);
-            padding: 8px 0;
-            pointer-events: auto !important;
-            /* Scrollable content with rounded corners visible */
-            max-height: 400px;
-            overflow-y: auto;
-            overflow-x: visible;
-            /* Ensure rounded corners aren't clipped when scrolling */
-            -webkit-overflow-scrolling: touch;
-            /* Use clip-path to preserve rounded corners during scroll */
-            clip-path: inset(0 round 6px);
-            -webkit-clip-path: inset(0 round 6px);
-        }
-        .city-dropdown-item {
-            padding: 10px 16px;
-            cursor: pointer;
-            font-family: 'Stack Sans Headline', sans-serif;
-            font-size: 14px;
-            color: rgba(0, 0, 0, 0.87);
-            transition: background 0.2s ease;
-            display: flex;
-            justify-content: flex-start;
-            align-items: center;
-            gap: 12px;
-            pointer-events: auto !important;
-            user-select: none;
-            text-align: left;
-        }
-        .city-dropdown-item:hover {
-            background: rgba(0, 0, 0, 0.05);
-        }
-        .city-dropdown-item-name {
-            font-weight: 500;
-            min-width: 150px;
-            max-width: 150px;
-            text-align: left !important;
-            flex-shrink: 0;
-            display: block;
-        }
-        .city-dropdown-item-stats {
-            font-size: 14px;
-            font-weight: 600;
-            margin-left: 0;
-            white-space: nowrap;
-            text-align: left !important;
-            flex-shrink: 0;
-            display: block;
-        }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        padding: 0;
+        font-family:
+          'Stack Sans Headline',
+          -apple-system,
+          BlinkMacSystemFont,
+          'Segoe UI',
+          'Helvetica Neue',
+          Arial,
+          sans-serif;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+      #map {
+        height: 100vh;
+        width: 100%;
+      }
+      #top-header {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 1000;
+        padding: 20px 20px 60px;
+        /* Background/blur now handled by ::before so content stays crisp */
+        background: transparent;
+        text-align: center;
+        pointer-events: none;
+        /* Prevent header from clipping dropdown */
+        overflow: visible;
+      }
+      #top-header::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        /* Solid white overlay with blur */
+        background: rgba(255, 255, 255, 0.9);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        /* Fade the blurred layer to transparent (and thus 0 blur) - stop earlier to prevent stretching */
+        mask-image: linear-gradient(
+          to bottom,
+          rgba(0, 0, 0, 1) 0%,
+          rgba(0, 0, 0, 0.85) 30%,
+          rgba(0, 0, 0, 0.3) 50%,
+          rgba(0, 0, 0, 0) 60%
+        );
+        -webkit-mask-image: linear-gradient(
+          to bottom,
+          rgba(0, 0, 0, 1) 0%,
+          rgba(0, 0, 0, 0.85) 30%,
+          rgba(0, 0, 0, 0.3) 50%,
+          rgba(0, 0, 0, 0) 60%
+        );
+        z-index: 0;
+        pointer-events: none;
+      }
+      #top-header * {
+        pointer-events: none;
+        position: relative;
+        z-index: 1;
+      }
+      #top-header button {
+        pointer-events: auto !important;
+        -webkit-mask-image: none !important;
+        mask-image: none !important;
+      }
+      #top-header h1 {
+        margin: 0;
+        font-family: 'Stack Sans Headline', sans-serif;
+        font-size: 24px;
+        font-weight: 600;
+        color: rgba(0, 0, 0, 0.87);
+        letter-spacing: 0.15px;
+      }
+      #top-header h2 {
+        margin: 8px 0 0;
+        font-family: 'Stack Sans Headline', sans-serif;
+        font-size: 16px;
+        font-weight: 500;
+        color: rgba(0, 0, 0, 0.87);
+        letter-spacing: 0.15px;
+      }
+      #toggle-mode-btn {
+        padding: 8px 16px;
+        font-family: 'Stack Sans Headline', sans-serif;
+        font-size: 14px;
+        font-weight: 500;
+        color: rgba(0, 0, 0, 0.87);
+        background: rgba(255, 255, 255, 1);
+        border: 1px solid rgba(0, 0, 0, 0.3);
+        border-radius: 6px;
+        cursor: pointer;
+        pointer-events: auto !important;
+        transition: background 0.2s ease;
+        display: inline-block;
+        position: relative;
+        z-index: 2;
+        box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
+      }
+      #toggle-mode-btn:hover {
+        border-color: rgba(0, 0, 0, 0.5);
+      }
+      .button-container {
+        display: flex;
+        gap: 8px;
+        justify-content: center;
+        flex-wrap: wrap;
+        margin-top: 12px;
+        width: 100%;
+        align-items: flex-start;
+        position: relative;
+      }
+      .button-container > * {
+        flex-shrink: 0;
+      }
+      /* Prevent layout shift when dropdown opens */
+      .button-container > button {
+        position: relative;
+        z-index: 1;
+      }
+      .button-container > .city-button-wrapper {
+        position: relative;
+        z-index: 1;
+        display: inline-block;
+        vertical-align: top;
+        /* Prevent wrapper from expanding when dropdown opens */
+        width: auto;
+        height: auto;
+      }
+      #city-selector-btn {
+        padding: 8px 16px;
+        font-family: 'Stack Sans Headline', sans-serif;
+        font-size: 14px;
+        font-weight: 500;
+        color: rgba(0, 0, 0, 0.87);
+        background: rgba(255, 255, 255, 1);
+        border: 1px solid rgba(0, 0, 0, 0.3);
+        border-radius: 6px;
+        cursor: pointer;
+        pointer-events: auto !important;
+        transition: background 0.2s ease;
+        display: inline-block;
+        position: relative;
+        z-index: 2;
+        box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
+      }
+      #city-selector-btn:hover {
+        border-color: rgba(0, 0, 0, 0.5);
+      }
+      .city-button-wrapper {
+        position: relative;
+        display: inline-block;
+        /* Prevent dropdown from affecting layout */
+        vertical-align: top;
+      }
+      .city-dropdown {
+        position: fixed;
+        /* Calculate position relative to button */
+        z-index: 10000;
+        min-width: 200px;
+        max-width: 300px;
+        max-height: 400px;
+        /* Don't clip rounded corners - use padding instead */
+        padding: 0;
+        pointer-events: auto !important;
+        /* Ensure dropdown is not clipped */
+        contain: none;
+        overflow: visible;
+      }
+      .city-dropdown-content {
+        background: rgba(255, 255, 255, 1);
+        border: 1px solid rgba(0, 0, 0, 0.3);
+        border-radius: 6px;
+        box-shadow:
+          0px 4px 6px -1px rgba(0, 0, 0, 0.2),
+          0px 2px 4px -1px rgba(0, 0, 0, 0.14),
+          0px 1px 3px 0px rgba(0, 0, 0, 0.12);
+        padding: 8px 0;
+        pointer-events: auto !important;
+        /* Scrollable content with rounded corners visible */
+        max-height: 400px;
+        overflow-y: auto;
+        overflow-x: visible;
+        /* Ensure rounded corners aren't clipped when scrolling */
+        -webkit-overflow-scrolling: touch;
+        /* Use clip-path to preserve rounded corners during scroll */
+        clip-path: inset(0 round 6px);
+        -webkit-clip-path: inset(0 round 6px);
+      }
+      .city-dropdown-item {
+        padding: 10px 16px;
+        cursor: pointer;
+        font-family: 'Stack Sans Headline', sans-serif;
+        font-size: 14px;
+        color: rgba(0, 0, 0, 0.87);
+        transition: background 0.2s ease;
+        display: flex;
+        justify-content: flex-start;
+        align-items: center;
+        gap: 12px;
+        pointer-events: auto !important;
+        user-select: none;
+        text-align: left;
+      }
+      .city-dropdown-item:hover {
+        background: rgba(0, 0, 0, 0.05);
+      }
+      .city-dropdown-item-name {
+        font-weight: 500;
+        min-width: 150px;
+        max-width: 150px;
+        text-align: left !important;
+        flex-shrink: 0;
+        display: block;
+      }
+      .city-dropdown-item-stats {
+        font-size: 14px;
+        font-weight: 600;
+        margin-left: 0;
+        white-space: nowrap;
+        text-align: left !important;
+        flex-shrink: 0;
+        display: block;
+      }
+      #bottom-panel {
+        position: fixed;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: fit-content;
+        max-width: 90%;
+        z-index: 1000;
+      }
+      .bottom-panel-content {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        padding: 20px;
+        background: rgba(255, 255, 255, 0.66);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border-radius: 12px;
+        box-shadow:
+          0px 4px 6px -1px rgba(0, 0, 0, 0.2),
+          0px 2px 4px -1px rgba(0, 0, 0, 0.14),
+          0px 1px 3px 0px rgba(0, 0, 0, 0.12);
+        transition: height 0.4s ease;
+        overflow: hidden;
+      }
+      .info-section {
+        font:
+          14px/20px 'Stack Sans Headline',
+          sans-serif;
+        text-align: center;
+        transition:
+          opacity 0.3s ease,
+          max-height 0.4s ease;
+        overflow: hidden;
+      }
+      .info-section h4 {
+        margin: 0 0 8px;
+        color: rgba(0, 0, 0, 0.87);
+        font-weight: 500;
+        font-size: 16px;
+        letter-spacing: 0.15px;
+      }
+      .info-section b {
+        color: rgba(0, 0, 0, 0.87);
+        font-weight: 500;
+        display: block;
+        margin-bottom: 8px;
+      }
+      .info-section i {
+        color: rgba(0, 0, 0, 0.6);
+        font-style: normal;
+        font-size: 14px;
+      }
+      .info-section .precinct-name {
+        font-family: 'Stack Sans Headline', sans-serif;
+        font-weight: 700;
+        font-size: 24px;
+        color: rgba(0, 0, 0, 0.87);
+        margin-bottom: 16px;
+        transition: opacity 0.3s ease;
+      }
+      .info-section .data-columns {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 16px;
+        margin-top: 12px;
+        transition:
+          opacity 0.3s ease,
+          max-height 0.4s ease;
+        overflow: hidden;
+      }
+      .info-section .data-column {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+      .info-section .data-column-header {
+        font-size: 14px;
+        font-weight: 500;
+        color: rgba(0, 0, 0, 0.87);
+        margin-bottom: 8px;
+      }
+      .info-section .data-column-votes {
+        font-size: 14px;
+        color: rgba(0, 0, 0, 0.6);
+        margin-bottom: 8px;
+        transition:
+          opacity 0.3s ease,
+          transform 0.3s ease;
+      }
+      .info-section .data-column-percent {
+        font-size: 24px;
+        font-weight: 700;
+        color: rgba(0, 0, 0, 0.87);
+        transition:
+          opacity 0.3s ease,
+          transform 0.3s ease;
+      }
+      .info-section .bar-graph {
+        margin-top: 16px;
+        width: 100%;
+        height: 24px;
+        background: rgba(0, 0, 0, 0.1);
+        border-radius: 12px;
+        overflow: hidden;
+        display: flex;
+        position: relative;
+      }
+      .info-section .bar-graph-yes {
+        height: 100%;
+        background: #41ab5d;
+        border-radius: 12px 0 0 12px;
+        transition: width 0.3s ease;
+        flex-shrink: 0;
+      }
+      .info-section .bar-graph-no {
+        height: 100%;
+        background: #e74c3c;
+        border-radius: 0 12px 12px 0;
+        transition: width 0.3s ease;
+        flex-shrink: 0;
+      }
+      .info-section .bar-graph-county-marker {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 0;
+        height: 100%;
+        z-index: 10;
+        pointer-events: none;
+        transition: left 0.3s ease;
+      }
+      .info-section .bar-graph-county-line {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 2px;
+        background: #000;
+      }
+      .info-section .bar-graph-county-label {
+        position: absolute;
+        bottom: -18px;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 12px;
+        font-weight: 500;
+        color: #000;
+        white-space: nowrap;
+        z-index: 11;
+      }
+      .vote-method-bar-wrapper {
+        position: relative;
+        padding-bottom: 20px;
+      }
+      .vote-method-breakdown {
+        margin-top: 8px;
+        padding-top: 8px;
+        border-top: 1px solid rgba(0, 0, 0, 0.12);
+      }
+      .vote-method-header {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        user-select: none;
+        font-size: 12px;
+        font-weight: 500;
+        color: rgba(0, 0, 0, 0.6);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 0;
+        padding: 2px 0;
+        transition: color 0.2s ease;
+        gap: 8px;
+      }
+      .vote-method-header:hover {
+        color: rgba(0, 0, 0, 0.87);
+      }
+      .vote-method-arrow {
+        display: inline-block;
+        transition: transform 0.3s ease;
+        font-size: 12px;
+        line-height: 1;
+        font-family: 'Stack Sans Headline', sans-serif;
+      }
+      .vote-method-arrow.expanded {
+        transform: rotate(90deg);
+      }
+      .vote-method-content {
+        max-height: 0;
+        overflow: hidden;
+        transition:
+          max-height 0.3s ease,
+          opacity 0.3s ease;
+        opacity: 0;
+        margin: 0 -20px;
+        padding: 0 20px;
+      }
+      .vote-method-content.expanded {
+        max-height: 1000px;
+        opacity: 1;
+      }
+      .vote-method-content .vote-method-bar-wrapper {
+        padding: 0;
+        margin: 0;
+      }
+      .vote-method-content .vote-method-label-row {
+        padding: 0;
+        margin: 0 0 2px 0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        position: relative;
+        gap: 0;
+      }
+      .vote-method-content .vote-method-label-row > span:first-child,
+      .vote-method-content .vote-method-label-row > span:last-child {
+        flex: 0 0 auto;
+      }
+      .legend-section {
+        border-top: 1px solid rgba(0, 0, 0, 0.12);
+        padding-top: 16px;
+      }
+      .legend-section h4 {
+        margin: 0 0 12px;
+        color: rgba(0, 0, 0, 0.6);
+        font-weight: 500;
+        font-size: 12px;
+        letter-spacing: 0.5px;
+        text-align: center;
+        text-transform: uppercase;
+      }
+      .legend-horizontal {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        align-items: center;
+        justify-content: center;
+      }
+      .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 14px;
+        color: rgba(0, 0, 0, 0.87);
+        white-space: nowrap;
+      }
+      .legend-color {
+        width: 18px;
+        height: 18px;
+        border-radius: 2px;
+        flex-shrink: 0;
+      }
+      .legend-meta {
+        margin-top: 10px;
+        text-align: center;
+        font-size: 12px;
+        color: rgba(0, 0, 0, 0.6);
+      }
+      .legend-meta a {
+        color: rgba(0, 0, 0, 0.6);
+        text-decoration: underline;
+      }
+      /* Hide Leaflet flag icon in attribution */
+      .leaflet-control-attribution a:first-child::before {
+        display: none;
+      }
+      .leaflet-control-attribution a:first-child {
+        padding-left: 0;
+      }
+
+      @media (max-width: 768px) {
         #bottom-panel {
-            position: fixed;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: fit-content;
-            max-width: 90%;
-            z-index: 1000;
+          width: 95%;
+          bottom: 10px;
         }
         .bottom-panel-content {
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-            padding: 20px;
-            background: rgba(255, 255, 255, 0.66);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            border-radius: 12px;
-            box-shadow: 0px 4px 6px -1px rgba(0,0,0,0.2), 0px 2px 4px -1px rgba(0,0,0,0.14), 0px 1px 3px 0px rgba(0,0,0,0.12);
-            transition: height 0.4s ease;
-            overflow: hidden;
-        }
-        .info-section {
-            font: 14px/20px 'Stack Sans Headline', sans-serif;
-            text-align: center;
-            transition: opacity 0.3s ease, max-height 0.4s ease;
-            overflow: hidden;
-        }
-        .info-section h4 {
-            margin: 0 0 8px;
-            color: rgba(0, 0, 0, 0.87);
-            font-weight: 500;
-            font-size: 16px;
-            letter-spacing: 0.15px;
-        }
-        .info-section b {
-            color: rgba(0, 0, 0, 0.87);
-            font-weight: 500;
-            display: block;
-            margin-bottom: 8px;
-        }
-        .info-section i {
-            color: rgba(0, 0, 0, 0.6);
-            font-style: normal;
-            font-size: 14px;
-        }
-        .info-section .precinct-name {
-            font-family: 'Stack Sans Headline', sans-serif;
-            font-weight: 700;
-            font-size: 24px;
-            color: rgba(0, 0, 0, 0.87);
-            margin-bottom: 16px;
-            transition: opacity 0.3s ease;
-        }
-        .info-section .data-columns {
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
-            gap: 16px;
-            margin-top: 12px;
-            transition: opacity 0.3s ease, max-height 0.4s ease;
-            overflow: hidden;
-        }
-        .info-section .data-column {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-        .info-section .data-column-header {
-            font-size: 14px;
-            font-weight: 500;
-            color: rgba(0, 0, 0, 0.87);
-            margin-bottom: 8px;
-        }
-        .info-section .data-column-votes {
-            font-size: 14px;
-            color: rgba(0, 0, 0, 0.6);
-            margin-bottom: 8px;
-            transition: opacity 0.3s ease, transform 0.3s ease;
-        }
-        .info-section .data-column-percent {
-            font-size: 24px;
-            font-weight: 700;
-            color: rgba(0, 0, 0, 0.87);
-            transition: opacity 0.3s ease, transform 0.3s ease;
-        }
-        .info-section .bar-graph {
-            margin-top: 16px;
-            width: 100%;
-            height: 24px;
-            background: rgba(0, 0, 0, 0.1);
-            border-radius: 12px;
-            overflow: hidden;
-            display: flex;
-            position: relative;
-        }
-        .info-section .bar-graph-yes {
-            height: 100%;
-            background: #41ab5d;
-            border-radius: 12px 0 0 12px;
-            transition: width 0.3s ease;
-            flex-shrink: 0;
-        }
-        .info-section .bar-graph-no {
-            height: 100%;
-            background: #e74c3c;
-            border-radius: 0 12px 12px 0;
-            transition: width 0.3s ease;
-            flex-shrink: 0;
-        }
-        .info-section .bar-graph-county-marker {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 0;
-            height: 100%;
-            z-index: 10;
-            pointer-events: none;
-            transition: left 0.3s ease;
-        }
-        .info-section .bar-graph-county-line {
-            position: absolute;
-            top: 0;
-            bottom: 0;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 2px;
-            background: #000;
-        }
-        .info-section .bar-graph-county-label {
-            position: absolute;
-            bottom: -18px;
-            left: 50%;
-            transform: translateX(-50%);
-            font-size: 12px;
-            font-weight: 500;
-            color: #000;
-            white-space: nowrap;
-            z-index: 11;
-        }
-        .vote-method-bar-wrapper {
-            position: relative;
-            padding-bottom: 20px;
-        }
-        .vote-method-breakdown {
-            margin-top: 8px;
-            padding-top: 8px;
-            border-top: 1px solid rgba(0, 0, 0, 0.12);
-        }
-        .vote-method-header {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            user-select: none;
-            font-size: 12px;
-            font-weight: 500;
-            color: rgba(0, 0, 0, 0.6);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 0;
-            padding: 2px 0;
-            transition: color 0.2s ease;
-            gap: 8px;
-        }
-        .vote-method-header:hover {
-            color: rgba(0, 0, 0, 0.87);
-        }
-        .vote-method-arrow {
-            display: inline-block;
-            transition: transform 0.3s ease;
-            font-size: 12px;
-            line-height: 1;
-            font-family: 'Stack Sans Headline', sans-serif;
-        }
-        .vote-method-arrow.expanded {
-            transform: rotate(90deg);
-        }
-        .vote-method-content {
-            max-height: 0;
-            overflow: hidden;
-            transition: max-height 0.3s ease, opacity 0.3s ease;
-            opacity: 0;
-            margin: 0 -20px;
-            padding: 0 20px;
-        }
-        .vote-method-content.expanded {
-            max-height: 1000px;
-            opacity: 1;
-        }
-        .vote-method-content .vote-method-bar-wrapper {
-            padding: 0;
-            margin: 0;
-        }
-        .vote-method-content .vote-method-label-row {
-            padding: 0;
-            margin: 0 0 2px 0;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            position: relative;
-            gap: 0;
-        }
-        .vote-method-content .vote-method-label-row > span:first-child,
-        .vote-method-content .vote-method-label-row > span:last-child {
-            flex: 0 0 auto;
+          padding: 16px;
+          gap: 8px;
         }
         .legend-section {
-            border-top: 1px solid rgba(0, 0, 0, 0.12);
-            padding-top: 16px;
-        }
-        .legend-section h4 {
-            margin: 0 0 12px;
-            color: rgba(0, 0, 0, 0.6);
-            font-weight: 500;
-            font-size: 12px;
-            letter-spacing: 0.5px;
-            text-align: center;
-            text-transform: uppercase;
+          border-top: 1px solid rgba(0, 0, 0, 0.12);
+          padding-top: 8px;
         }
         .legend-horizontal {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 12px;
-            align-items: center;
-            justify-content: center;
+          gap: 8px;
         }
         .legend-item {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            font-size: 14px;
-            color: rgba(0, 0, 0, 0.87);
-            white-space: nowrap;
+          font-size: 12px;
+          gap: 4px;
         }
         .legend-color {
-            width: 18px;
-            height: 18px;
-            border-radius: 2px;
-            flex-shrink: 0;
+          width: 16px;
+          height: 16px;
         }
-        .legend-meta {
-            margin-top: 10px;
-            text-align: center;
-            font-size: 12px;
-            color: rgba(0, 0, 0, 0.6);
+        .info-section .data-columns {
+          gap: 8px;
         }
-        .legend-meta a {
-            color: rgba(0, 0, 0, 0.6);
-            text-decoration: underline;
+        .info-section .data-column-header {
+          font-size: 12px;
         }
-        /* Hide Leaflet flag icon in attribution */
-        .leaflet-control-attribution a:first-child::before {
-            display: none;
+        .info-section .data-column-votes {
+          font-size: 12px;
         }
-        .leaflet-control-attribution a:first-child {
-            padding-left: 0;
+        .info-section .data-column-percent {
+          font-size: 24px;
         }
-        
-        @media (max-width: 768px) {
-            #bottom-panel {
-                width: 95%;
-                bottom: 10px;
-            }
-            .bottom-panel-content {
-                padding: 16px;
-                gap: 8px;
-            }
-            .legend-section {
-                border-top: 1px solid rgba(0, 0, 0, 0.12);
-                padding-top: 8px;
-            }
-            .legend-horizontal {
-                gap: 8px;
-            }
-            .legend-item {
-                font-size: 12px;
-                gap: 4px;
-            }
-            .legend-color {
-                width: 16px;
-                height: 16px;
-            }
-            .info-section .data-columns {
-                gap: 8px;
-            }
-            .info-section .data-column-header {
-                font-size: 12px;
-            }
-            .info-section .data-column-votes {
-                font-size: 12px;
-            }
-            .info-section .data-column-percent {
-                font-size: 24px;
-            }
-        }
+      }
     </style>
-</head>
-<body>
+  </head>
+  <body>
     <div id="top-header">
-        <h1>Alameda County Results</h1>
-        <h2>Nov 2025 – Proposition 50</h2>
-        <div class="button-container">
-            <button id="toggle-mode-btn" onclick="toggleMapMode()">Mode – Shaded Districts</button>
-            <div class="city-button-wrapper">
-                <button id="city-selector-btn" onclick="toggleCityDropdown()">City – Alameda County</button>
-                <div id="city-dropdown" class="city-dropdown" style="display: none;">
-                    <div class="city-dropdown-content" id="city-dropdown-content"></div>
-                </div>
-            </div>
+      <h1>Alameda County Results</h1>
+      <h2>Nov 2025 – Proposition 50</h2>
+      <div class="button-container">
+        <button id="toggle-mode-btn" onclick="toggleMapMode()">Mode – Shaded Districts</button>
+        <div class="city-button-wrapper">
+          <button id="city-selector-btn" onclick="toggleCityDropdown()">
+            City – Alameda County
+          </button>
+          <div id="city-dropdown" class="city-dropdown" style="display: none">
+            <div class="city-dropdown-content" id="city-dropdown-content"></div>
+          </div>
         </div>
+      </div>
     </div>
     <div id="map"></div>
     <div id="bottom-panel">
-        <div class="bottom-panel-content">
-            <div class="info-section" id="info-section">
-                <h4>Proposition 50 Results</h4>
-                <span>Hover or Tap a precinct</span>
-            </div>
-            <div class="legend-section">
-                <h4>Legend</h4>
-                <div class="legend-horizontal" id="legend-horizontal"></div>
-                <div class="legend-meta">
-                    <div>Data updated Nov 7, 2025 • <a href="https://github.com/thushana/alameda-election-2025-proposition-50" target="_blank" rel="noopener">Data Sources & Methodology</a> • By Thushan Amarasiriwardena</div>
-                </div>
-            </div>
+      <div class="bottom-panel-content">
+        <div class="info-section" id="info-section">
+          <h4>Proposition 50 Results</h4>
+          <span>Hover or Tap a precinct</span>
         </div>
+        <div class="legend-section">
+          <h4>Legend</h4>
+          <div class="legend-horizontal" id="legend-horizontal"></div>
+          <div class="legend-meta">
+            <div>
+              Data updated Nov 7, 2025 •
+              <a
+                href="https://github.com/thushana/alameda-election-2025-proposition-50"
+                target="_blank"
+                rel="noopener"
+                >Data Sources & Methodology</a
+              >
+              • By Thushan Amarasiriwardena
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
     <!-- Main Entry Point (ES6 Module) -->
     <script type="module" src="js/app.js"></script>
-</body>
+  </body>
 </html>

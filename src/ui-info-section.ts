@@ -44,16 +44,17 @@ export function getTitleFromProps(props: FeatureProperties): string {
     }
     return (props.count || 0) + ' Precincts Selected';
   }
-  
-  const precinctName = safeGet<string | number | null>(props, 'Precinct_ID', null) ||
-                      safeGet<string | number | null>(props, 'precinct', null) ||
-                      safeGet<string | number | null>(props, 'ID', null) ||
-                      'N/A';
-  
+
+  const precinctName =
+    safeGet<string | number | null>(props, 'Precinct_ID', null) ||
+    safeGet<string | number | null>(props, 'precinct', null) ||
+    safeGet<string | number | null>(props, 'ID', null) ||
+    'N/A';
+
   // Get neighborhood and city
   const neighborhood = safeGet<string | null>(props, 'neighborhood', null);
   const city = safeGet<string | null>(props, 'city', null);
-  
+
   // Build title with neighborhood and city if available
   const titleParts: string[] = [];
   if (neighborhood) {
@@ -62,19 +63,24 @@ export function getTitleFromProps(props: FeatureProperties): string {
   if (city) {
     titleParts.push(city);
   }
-  
+
   if (titleParts.length > 0) {
     return titleParts.join(', ') + ' – Precinct ' + precinctName;
   }
-  
+
   // Fallback to just precinct number if no location data
   return 'Precinct ' + precinctName;
 }
 
 // Helper function to extract vote data from props
 export function extractVoteData(props: FeatureProperties | null): VoteData {
-  const hasVotes = !!(props && props.votes && typeof props.votes.total === 'number' && props.votes.total > 0);
-  
+  const hasVotes = !!(
+    props &&
+    props.votes &&
+    typeof props.votes.total === 'number' &&
+    props.votes.total > 0
+  );
+
   if (!hasVotes || !props) {
     return {
       hasVotes: false,
@@ -82,17 +88,17 @@ export function extractVoteData(props: FeatureProperties | null): VoteData {
       yesVotes: 0,
       noPct: 0,
       noVotes: 0,
-      totalVotes: 0
+      totalVotes: 0,
     };
   }
-  
+
   return {
     hasVotes: true,
     yesPct: safeGet<number>(props, 'percentage.yes', 0),
     yesVotes: safeGet<number>(props, 'votes.yes', 0),
     noPct: safeGet<number>(props, 'percentage.no', 0),
     noVotes: safeGet<number>(props, 'votes.no', 0),
-    totalVotes: safeGet<number>(props, 'votes.total', 0)
+    totalVotes: safeGet<number>(props, 'votes.total', 0),
   };
 }
 
@@ -101,17 +107,23 @@ export function generateMainBarGraphHTML(voteData: VoteData): string {
   if (!voteData.hasVotes || voteData.totalVotes === 0) {
     return '';
   }
-  
-  const countyMarker = (state.countyTotals.yesPct !== undefined) ? `
+
+  const countyMarker =
+    state.countyTotals.yesPct !== undefined
+      ? `
     <div class="bar-graph-county-marker" style="left: ${state.countyTotals.yesPct}%;">
       <div class="bar-graph-county-line"></div>
     </div>
-  ` : '';
-  
-  const countyLabel = (state.countyTotals.yesPct !== undefined) ? `
+  `
+      : '';
+
+  const countyLabel =
+    state.countyTotals.yesPct !== undefined
+      ? `
     <div class="bar-graph-county-label" style="position: absolute; left: ${state.countyTotals.yesPct}%; transform: translateX(-50%); bottom: -18px; padding-bottom: 2px;">County Avg.</div>
-  ` : '';
-  
+  `
+      : '';
+
   return `
     <div style="position: relative;">
       <div class="bar-graph">
@@ -128,10 +140,12 @@ export function generateMainBarGraphHTML(voteData: VoteData): string {
 export function generateDataColumnsHTML(voteData: VoteData): string {
   const yesDisplay = voteData.hasVotes ? voteData.yesVotes.toLocaleString() + ' votes' : '&nbsp;';
   const yesPctDisplay = voteData.hasVotes ? voteData.yesPct.toFixed(1) + '%' : '&nbsp;';
-  const totalDisplay = voteData.hasVotes ? voteData.totalVotes.toLocaleString() + ' votes' : '&nbsp;';
+  const totalDisplay = voteData.hasVotes
+    ? voteData.totalVotes.toLocaleString() + ' votes'
+    : '&nbsp;';
   const noDisplay = voteData.hasVotes ? voteData.noVotes.toLocaleString() + ' votes' : '&nbsp;';
   const noPctDisplay = voteData.hasVotes ? voteData.noPct.toFixed(1) + '%' : '&nbsp;';
-  
+
   return `
     <div class="data-columns">
       <div class="data-column">
@@ -154,26 +168,37 @@ export function generateDataColumnsHTML(voteData: VoteData): string {
 }
 
 // Helper function to generate vote method breakdown HTML
-export function generateVoteMethodBreakdownHTML(props: FeatureProperties, voteData: VoteData): string {
+export function generateVoteMethodBreakdownHTML(
+  props: FeatureProperties,
+  voteData: VoteData
+): string {
   if (!voteData.hasVotes || !props.vote_method || typeof props.vote_method !== 'object') {
     return '';
   }
-  
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Dynamic vote method data structure
   const mailIn = safeGet<any>(props, 'vote_method.mail_in', {});
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Dynamic vote method data structure
   const inPerson = safeGet<any>(props, 'vote_method.in_person', {});
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Dynamic vote method data structure
   const mailInVotes = safeGet<any>(mailIn, 'votes', {});
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Dynamic vote method data structure
   const inPersonVotes = safeGet<any>(inPerson, 'votes', {});
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Dynamic vote method data structure
   const mailInPct = safeGet<any>(mailIn, 'percentage', {});
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Dynamic vote method data structure
   const inPersonPct = safeGet<any>(inPerson, 'percentage', {});
-  
+
   const mailInYesPct = safeGet<number>(mailInPct, 'yes', 0);
   const mailInNoPct = safeGet<number>(mailInPct, 'no', 0);
   const inPersonYesPct = safeGet<number>(inPersonPct, 'yes', 0);
   const inPersonNoPct = safeGet<number>(inPersonPct, 'no', 0);
   const mailInPctOfTotal = safeGet<number>(mailIn, 'percentage_of_total', 0);
   const inPersonPctOfTotal = safeGet<number>(inPerson, 'percentage_of_total', 0);
-  const methodBreakdownTotal = (safeGet<number>(mailInVotes, 'total', 0) || 0) + (safeGet<number>(inPersonVotes, 'total', 0) || 0);
-  
+  const methodBreakdownTotal =
+    (safeGet<number>(mailInVotes, 'total', 0) || 0) +
+    (safeGet<number>(inPersonVotes, 'total', 0) || 0);
+
   return `
     <div class="vote-method-breakdown" style="margin-top: ${SIZES.MARGIN_TOP_SECTION}; padding-top: ${SIZES.MARGIN_TOP_SECTION}; border-top: 1px solid ${OPACITY.BORDER_LIGHT};">
       <div class="vote-method-header" onclick="toggleVoteMethodSection(this)">
@@ -184,22 +209,22 @@ export function generateVoteMethodBreakdownHTML(props: FeatureProperties, voteDa
         ${generateVoteMethodBarGraph({
           yesPct: mailInYesPct,
           noPct: mailInNoPct,
-                    totalVotes: safeGet<number>(mailInVotes, 'total', 0) || 0,
-                    label: 'MAIL IN',
-                    countyAvgPct: state.countyTotals.mailInYesPct
-                  })}
+          totalVotes: safeGet<number>(mailInVotes, 'total', 0) || 0,
+          label: 'MAIL IN',
+          countyAvgPct: state.countyTotals.mailInYesPct,
+        })}
                   ${generateVoteMethodBarGraph({
                     yesPct: inPersonYesPct,
                     noPct: inPersonNoPct,
                     totalVotes: safeGet<number>(inPersonVotes, 'total', 0) || 0,
                     label: 'IN PERSON',
-                    countyAvgPct: state.countyTotals.inPersonYesPct
+                    countyAvgPct: state.countyTotals.inPersonYesPct,
                   })}
                   ${generateMethodBreakdownBarGraph({
                     mailInPct: mailInPctOfTotal,
                     inPersonPct: inPersonPctOfTotal,
                     totalVotes: methodBreakdownTotal,
-                    countyAvgPct: state.countyTotals.mailInPctOfTotal
+                    countyAvgPct: state.countyTotals.mailInPctOfTotal,
                   })}
       </div>
     </div>
@@ -210,7 +235,7 @@ export function generateVoteMethodBreakdownHTML(props: FeatureProperties, voteDa
 export function toggleVoteMethodSection(header: HTMLElement): void {
   const content = header.nextElementSibling as HTMLElement;
   const arrow = header.querySelector('.vote-method-arrow') as HTMLElement;
-  
+
   if (content && content.classList.contains('expanded')) {
     content.classList.remove('expanded');
     if (arrow) arrow.classList.remove('expanded');
@@ -223,26 +248,27 @@ export function toggleVoteMethodSection(header: HTMLElement): void {
 }
 
 // Make toggleVoteMethodSection globally accessible
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- Global function assignment
 (window as any).toggleVoteMethodSection = toggleVoteMethodSection;
 
 // Update info section in bottom panel
 export function updateInfoSection(props: FeatureProperties | null): void {
   const infoSection = document.getElementById('info-section');
   if (!infoSection) return;
-  
+
   const bottomPanelContent = infoSection.parentElement as HTMLElement;
   if (!bottomPanelContent) return;
-  
+
   // Get current height
   const currentHeight = bottomPanelContent.offsetHeight;
   bottomPanelContent.style.height = currentHeight + 'px';
-  
+
   // Fade out
   infoSection.style.opacity = '0';
-  
+
   setTimeout(() => {
     let content: string;
-    
+
     if (!props) {
       // Show county totals
       content = generateCountyTotalsHTML();
@@ -250,7 +276,7 @@ export function updateInfoSection(props: FeatureProperties | null): void {
       // Generate content for precinct or aggregated data
       const title = getTitleFromProps(props);
       const voteData = extractVoteData(props);
-      
+
       content = `
         <div class="precinct-name">${title}</div>
         ${generateDataColumnsHTML(voteData)}
@@ -258,9 +284,9 @@ export function updateInfoSection(props: FeatureProperties | null): void {
         ${generateVoteMethodBreakdownHTML(props, voteData)}
       `;
     }
-    
+
     infoSection.innerHTML = content;
-    
+
     // Restore vote method section expanded state if it was previously expanded
     if (state.voteMethodSectionExpanded) {
       const voteMethodHeader = infoSection.querySelector('.vote-method-header') as HTMLElement;
@@ -273,15 +299,15 @@ export function updateInfoSection(props: FeatureProperties | null): void {
         }
       }
     }
-    
+
     // Get new height and transition
     setTimeout(() => {
       const newHeight = bottomPanelContent.scrollHeight;
       bottomPanelContent.style.height = newHeight + 'px';
-      
+
       // Fade in
       infoSection.style.opacity = '1';
-      
+
       // Remove height constraint after transition
       setTimeout(() => {
         bottomPanelContent.style.height = 'auto';
@@ -289,4 +315,3 @@ export function updateInfoSection(props: FeatureProperties | null): void {
     }, 10);
   }, 150);
 }
-

@@ -20,12 +20,12 @@ export const COLORS: Colors = {
   BORDER_DEFAULT: 'white',
   BORDER_HOVER: '#666',
   BORDER_SELECTED: '#000000',
-  
+
   // Bar graph colors
   YES: '#41ab5d',
   NO: '#e74c3c',
   METHOD_MAIL_IN: '#78909C',
-  METHOD_IN_PERSON: '#CFD8DC'
+  METHOD_IN_PERSON: '#CFD8DC',
 };
 
 // Sizes and spacing
@@ -33,13 +33,13 @@ export const SIZES: Sizes = {
   BAR_GRAPH_HEIGHT: '12px',
   BAR_GRAPH_BORDER_RADIUS: '6px',
   // Typography sizes (standardized to 4 sizes)
-  FONT_LARGE: '24px',      // Main titles, precinct names, large percentages
-  FONT_MEDIUM: '16px',     // Section headers, important labels
-  FONT_SMALL: '14px',      // Body text, data columns, buttons, vote method percentages
-  FONT_XSMALL: '12px',     // Labels, secondary text, vote method labels
+  FONT_LARGE: '24px', // Main titles, precinct names, large percentages
+  FONT_MEDIUM: '16px', // Section headers, important labels
+  FONT_SMALL: '14px', // Body text, data columns, buttons, vote method percentages
+  FONT_XSMALL: '12px', // Labels, secondary text, vote method labels
   MARGIN_BOTTOM_SMALL: '2px',
   MARGIN_BOTTOM_MEDIUM: '12px',
-  MARGIN_TOP_SECTION: '16px'
+  MARGIN_TOP_SECTION: '16px',
 };
 
 // Opacity values
@@ -50,6 +50,5 @@ export const OPACITY: Opacity = {
   BACKGROUND_LIGHT: 'rgba(0, 0, 0, 0.1)',
   TEXT_PRIMARY: 'rgba(0, 0, 0, 0.87)',
   TEXT_SECONDARY: 'rgba(0, 0, 0, 0.6)',
-  BORDER_LIGHT: 'rgba(0, 0, 0, 0.12)'
+  BORDER_LIGHT: 'rgba(0, 0, 0, 0.12)',
 };
-

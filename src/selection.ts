@@ -12,26 +12,26 @@ export function updateAggregatedTotals(): void {
     updateInfoSection(null);
     return;
   }
-  
+
   const aggregated = {
     yes: 0,
     no: 0,
     total: 0,
-    count: state.selectedPrecincts.length
+    count: state.selectedPrecincts.length,
   };
-  
+
   // Aggregate vote_method data
   const mailInAggregated = {
     yes: 0,
     no: 0,
-    total: 0
+    total: 0,
   };
   const inPersonAggregated = {
     yes: 0,
     no: 0,
-    total: 0
+    total: 0,
   };
-  
+
   state.selectedPrecincts.forEach((item) => {
     const props = item.feature.properties;
     if (props.votes) {
@@ -39,7 +39,7 @@ export function updateAggregatedTotals(): void {
       if (props.votes.no) aggregated.no += props.votes.no;
       if (props.votes.total) aggregated.total += props.votes.total;
     }
-    
+
     // Aggregate vote_method data
     if (props.vote_method) {
       if (props.vote_method.mail_in && props.vote_method.mail_in.votes) {
@@ -56,7 +56,7 @@ export function updateAggregatedTotals(): void {
       }
     }
   });
-  
+
   // Calculate percentages
   let yesPct = 0;
   let noPct = 0;
@@ -64,7 +64,7 @@ export function updateAggregatedTotals(): void {
     yesPct = (aggregated.yes / aggregated.total) * 100;
     noPct = (aggregated.no / aggregated.total) * 100;
   }
-  
+
   // Calculate vote_method percentages
   let voteMethod: VoteMethod | null = null;
   if (mailInAggregated.total > 0 || inPersonAggregated.total > 0) {
@@ -72,22 +72,31 @@ export function updateAggregatedTotals(): void {
       mail_in: {
         votes: mailInAggregated,
         percentage: {
-          yes: mailInAggregated.total > 0 ? (mailInAggregated.yes / mailInAggregated.total) * 100 : 0,
-          no: mailInAggregated.total > 0 ? (mailInAggregated.no / mailInAggregated.total) * 100 : 0
+          yes:
+            mailInAggregated.total > 0 ? (mailInAggregated.yes / mailInAggregated.total) * 100 : 0,
+          no: mailInAggregated.total > 0 ? (mailInAggregated.no / mailInAggregated.total) * 100 : 0,
         },
-        percentage_of_total: aggregated.total > 0 ? (mailInAggregated.total / aggregated.total) * 100 : 0
+        percentage_of_total:
+          aggregated.total > 0 ? (mailInAggregated.total / aggregated.total) * 100 : 0,
       },
       in_person: {
         votes: inPersonAggregated,
         percentage: {
-          yes: inPersonAggregated.total > 0 ? (inPersonAggregated.yes / inPersonAggregated.total) * 100 : 0,
-          no: inPersonAggregated.total > 0 ? (inPersonAggregated.no / inPersonAggregated.total) * 100 : 0
+          yes:
+            inPersonAggregated.total > 0
+              ? (inPersonAggregated.yes / inPersonAggregated.total) * 100
+              : 0,
+          no:
+            inPersonAggregated.total > 0
+              ? (inPersonAggregated.no / inPersonAggregated.total) * 100
+              : 0,
         },
-        percentage_of_total: aggregated.total > 0 ? (inPersonAggregated.total / aggregated.total) * 100 : 0
-      }
+        percentage_of_total:
+          aggregated.total > 0 ? (inPersonAggregated.total / aggregated.total) * 100 : 0,
+      },
     };
   }
-  
+
   // Create aggregated properties object
   const aggregatedProps: FeatureProperties = {
     aggregated: true,
@@ -96,19 +105,18 @@ export function updateAggregatedTotals(): void {
     votes: {
       yes: aggregated.yes,
       no: aggregated.no,
-      total: aggregated.total
+      total: aggregated.total,
     },
     percentage: {
       yes: yesPct,
-      no: noPct
-    }
+      no: noPct,
+    },
   };
-  
+
   // Add vote_method if available
   if (voteMethod) {
     aggregatedProps.vote_method = voteMethod;
   }
-  
+
   updateInfoSection(aggregatedProps);
 }
-

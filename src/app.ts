@@ -9,4 +9,3 @@ import { createHorizontalLegend } from './ui-legend.js';
 
 // Initialize legend
 createHorizontalLegend();
-

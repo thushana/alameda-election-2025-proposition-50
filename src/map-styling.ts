@@ -32,13 +32,19 @@ export function getColor(yesPct: number | null | undefined): string {
     return COLORS.RED_SHADE;
   }
   // Split 50-100% into 6 green steps
-  return yesPct >= 100 ? COLORS.GREEN_100 :
-         yesPct >= 95 ? COLORS.GREEN_95 :
-         yesPct >= 90 ? COLORS.GREEN_90 :
-         yesPct >= 85 ? COLORS.GREEN_85 :
-         yesPct >= 80 ? COLORS.GREEN_80 :
-         yesPct >= 75 ? COLORS.GREEN_75 :
-         COLORS.GREEN_50;
+  return yesPct >= 100
+    ? COLORS.GREEN_100
+    : yesPct >= 95
+      ? COLORS.GREEN_95
+      : yesPct >= 90
+        ? COLORS.GREEN_90
+        : yesPct >= 85
+          ? COLORS.GREEN_85
+          : yesPct >= 80
+            ? COLORS.GREEN_80
+            : yesPct >= 75
+              ? COLORS.GREEN_75
+              : COLORS.GREEN_50;
 }
 
 // Style function
@@ -51,43 +57,63 @@ export function style(feature: GeoJSONFeature): PathOptions {
     opacity: 1,
     color: yesPct === null ? COLORS.BORDER_NO_DATA : COLORS.BORDER_DEFAULT,
     dashArray: yesPct === null ? '5,5' : '3',
-    fillOpacity: OPACITY.FILL_DEFAULT
+    fillOpacity: OPACITY.FILL_DEFAULT,
   };
 }
 
 // Helper function to set circle style
-export function setCircleStyle(circle: CircleMarker, yesPct: number | null, voteCount: number, isSelected: boolean): void {
-  const style: any = {
+export function setCircleStyle(
+  circle: CircleMarker,
+  yesPct: number | null,
+  voteCount: number,
+  isSelected: boolean
+): void {
+  const style: {
+    radius: number;
+    fillColor: string;
+    color: string;
+    weight: number;
+    opacity: number;
+    fillOpacity: number;
+  } = {
     radius: getCircleRadius(voteCount),
     fillColor: getColor(yesPct),
     fillOpacity: isSelected ? OPACITY.FILL_SELECTED : OPACITY.FILL_DEFAULT,
     weight: isSelected ? 3 : 1,
     color: isSelected ? COLORS.BORDER_SELECTED : COLORS.BORDER_DEFAULT,
-    opacity: 0.8
+    opacity: 0.8,
   };
   circle.setStyle(style);
 }
 
 // Helper function to set polygon style
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- Leaflet layer API
 export function setPolygonStyle(layer: any, yesPct: number | null, isSelected: boolean): void {
   const style: PathOptions = {
     fillColor: getColor(yesPct),
     fillOpacity: isSelected ? OPACITY.FILL_SELECTED : OPACITY.FILL_DEFAULT,
     weight: isSelected ? 4 : 1,
-    color: isSelected ? COLORS.BORDER_SELECTED : (yesPct === null ? COLORS.BORDER_NO_DATA : COLORS.BORDER_DEFAULT),
-    dashArray: isSelected ? '' : (yesPct === null ? '5,5' : '3'),
-    opacity: 1
+    color: isSelected
+      ? COLORS.BORDER_SELECTED
+      : yesPct === null
+        ? COLORS.BORDER_NO_DATA
+        : COLORS.BORDER_DEFAULT,
+    dashArray: isSelected ? '' : yesPct === null ? '5,5' : '3',
+    opacity: 1,
   };
   layer.setStyle(style);
 }
 
 // Helper function to reset layer style (for polygons)
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- Leaflet layer API
 export function resetLayerStyle(layer: any, yesPct: number | null): void {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Leaflet global API
   if (layer instanceof (window as any).L.CircleMarker) {
-    const voteCount = getVoteCount((layer as CircleMarker & { feature: { properties: FeatureProperties } }).feature.properties);
+    const voteCount = getVoteCount(
+      (layer as CircleMarker & { feature: { properties: FeatureProperties } }).feature.properties
+    );
     setCircleStyle(layer as CircleMarker, yesPct, voteCount, false);
   } else {
     setPolygonStyle(layer, yesPct, false);
   }
 }
-

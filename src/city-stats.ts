@@ -9,36 +9,36 @@ import type { GeoJSONData, CityStats } from './types.js';
 // Calculate city statistics from GeoJSON data
 export function calculateCityStats(data: GeoJSONData): CityStats {
   const stats: CityStats = {};
-  
+
   if (!data || !data.features) {
     return stats;
   }
-  
+
   data.features.forEach((feature) => {
     const props = feature.properties;
     const city = safeGet<string | null>(props, 'city', null);
-    
+
     if (!city) return;
-    
+
     // Get display city name (treats "Alameda County" as "Unincorporated Alameda County")
     const displayCity = getDisplayCityName(city);
-    
+
     if (!displayCity) return;
-    
+
     // Normalize city name for grouping
     const normalizedCity = normalizeCityName(displayCity);
     if (!normalizedCity) return;
-    
+
     if (!stats[normalizedCity]) {
       stats[normalizedCity] = {
         name: displayCity,
         yes: 0,
         no: 0,
         total: 0,
-        yesPct: 0
+        yesPct: 0,
       };
     }
-    
+
     // Aggregate votes
     if (props.votes) {
       if (props.votes.yes) stats[normalizedCity].yes += props.votes.yes;
@@ -46,7 +46,7 @@ export function calculateCityStats(data: GeoJSONData): CityStats {
       if (props.votes.total) stats[normalizedCity].total += props.votes.total;
     }
   });
-  
+
   // Calculate percentages
   Object.keys(stats).forEach((key) => {
     const city = stats[key];
@@ -56,7 +56,6 @@ export function calculateCityStats(data: GeoJSONData): CityStats {
       city.yesPct = 0;
     }
   });
-  
+
   return stats;
 }
-

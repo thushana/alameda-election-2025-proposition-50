@@ -28,4 +28,3 @@ export function applyDesktopDefaultBiasIfNeeded(): void {
   const DEFAULT_DESKTOP_BIAS_PX = 200; // shift up by 200px by default
   state.map.panBy(leaflet.point(0, -DEFAULT_DESKTOP_BIAS_PX), { animate: false });
 }
-

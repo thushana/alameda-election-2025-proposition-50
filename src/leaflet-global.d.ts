@@ -7,4 +7,3 @@ declare global {
   }
   const L: typeof Leaflet;
 }
-

@@ -14,7 +14,7 @@ export function parseHashParams(): HashParams {
   if (!hash || hash.length <= 1) {
     return { mode: null, city: null, precincts: null };
   }
-  
+
   // Remove # from hash, handle both #/mode/... and #mode/...
   let path = hash.substring(1);
   // Remove leading slash if present
@@ -25,9 +25,9 @@ export function parseHashParams(): HashParams {
   const params: HashParams = {
     mode: null,
     city: null,
-    precincts: null
+    precincts: null,
   };
-  
+
   // Mode synonyms: choropleth -> shaded, bubble -> proportional
   function normalizeMode(mode: string | null): MapMode | null {
     if (!mode) return null;
@@ -36,7 +36,7 @@ export function parseHashParams(): HashParams {
     if (normalized === 'bubble' || normalized === 'bubbles') return 'proportional';
     return normalized === 'proportional' ? 'proportional' : 'shaded';
   }
-  
+
   for (let i = 0; i < parts.length; i++) {
     if (parts[i] === 'mode' && i + 1 < parts.length) {
       params.mode = normalizeMode(parts[i + 1]);
@@ -49,35 +49,35 @@ export function parseHashParams(): HashParams {
       i++;
     }
   }
-  
+
   return params;
 }
 
 export function buildHashParams(params: HashParams): string {
   const pathParts: string[] = [];
-  
+
   // Only include mode if it's not the default 'shaded'
   if (params.mode && params.mode !== 'shaded') {
     pathParts.push('mode', params.mode);
   }
-  
+
   // Add city if present
   if (params.city) {
     pathParts.push('city', params.city);
   }
-  
+
   // Add precincts if present
   if (params.precincts) {
     pathParts.push('precincts', params.precincts);
   }
-  
+
   return '#' + pathParts.join('/');
 }
 
 // Update URL with map mode parameter
 export function updateModeURL(): void {
   const hashParams = parseHashParams();
-  
+
   // Only update mode if it's not the default 'shaded'
   // This way we don't add mode/shaded/ to URLs unless user switches to proportional
   if (mapMode !== 'shaded') {
@@ -86,27 +86,29 @@ export function updateModeURL(): void {
     // Remove mode from params if it's the default
     hashParams.mode = null;
   }
-  
+
   // Preserve city from URL if it exists, or use currentCityName (normalize for URL)
   if (hashParams.city) {
     // Keep city from URL
   } else if (state.currentCityName) {
     hashParams.city = normalizeCityName(state.currentCityName);
   }
-  
+
   // Preserve precincts from URL if they exist, or use selectedPrecincts
   if (hashParams.precincts) {
     // Keep precincts from URL
   } else if (state.selectedPrecincts.length > 0) {
-    const precinctIds = state.selectedPrecincts.map((item) => {
-      const id = getPrecinctId(item.feature.properties);
-      return id ? id.toString() : 'N/A';
-    }).join('+');
+    const precinctIds = state.selectedPrecincts
+      .map((item) => {
+        const id = getPrecinctId(item.feature.properties);
+        return id ? id.toString() : 'N/A';
+      })
+      .join('+');
     if (precinctIds) {
       hashParams.precincts = precinctIds;
     }
   }
-  
+
   const newHash = buildHashParams(hashParams);
   window.location.hash = newHash;
 }
@@ -114,20 +116,22 @@ export function updateModeURL(): void {
 // Update URL with selected precinct numbers
 export function updateURL(): void {
   const hashParams = parseHashParams();
-  
+
   // Only include mode if it's not the default 'shaded'
   if (mapMode !== 'shaded') {
     hashParams.mode = mapMode;
   } else {
     hashParams.mode = null;
   }
-  
+
   // Get precinct IDs
-  const precinctIds = state.selectedPrecincts.map((item) => {
-    const id = getPrecinctId(item.feature.properties);
-    return id ? id.toString() : 'N/A';
-  }).join('+');
-  
+  const precinctIds = state.selectedPrecincts
+    .map((item) => {
+      const id = getPrecinctId(item.feature.properties);
+      return id ? id.toString() : 'N/A';
+    })
+    .join('+');
+
   if (precinctIds && state.selectedPrecincts.length > 0) {
     hashParams.precincts = precinctIds;
     // Clear city when manually selecting precincts
@@ -141,8 +145,7 @@ export function updateURL(): void {
       hashParams.city = null;
     }
   }
-  
+
   const newHash = buildHashParams(hashParams);
   window.location.hash = newHash;
 }
-

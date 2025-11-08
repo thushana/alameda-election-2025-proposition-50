@@ -51,7 +51,6 @@ export const state = {
     inPersonTotal: 0,
     inPersonYes: 0,
     inPersonNo: 0,
-    inPersonYesPct: 0
-  } as CountyTotals
+    inPersonYesPct: 0,
+  } as CountyTotals,
 };
-

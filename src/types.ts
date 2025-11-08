@@ -2,6 +2,9 @@
 // TYPE DEFINITIONS
 // ============================================================================
 
+import type { Geometry } from 'geojson';
+import type { Layer } from 'leaflet';
+
 // Leaflet types are imported where needed
 
 export interface Colors {
@@ -84,7 +87,7 @@ export interface FeatureProperties {
 
 export interface GeoJSONFeature {
   type: 'Feature';
-  geometry: any; // GeoJSON.Geometry
+  geometry: Geometry;
   properties: FeatureProperties;
 }
 
@@ -95,7 +98,7 @@ export interface GeoJSONData {
 
 export interface SelectedPrecinct {
   feature: GeoJSONFeature;
-  layer: any; // Layer from Leaflet
+  layer: Layer;
 }
 
 export interface CityStats {
@@ -161,3 +164,10 @@ export interface MethodBreakdownBarGraphConfig {
 
 export type MapMode = 'shaded' | 'proportional';
 
+// Result data structure from results.json
+export interface ResultData {
+  precinct?: string | number;
+  votes?: Votes;
+  percentage?: Percentage;
+  vote_method?: VoteMethod;
+}

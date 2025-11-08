@@ -14,9 +14,13 @@ export function normalizeCityName(cityName: string | null | undefined): string |
 export function denormalizeCityName(normalizedCityName: string | null | undefined): string | null {
   if (!normalizedCityName) return null;
   // Replace both hyphens and underscores with spaces for backwards compatibility
-  return normalizedCityName.replace(/[-_]/g, ' ').split(' ').map(function(word) {
-    return word.charAt(0).toUpperCase() + word.slice(1);
-  }).join(' ');
+  return normalizedCityName
+    .replace(/[-_]/g, ' ')
+    .split(' ')
+    .map(function (word) {
+      return word.charAt(0).toUpperCase() + word.slice(1);
+    })
+    .join(' ');
 }
 
 // Helper function to get display city name (treats "Alameda County" as "Unincorporated Alameda County")
@@ -29,4 +33,3 @@ export function getDisplayCityName(city: string | null | undefined): string | nu
   }
   return city;
 }
-

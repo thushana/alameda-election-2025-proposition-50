@@ -14,11 +14,11 @@ export function generateVoteMethodBarGraph(config: VoteMethodBarGraphConfig): st
   const countyAvgPct = config.countyAvgPct;
   const yesColor = config.yesColor || COLORS.YES;
   const noColor = config.noColor || COLORS.NO;
-  
+
   if (totalVotes === 0) {
     return '';
   }
-  
+
   const html = `
     <div class="vote-method-bar-wrapper" style="margin-bottom: ${SIZES.MARGIN_BOTTOM_MEDIUM};">
       <div class="vote-method-label-row" style="position: relative; margin-bottom: ${SIZES.MARGIN_BOTTOM_SMALL}; font-size: ${SIZES.FONT_SMALL}; font-weight: 500; color: ${OPACITY.TEXT_PRIMARY}; padding: 0; width: 100%;">
@@ -29,15 +29,19 @@ export function generateVoteMethodBarGraph(config: VoteMethodBarGraphConfig): st
       <div class="bar-graph" style="height: ${SIZES.BAR_GRAPH_HEIGHT}; position: relative; display: flex; overflow: hidden; border-radius: ${SIZES.BAR_GRAPH_BORDER_RADIUS}; background: ${OPACITY.BACKGROUND_LIGHT}; margin: 0; width: 100%;">
         <div class="bar-graph-yes" style="width: ${yesPct}%; height: 100%; background: ${yesColor}; flex-shrink: 0;"></div>
         <div class="bar-graph-no" style="width: ${noPct}%; height: 100%; background: ${noColor}; flex-shrink: 0;"></div>
-        ${countyAvgPct !== undefined ? `
+        ${
+          countyAvgPct !== undefined
+            ? `
         <div class="bar-graph-county-marker" style="left: ${countyAvgPct}%;">
           <div class="bar-graph-county-line"></div>
         </div>
-        ` : ''}
+        `
+            : ''
+        }
       </div>
     </div>
   `;
-  
+
   return html;
 }
 
@@ -48,11 +52,11 @@ export function generateMethodBreakdownBarGraph(config: MethodBreakdownBarGraphC
   const countyAvgPct = config.countyAvgPct;
   const mailInColor = config.mailInColor || COLORS.METHOD_MAIL_IN;
   const inPersonColor = config.inPersonColor || COLORS.METHOD_IN_PERSON;
-  
+
   if (mailInPct === 0 && inPersonPct === 0) {
     return '';
   }
-  
+
   const html = `
     <div class="vote-method-bar-wrapper" style="margin-bottom: ${SIZES.MARGIN_BOTTOM_MEDIUM};">
       <div class="vote-method-label-row" style="position: relative; margin-bottom: ${SIZES.MARGIN_BOTTOM_SMALL}; font-size: ${SIZES.FONT_SMALL}; font-weight: 500; color: ${OPACITY.TEXT_PRIMARY}; padding: 0; width: 100%;">
@@ -63,15 +67,18 @@ export function generateMethodBreakdownBarGraph(config: MethodBreakdownBarGraphC
       <div class="bar-graph" style="height: ${SIZES.BAR_GRAPH_HEIGHT}; position: relative; display: flex; overflow: hidden; border-radius: ${SIZES.BAR_GRAPH_BORDER_RADIUS}; background: ${OPACITY.BACKGROUND_LIGHT}; margin: 0; width: 100%;">
         <div style="width: ${mailInPct}%; height: 100%; background: ${mailInColor}; flex-shrink: 0;"></div>
         <div style="width: ${inPersonPct}%; height: 100%; background: ${inPersonColor}; flex-shrink: 0;"></div>
-        ${countyAvgPct !== undefined ? `
+        ${
+          countyAvgPct !== undefined
+            ? `
         <div class="bar-graph-county-marker" style="left: ${countyAvgPct}%;">
           <div class="bar-graph-county-line"></div>
         </div>
-        ` : ''}
+        `
+            : ''
+        }
       </div>
     </div>
   `;
-  
+
   return html;
 }
-

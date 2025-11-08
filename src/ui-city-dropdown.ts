@@ -15,32 +15,35 @@ import { restoreSelectionFromURL } from './state-restore.js';
 export function buildCityDropdown(): void {
   const dropdownContent = document.getElementById('city-dropdown-content');
   if (!dropdownContent) return;
-  
+
   // Sort cities by name, but exclude "Alameda County" since we add it manually
-  const cities = Object.keys(state.cityStats).map((key) => {
-    return {
-      key: key,
-      name: state.cityStats[key].name,
-      yesPct: state.cityStats[key].yesPct || 0
-    };
-  }).filter((city) => {
-    // Filter out "Alameda County" - we add it manually at the top
-    // Keep "Unincorporated Alameda County" as a distinct option
-    const cityNameLower = city.name.toLowerCase();
-    return cityNameLower !== 'alameda county';
-  }).sort((a, b) => {
-    // Sort alphabetically, but put "Unincorporated Alameda County" at the end
-    const aIsUnincorporated = a.name.toLowerCase() === 'unincorporated alameda county';
-    const bIsUnincorporated = b.name.toLowerCase() === 'unincorporated alameda county';
-    
-    if (aIsUnincorporated && !bIsUnincorporated) return 1;
-    if (!aIsUnincorporated && bIsUnincorporated) return -1;
-    return a.name.localeCompare(b.name);
-  });
-  
+  const cities = Object.keys(state.cityStats)
+    .map((key) => {
+      return {
+        key: key,
+        name: state.cityStats[key].name,
+        yesPct: state.cityStats[key].yesPct || 0,
+      };
+    })
+    .filter((city) => {
+      // Filter out "Alameda County" - we add it manually at the top
+      // Keep "Unincorporated Alameda County" as a distinct option
+      const cityNameLower = city.name.toLowerCase();
+      return cityNameLower !== 'alameda county';
+    })
+    .sort((a, b) => {
+      // Sort alphabetically, but put "Unincorporated Alameda County" at the end
+      const aIsUnincorporated = a.name.toLowerCase() === 'unincorporated alameda county';
+      const bIsUnincorporated = b.name.toLowerCase() === 'unincorporated alameda county';
+
+      if (aIsUnincorporated && !bIsUnincorporated) return 1;
+      if (!aIsUnincorporated && bIsUnincorporated) return -1;
+      return a.name.localeCompare(b.name);
+    });
+
   // Clear existing content
   dropdownContent.innerHTML = '';
-  
+
   // Add "Alameda County" option at the top
   const countyItem = document.createElement('div');
   countyItem.className = 'city-dropdown-item';
@@ -62,7 +65,7 @@ export function buildCityDropdown(): void {
     selectCity(null);
   });
   dropdownContent.appendChild(countyItem);
-  
+
   // Add each city
   cities.forEach((city) => {
     const cityItem = document.createElement('div');
@@ -93,21 +96,21 @@ export function toggleCityDropdown(): void {
   const dropdown = document.getElementById('city-dropdown') as HTMLElement;
   const btn = document.getElementById('city-selector-btn');
   if (!dropdown || !btn) return;
-  
+
   state.cityDropdownOpen = !state.cityDropdownOpen;
-  
+
   if (state.cityDropdownOpen) {
     // Position dropdown relative to button
     const btnRect = btn.getBoundingClientRect();
     dropdown.style.position = 'fixed';
-    dropdown.style.top = (btnRect.bottom + 8) + 'px';
-    dropdown.style.left = (btnRect.left + btnRect.width / 2) + 'px';
+    dropdown.style.top = btnRect.bottom + 8 + 'px';
+    dropdown.style.left = btnRect.left + btnRect.width / 2 + 'px';
     dropdown.style.transform = 'translateX(-50%)';
     dropdown.style.display = 'block';
   } else {
     dropdown.style.display = 'none';
   }
-  
+
   // Close dropdown when clicking outside
   if (state.cityDropdownOpen) {
     // Remove existing handler if any
@@ -115,12 +118,17 @@ export function toggleCityDropdown(): void {
       document.removeEventListener('click', state.cityDropdownCloseHandler, true);
       state.cityDropdownCloseHandler = null;
     }
-    
+
     setTimeout(() => {
       state.cityDropdownCloseHandler = (e: MouseEvent) => {
         const btn = document.getElementById('city-selector-btn');
         const dropdownEl = document.getElementById('city-dropdown');
-        if (btn && dropdownEl && !btn.contains(e.target as Node) && !dropdownEl.contains(e.target as Node)) {
+        if (
+          btn &&
+          dropdownEl &&
+          !btn.contains(e.target as Node) &&
+          !dropdownEl.contains(e.target as Node)
+        ) {
           state.cityDropdownOpen = false;
           if (dropdownEl) {
             dropdownEl.style.display = 'none';
@@ -149,6 +157,7 @@ export function toggleCityDropdown(): void {
 }
 
 // Make toggleCityDropdown globally accessible
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- Global function assignment
 (window as any).toggleCityDropdown = toggleCityDropdown;
 
 // Select a city
@@ -163,13 +172,13 @@ export function selectCity(cityKey: string | null): void {
     dropdown.style.left = '';
     dropdown.style.transform = '';
   }
-  
+
   // Clean up close handler
   if (state.cityDropdownCloseHandler) {
     document.removeEventListener('click', state.cityDropdownCloseHandler, true);
     state.cityDropdownCloseHandler = null;
   }
-  
+
   if (!cityKey) {
     // Clear city selection - show all precincts
     state.selectedPrecincts.forEach((item) => {
@@ -184,43 +193,49 @@ export function selectCity(cityKey: string | null): void {
     updateCityButtonText();
     updateURL();
     updateInfoSection(null);
-    
+
     // Fit to all districts
     if (state.baseDistrictBounds && state.baseDistrictBounds.isValid() && state.map) {
       const isMobile = window.innerWidth <= 768;
       const bottomPanel = document.getElementById('bottom-panel');
-      const bottomPadding = bottomPanel ? bottomPanel.offsetHeight + (isMobile ? 140 : 80) : (isMobile ? 360 : 240);
+      const bottomPadding = bottomPanel
+        ? bottomPanel.offsetHeight + (isMobile ? 140 : 80)
+        : isMobile
+          ? 360
+          : 240;
       state.map.fitBounds(state.baseDistrictBounds, {
         paddingTopLeft: L.point(20, 20),
-        paddingBottomRight: L.point(20, bottomPadding)
+        paddingBottomRight: L.point(20, bottomPadding),
       });
       applyMobileVerticalBias();
     }
     return;
   }
-  
+
   // Navigate to city
   const hashParams = parseHashParams();
   hashParams.city = cityKey;
   hashParams.precincts = null; // Clear precincts when selecting city
   const newHash = buildHashParams(hashParams);
   window.location.hash = newHash;
-  
+
   // restoreSelectionFromURL will handle the rest
   restoreSelectionFromURL();
 }
 
 // Make selectCity globally accessible
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- Global function assignment
 (window as any).selectCity = selectCity;
 
 // Update city button text
 export function updateCityButtonText(): void {
   const btn = document.getElementById('city-selector-btn');
   if (!btn) return;
-  
+
   if (state.currentCityName) {
     // Don't say "City" for unincorporated areas
-    const isUnincorporated = state.currentCityName.toLowerCase() === 'unincorporated alameda county';
+    const isUnincorporated =
+      state.currentCityName.toLowerCase() === 'unincorporated alameda county';
     if (isUnincorporated) {
       btn.textContent = state.currentCityName;
     } else {
@@ -230,4 +245,3 @@ export function updateCityButtonText(): void {
     btn.textContent = 'City – Alameda County';
   }
 }
-
