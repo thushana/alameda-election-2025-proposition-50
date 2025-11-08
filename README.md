@@ -86,3 +86,35 @@ The map uses hash-based routing for clean URLs:
 - Selected precincts show aggregated vote totals
 - Selected precincts are highlighted with black borders
 - URL updates automatically with selected precinct IDs
+
+## Importing Results Data
+
+To import new CVR (Cast Voter Record) data:
+
+1. **Build the project** (if not already built):
+   ```bash
+   npm run build
+   ```
+
+2. **Run the import script** with the path to your CVR export folder:
+   ```bash
+   npm run import:results /path/to/CVR_Export_YYYYMMDDHHMMSS
+   ```
+
+   The folder should contain:
+   - `CvrExport.json` (or `CVR_Export*.json`)
+   - `PrecinctPortionManifest.json`
+   - `PrecinctManifest.json`
+   - `CandidateManifest.json`
+   - `CountingGroupManifest.json`
+
+3. **The script will**:
+   - Stream and process the CVR data
+   - Generate `results.json` with precinct-level vote counts and percentages
+   - Extract the date from the folder name (e.g., `CVR_Export_20251107150911` → Nov 7th, 2025 @ 3:09 PM)
+   - Automatically update `README.md` and `index.html` with the extracted date
+
+**Example:**
+```bash
+npm run import:results /Users/thushan/Downloads/CVR_Export_20251107150911
+```

@@ -6,7 +6,6 @@
     "moduleResolution": "node",
     "types": ["node"],
     "outDir": "./js",
-    "rootDir": "./source",
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
@@ -21,6 +20,6 @@
     "noUnusedParameters": true,
     "noImplicitReturns": true
   },
-  "include": ["source/**/*"],
+  "include": ["source/**/*", "scripts/**/*.ts"],
   "exclude": ["node_modules", "js"]
 }
