@@ -43,17 +43,20 @@ This tool uses data from the Alameda County Registrar of Voters and others:
   - **Shaded mode** (default): Color-coded precinct polygons showing YES percentage
   - **Proportional symbols mode**: Circles scaled by vote count, colored by YES percentage
   
-- **Interactive features:**
-  - Hover over precincts to see detailed vote counts and percentages
+- **City filtering:**
+  - Filter by city to view precinct-level data for specific cities
+  - Defaults to city of Alameda on first load
+  - Dropdown menu with all cities in Alameda County
+  
+- **Interactive precinct exploration:**
+  - Hover over precincts to see detailed vote counts, percentages, and neighborhood names
+  - Click to zoom to individual precincts
   - Command/Ctrl-click to select multiple precincts and view aggregated totals
-  - City shortcuts (e.g., `#city/alameda` or `#mode/proportional/city/alameda`) to quickly view city-level data
-  - URL-based state management - share links with specific views
-
-- **Data display:**
-  - County-level totals when no precinct is selected
-  - Individual precinct data on hover
-  - Aggregated totals for selected precincts
-  - County average marker in bar graphs for comparison
+  - Mail-in vs in-person voting breakdowns with county average comparisons
+  
+- **Shareable URLs:**
+  - URL-based state management - share links with specific views (city, mode, selected precincts)
+  - Clean hash-based routing (e.g., `#city/alameda`, `#mode/proportional/city/oakland`)
 
 ## Usage
 
