@@ -253,6 +253,14 @@ function loadData() {
       const hashParams = parseHashParams();
       let boundsToFit: LatLngBounds | null = null;
 
+      // Default to city of Alameda if no hash parameters are present (empty hash or no hash)
+      const hasHash = window.location.hash && window.location.hash.length > 1;
+      if (!hasHash && !hashParams.city && !hashParams.precincts && !hashParams.mode) {
+        hashParams.city = 'alameda';
+        const defaultHash = buildHashParams(hashParams);
+        window.location.hash = defaultHash;
+      }
+
       if (hashParams.city || hashParams.precincts) {
         // Mark that we've already handled fitBounds during initial load
         // This prevents restoreSelectionFromURL from calling fitBounds again
