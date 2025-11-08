@@ -4,7 +4,7 @@
 
 import { state } from './state.js';
 import { getYesPercentage } from './data-helpers.js';
-import { resetLayerStyle } from './map-styling.js';
+import { resetLayerStyle, getColor } from './map-styling.js';
 import { updateURL } from './url-manager.js';
 import { updateInfoSection } from './ui-info-section.js';
 import { applyMobileVerticalBias } from './map-utils.js';
@@ -51,7 +51,9 @@ export function buildCityDropdown(): void {
   const countyStatsEl = document.createElement('span');
   countyStatsEl.className = 'city-dropdown-item-stats';
   if (state.countyTotals.total > 0) {
-    countyStatsEl.textContent = 'Yes – ' + state.countyTotals.yesPct.toFixed(1) + '%';
+    const yesPct = state.countyTotals.yesPct;
+    countyStatsEl.textContent = 'Yes – ' + yesPct.toFixed(1) + '%';
+    countyStatsEl.style.color = getColor(yesPct);
   }
   countyItem.appendChild(countyName);
   countyItem.appendChild(countyStatsEl);
@@ -72,7 +74,9 @@ export function buildCityDropdown(): void {
     const cityStatsEl = document.createElement('span');
     cityStatsEl.className = 'city-dropdown-item-stats';
     if (city.yesPct > 0) {
-      cityStatsEl.textContent = 'Yes – ' + city.yesPct.toFixed(1) + '%';
+      const yesPct = city.yesPct;
+      cityStatsEl.textContent = 'Yes – ' + yesPct.toFixed(1) + '%';
+      cityStatsEl.style.color = getColor(yesPct);
     }
     cityItem.appendChild(cityName);
     cityItem.appendChild(cityStatsEl);
@@ -87,10 +91,22 @@ export function buildCityDropdown(): void {
 // Toggle city dropdown
 export function toggleCityDropdown(): void {
   const dropdown = document.getElementById('city-dropdown') as HTMLElement;
-  if (!dropdown) return;
+  const btn = document.getElementById('city-selector-btn');
+  if (!dropdown || !btn) return;
   
   state.cityDropdownOpen = !state.cityDropdownOpen;
-  dropdown.style.display = state.cityDropdownOpen ? 'block' : 'none';
+  
+  if (state.cityDropdownOpen) {
+    // Position dropdown relative to button
+    const btnRect = btn.getBoundingClientRect();
+    dropdown.style.position = 'fixed';
+    dropdown.style.top = (btnRect.bottom + 8) + 'px';
+    dropdown.style.left = (btnRect.left + btnRect.width / 2) + 'px';
+    dropdown.style.transform = 'translateX(-50%)';
+    dropdown.style.display = 'block';
+  } else {
+    dropdown.style.display = 'none';
+  }
   
   // Close dropdown when clicking outside
   if (state.cityDropdownOpen) {
@@ -106,7 +122,14 @@ export function toggleCityDropdown(): void {
         const dropdownEl = document.getElementById('city-dropdown');
         if (btn && dropdownEl && !btn.contains(e.target as Node) && !dropdownEl.contains(e.target as Node)) {
           state.cityDropdownOpen = false;
-          dropdown.style.display = 'none';
+          if (dropdownEl) {
+            dropdownEl.style.display = 'none';
+            // Reset positioning
+            dropdownEl.style.position = '';
+            dropdownEl.style.top = '';
+            dropdownEl.style.left = '';
+            dropdownEl.style.transform = '';
+          }
           if (state.cityDropdownCloseHandler) {
             document.removeEventListener('click', state.cityDropdownCloseHandler, true);
             state.cityDropdownCloseHandler = null;
@@ -134,6 +157,11 @@ export function selectCity(cityKey: string | null): void {
   const dropdown = document.getElementById('city-dropdown') as HTMLElement;
   if (dropdown) {
     dropdown.style.display = 'none';
+    // Reset positioning
+    dropdown.style.position = '';
+    dropdown.style.top = '';
+    dropdown.style.left = '';
+    dropdown.style.transform = '';
   }
   
   // Clean up close handler
