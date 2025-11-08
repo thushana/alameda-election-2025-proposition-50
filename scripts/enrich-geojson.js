@@ -13,43 +13,269 @@ function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-// Calculate centroid of a feature
+// Calculate distance from a point to a line segment
+// point is [lat, lng], segment is [[lng1, lat1], [lng2, lat2]]
+function pointToSegmentDistance(point, segment) {
+    const [plat, plng] = point;
+    const [[x1, y1], [x2, y2]] = segment;
+    
+    const A = plng - x1;
+    const B = plat - y1;
+    const C = x2 - x1;
+    const D = y2 - y1;
+    
+    const dot = A * C + B * D;
+    const lenSq = C * C + D * D;
+    let param = -1;
+    
+    if (lenSq !== 0) {
+        param = dot / lenSq;
+    }
+    
+    let xx, yy;
+    
+    if (param < 0) {
+        xx = x1;
+        yy = y1;
+    } else if (param > 1) {
+        xx = x2;
+        yy = y2;
+    } else {
+        xx = x1 + param * C;
+        yy = y1 + param * D;
+    }
+    
+    const dx = plng - xx;
+    const dy = plat - yy;
+    return Math.sqrt(dx * dx + dy * dy);
+}
+
+// Calculate distance from a point to the nearest edge of a polygon
+// point is [lat, lng], ring is array of [lng, lat]
+function distanceToPolygon(point, ring) {
+    let minDist = Infinity;
+    
+    for (let i = 0; i < ring.length - 1; i++) {
+        const segment = [ring[i], ring[i + 1]];
+        const dist = pointToSegmentDistance(point, segment);
+        minDist = Math.min(minDist, dist);
+    }
+    
+    return minDist;
+}
+
+// Find pole of inaccessibility (point furthest from any edge)
+// Uses grid-based search with refinement
+// ring is array of [lng, lat]
+function findPoleOfInaccessibility(ring, precision = 0.0001) {
+    if (ring.length < 3) return null;
+    
+    // Get bounding box
+    let minLng = ring[0][0], maxLng = ring[0][0];
+    let minLat = ring[0][1], maxLat = ring[0][1];
+    
+    for (const [lng, lat] of ring) {
+        minLng = Math.min(minLng, lng);
+        maxLng = Math.max(maxLng, lng);
+        minLat = Math.min(minLat, lat);
+        maxLat = Math.max(maxLat, lat);
+    }
+    
+    // Initial grid search (coarse)
+    const gridSize = 10;
+    let bestPoint = null;
+    let maxDist = -1;
+    
+    const lngStep = (maxLng - minLng) / gridSize;
+    const latStep = (maxLat - minLat) / gridSize;
+    
+    for (let i = 0; i <= gridSize; i++) {
+        for (let j = 0; j <= gridSize; j++) {
+            const lng = minLng + i * lngStep;
+            const lat = minLat + j * latStep;
+            const point = [lat, lng];
+            
+            // Only check points inside polygon
+            if (isPointInPolygon(point, ring)) {
+                const dist = distanceToPolygon(point, ring);
+                if (dist > maxDist) {
+                    maxDist = dist;
+                    bestPoint = point;
+                }
+            }
+        }
+    }
+    
+    if (!bestPoint) {
+        // No point found in initial grid, fallback to bounding box center
+        const bboxCenter = [(minLat + maxLat) / 2, (minLng + maxLng) / 2];
+        if (isPointInPolygon(bboxCenter, ring)) {
+            return bboxCenter;
+        }
+        return findInteriorPoint(ring);
+    }
+    
+    // Refinement: search around best point with finer grid
+    const refineSize = 5;
+    const refineRange = Math.max(lngStep, latStep) * 0.5;
+    
+    const refineLngStep = (2 * refineRange) / refineSize;
+    const refineLatStep = (2 * refineRange) / refineSize;
+    
+    const [bestLat, bestLng] = bestPoint;
+    
+    for (let i = 0; i <= refineSize; i++) {
+        for (let j = 0; j <= refineSize; j++) {
+            const lng = bestLng - refineRange + i * refineLngStep;
+            const lat = bestLat - refineRange + j * refineLatStep;
+            
+            // Clamp to bounding box
+            if (lng < minLng || lng > maxLng || lat < minLat || lat > maxLat) continue;
+            
+            const point = [lat, lng];
+            if (isPointInPolygon(point, ring)) {
+                const dist = distanceToPolygon(point, ring);
+                if (dist > maxDist) {
+                    maxDist = dist;
+                    bestPoint = point;
+                }
+            }
+        }
+    }
+    
+    return bestPoint;
+}
+
+// Point-in-polygon check using ray casting algorithm
+function isPointInPolygon(point, ring) {
+    // point is [lat, lng], ring is array of [lng, lat]
+    const [lat, lng] = point;
+    let inside = false;
+    
+    for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+        const [xi, yi] = ring[i];
+        const [xj, yj] = ring[j];
+        
+        // Ray casting: check if point crosses edge
+        const intersect = ((yi > lat) !== (yj > lat)) &&
+                          (lng < (xj - xi) * (lat - yi) / (yj - yi) + xi);
+        if (intersect) inside = !inside;
+    }
+    
+    return inside;
+}
+
+// Get bounding box center
+function getBoundingBoxCenter(ring) {
+    // ring is array of [lng, lat]
+    if (ring.length === 0) return null;
+    
+    let minLng = ring[0][0], maxLng = ring[0][0];
+    let minLat = ring[0][1], maxLat = ring[0][1];
+    
+    for (const [lng, lat] of ring) {
+        minLng = Math.min(minLng, lng);
+        maxLng = Math.max(maxLng, lng);
+        minLat = Math.min(minLat, lat);
+        maxLat = Math.max(maxLat, lat);
+    }
+    
+    return [(minLat + maxLat) / 2, (minLng + maxLng) / 2];
+}
+
+// Find an interior point (fallback when centroid is outside)
+function findInteriorPoint(ring) {
+    // Try bounding box center first
+    const bboxCenter = getBoundingBoxCenter(ring);
+    if (bboxCenter && isPointInPolygon(bboxCenter, ring)) {
+        return bboxCenter;
+    }
+    
+    // Find midpoint of longest edge
+    let maxDist = 0;
+    let bestPoint = null;
+    
+    for (let i = 0; i < ring.length - 1; i++) {
+        const [x1, y1] = ring[i];
+        const [x2, y2] = ring[i + 1];
+        const dist = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
+        
+        if (dist > maxDist) {
+            maxDist = dist;
+            // Midpoint of edge
+            const midLng = (x1 + x2) / 2;
+            const midLat = (y1 + y2) / 2;
+            bestPoint = [midLat, midLng];
+        }
+    }
+    
+    // If midpoint is inside, use it; otherwise use first vertex
+    if (bestPoint && isPointInPolygon(bestPoint, ring)) {
+        return bestPoint;
+    }
+    
+    // Last resort: use first vertex (should be on boundary)
+    if (ring.length > 0) {
+        return [ring[0][1], ring[0][0]];
+    }
+    
+    return null;
+}
+
+// Calculate centroid of a feature using pole of inaccessibility
 function getCentroid(feature) {
     if (!feature.geometry || !feature.geometry.coordinates) {
         return null;
     }
     
-    const coords = feature.geometry.coordinates;
-    let lng = 0, lat = 0, count = 0;
+    const geometry = feature.geometry;
     
-    function processCoordinates(coords) {
-        if (Array.isArray(coords[0]) && typeof coords[0][0] === 'number') {
-            coords.forEach(function(coord) {
-                if (Array.isArray(coord[0])) {
-                    processCoordinates(coord);
-                } else {
-                    // GeoJSON format: [lng, lat]
-                    lng += coord[0];
-                    lat += coord[1];
-                    count++;
-                }
-            });
-        } else if (typeof coords[0] === 'number') {
-            lng += coords[0];
-            lat += coords[1];
-            count++;
+    if (geometry.type === 'Polygon') {
+        const outerRing = geometry.coordinates[0]; // Outer ring: array of [lng, lat]
+        
+        // Use pole of inaccessibility (point furthest from any edge)
+        const pole = findPoleOfInaccessibility(outerRing);
+        
+        if (pole) {
+            return pole;
         }
+        
+        // Fallback to interior point if pole calculation fails
+        return findInteriorPoint(outerRing);
+        
+    } else if (geometry.type === 'MultiPolygon') {
+        // For MultiPolygon: find pole of inaccessibility for each polygon,
+        // then use the one with maximum distance to edge
+        const polygons = geometry.coordinates;
+        let bestPole = null;
+        let maxDist = -1;
+        
+        for (const polygon of polygons) {
+            const outerRing = polygon[0]; // Outer ring of each polygon
+            const pole = findPoleOfInaccessibility(outerRing);
+            
+            if (pole) {
+                const dist = distanceToPolygon(pole, outerRing);
+                if (dist > maxDist) {
+                    maxDist = dist;
+                    bestPole = pole;
+                }
+            }
+        }
+        
+        if (bestPole) {
+            return bestPole;
+        }
+        
+        // Fallback: use first polygon's interior point
+        if (polygons.length > 0 && polygons[0].length > 0) {
+            return findInteriorPoint(polygons[0][0]);
+        }
+        
+        return null;
     }
     
-    if (feature.geometry.type === 'Polygon') {
-        processCoordinates(coords[0]); // Use outer ring
-    } else if (feature.geometry.type === 'MultiPolygon') {
-        coords.forEach(function(polygon) {
-            processCoordinates(polygon[0]); // Use outer ring of each polygon
-        });
-    }
-    
-    return count > 0 ? [lat / count, lng / count] : null;
+    return null;
 }
 
 // Helper function to extract precinct ID from properties
@@ -164,12 +390,8 @@ async function enrichGeoJSON(precinctIdsFilter = null) {
         const feature = featuresToProcess[i];
         const precinctId = getPrecinctId(feature.properties) || `feature-${i}`;
         
-        // Check if already enriched (check for null/undefined)
-        if (feature.properties.neighborhood != null && feature.properties.city != null) {
-            console.log(`[${i + 1}/${totalFeatures}] Precinct ${precinctId}: Already enriched, skipping`);
-            skipped++;
-            continue;
-        }
+        // Re-enrich all features (don't skip already enriched ones)
+        // This allows recalculating with improved algorithms like pole of inaccessibility
         
         // Get centroid
         const centroid = getCentroid(feature);
@@ -216,7 +438,7 @@ async function enrichGeoJSON(precinctIdsFilter = null) {
     console.log('\n=== Summary ===');
     console.log(`Total features: ${totalFeatures}`);
     console.log(`Processed: ${processed}`);
-    console.log(`Skipped (already enriched): ${skipped}`);
+    console.log(`Skipped (no centroid): ${skipped}`);
     console.log(`Errors/No data: ${errors}`);
     
     // Save enriched GeoJSON
