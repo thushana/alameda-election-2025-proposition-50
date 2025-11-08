@@ -1597,54 +1597,24 @@ function updateInfoSection(props) {
 function createHorizontalLegend() {
     var legendContainer = document.getElementById('legend-horizontal');
     
-    // Single red key for 0-50% (with detailed shading but simplified legend)
-    var itemRed = document.createElement('div');
-    itemRed.className = 'legend-item';
-    itemRed.innerHTML = '<div class="legend-color" style="background:' + getColor(25) + '"></div><span>0&ndash;50%</span>';
-    legendContainer.appendChild(itemRed);
+    // Legend items: [label, color]
+    var legendItems = [
+        ['0&ndash;50%', COLORS.RED_SHADE],           // Red shade
+        ['50%+', COLORS.GREEN_50],                   // 50-75%
+        ['75%+', COLORS.GREEN_75],                   // 75-80%
+        ['80%+', COLORS.GREEN_80],                   // 80-85%
+        ['85%+', COLORS.GREEN_85],                   // 85-90%
+        ['90%+', COLORS.GREEN_90],                   // 90-95%
+        ['95%+', COLORS.GREEN_95],                   // 95-100%
+        ['No data', COLORS.NO_DATA]                  // No data (gray)
+    ];
     
-    // Green shades for 50-100%
-    // 50-75%
-    var item50 = document.createElement('div');
-    item50.className = 'legend-item';
-    item50.innerHTML = '<div class="legend-color" style="background:' + getColor(62.5) + '"></div><span>50&ndash;75%</span>';
-    legendContainer.appendChild(item50);
-    
-    // 75-80%
-    var item75 = document.createElement('div');
-    item75.className = 'legend-item';
-    item75.innerHTML = '<div class="legend-color" style="background:' + getColor(77.5) + '"></div><span>75&ndash;80%</span>';
-    legendContainer.appendChild(item75);
-    
-    // 80-85%
-    var item80 = document.createElement('div');
-    item80.className = 'legend-item';
-    item80.innerHTML = '<div class="legend-color" style="background:' + getColor(82.5) + '"></div><span>80&ndash;85%</span>';
-    legendContainer.appendChild(item80);
-    
-    // 85-90%
-    var item85 = document.createElement('div');
-    item85.className = 'legend-item';
-    item85.innerHTML = '<div class="legend-color" style="background:' + getColor(87.5) + '"></div><span>85&ndash;90%</span>';
-    legendContainer.appendChild(item85);
-    
-    // 90-95%
-    var item90 = document.createElement('div');
-    item90.className = 'legend-item';
-    item90.innerHTML = '<div class="legend-color" style="background:' + getColor(92.5) + '"></div><span>90&ndash;95%</span>';
-    legendContainer.appendChild(item90);
-    
-    // 95-100%
-    var item95 = document.createElement('div');
-    item95.className = 'legend-item';
-    item95.innerHTML = '<div class="legend-color" style="background:' + getColor(97.5) + '"></div><span>95&ndash;100%</span>';
-    legendContainer.appendChild(item95);
-    
-    // No data
-    var noDataItem = document.createElement('div');
-    noDataItem.className = 'legend-item';
-    noDataItem.innerHTML = '<div class="legend-color" style="background:#d3d3d3"></div><span>No data</span>';
-    legendContainer.appendChild(noDataItem);
+    legendItems.forEach(function(item) {
+        var div = document.createElement('div');
+        div.className = 'legend-item';
+        div.innerHTML = '<div class="legend-color" style="background:' + item[1] + '"></div><span>' + item[0] + '</span>';
+        legendContainer.appendChild(div);
+    });
 }
 
 createHorizontalLegend();
