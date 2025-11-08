@@ -1,7 +1,6 @@
 // ============================================================================
 // UI CITY DROPDOWN
 // ============================================================================
-import L from 'leaflet';
 import { state } from './state.js';
 import { getYesPercentage } from './data-helpers.js';
 import { resetLayerStyle } from './map-styling.js';

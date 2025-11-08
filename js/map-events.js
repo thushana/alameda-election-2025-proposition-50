@@ -1,9 +1,9 @@
 // ============================================================================
 // MAP EVENTS
 // ============================================================================
-import L from 'leaflet';
 import { COLORS, OPACITY } from './constants.js';
 import { state } from './state.js';
+import { getL } from './leaflet-helper.js';
 import { getYesPercentage, getVoteCount } from './data-helpers.js';
 import { setCircleStyle, setPolygonStyle, resetLayerStyle } from './map-styling.js';
 import { updateInfoSection } from './ui-info-section.js';
@@ -14,8 +14,9 @@ import { getPrecinctId } from './data-helpers.js';
 import { applyMobileVerticalBias } from './map-utils.js';
 // Highlight on hover
 export function highlightFeature(e) {
+    const leaflet = getL();
     const layer = e.target;
-    const isCircle = layer instanceof L.CircleMarker;
+    const isCircle = layer instanceof leaflet.CircleMarker;
     if (isCircle) {
         // For circles, increase size and opacity
         const currentRadius = layer.options.radius || 10;
@@ -34,7 +35,7 @@ export function highlightFeature(e) {
             fillOpacity: OPACITY.FILL_HOVER
         });
     }
-    if (!L.Browser.ie && !L.Browser.opera && !L.Browser.edge) {
+    if (!leaflet.Browser.ie && !leaflet.Browser.opera && !leaflet.Browser.edge) {
         layer.bringToFront();
     }
     if (layer.feature) {
@@ -43,8 +44,9 @@ export function highlightFeature(e) {
 }
 // Reset highlight
 export function resetHighlight(e) {
+    const leaflet = getL();
     const layer = e.target;
-    const isCircle = layer instanceof L.CircleMarker;
+    const isCircle = layer instanceof leaflet.CircleMarker;
     // Check if this layer is selected - if so, keep the black border
     const isSelected = state.selectedPrecincts.some((item) => {
         return item.layer === layer;
@@ -80,6 +82,7 @@ export function resetHighlight(e) {
 }
 // Zoom to feature on click
 export function zoomToFeature(e) {
+    const leaflet = getL();
     const target = e.target;
     const feature = target && target.feature;
     if (!state.map)
@@ -103,7 +106,7 @@ export function zoomToFeature(e) {
             state.selectedPrecincts.length = 0;
             state.selectedPrecincts.push({ feature: feature, layer: target });
             const yesPct = getYesPercentage(props);
-            const isCircle = target instanceof L.CircleMarker;
+            const isCircle = target instanceof leaflet.CircleMarker;
             if (isCircle) {
                 const voteCount = getVoteCount(props);
                 setCircleStyle(target, yesPct, voteCount, true);
@@ -112,7 +115,7 @@ export function zoomToFeature(e) {
                 setPolygonStyle(target, yesPct, true);
             }
             // Bring to front
-            if (!L.Browser.ie && !L.Browser.opera && !L.Browser.edge) {
+            if (!leaflet.Browser.ie && !leaflet.Browser.opera && !leaflet.Browser.edge) {
                 target.bringToFront();
             }
             // Update city button text
@@ -125,15 +128,15 @@ export function zoomToFeature(e) {
     // Always derive bounds from the polygon geometry when available
     if (feature && feature.geometry && state.map) {
         try {
-            const tmpLayer = L.geoJSON(feature);
+            const tmpLayer = leaflet.geoJSON(feature);
             const bounds = tmpLayer.getBounds();
             if (bounds && bounds.isValid()) {
                 const isMobile = window.innerWidth <= 768;
                 const bottomPanel = document.getElementById('bottom-panel');
                 const bottomPadding = bottomPanel ? bottomPanel.offsetHeight + (isMobile ? 140 : 80) : (isMobile ? 360 : 240);
                 state.map.fitBounds(bounds, {
-                    paddingTopLeft: L.point(20, 20),
-                    paddingBottomRight: L.point(20, bottomPadding)
+                    paddingTopLeft: leaflet.point(20, 20),
+                    paddingBottomRight: leaflet.point(20, bottomPadding)
                 });
                 applyMobileVerticalBias();
                 return;
@@ -150,8 +153,8 @@ export function zoomToFeature(e) {
             const bottomPanelFB = document.getElementById('bottom-panel');
             const bottomPaddingFB = bottomPanelFB ? bottomPanelFB.offsetHeight + (isMobileFB ? 140 : 80) : (isMobileFB ? 360 : 240);
             state.map.fitBounds(target.getBounds(), {
-                paddingTopLeft: L.point(20, 20),
-                paddingBottomRight: L.point(20, bottomPaddingFB)
+                paddingTopLeft: leaflet.point(20, 20),
+                paddingBottomRight: leaflet.point(20, bottomPaddingFB)
             });
             applyMobileVerticalBias();
         }
@@ -164,6 +167,7 @@ export function zoomToFeature(e) {
 export function togglePrecinctSelection(e) {
     if (e.originalEvent.metaKey || e.originalEvent.ctrlKey || e.originalEvent.altKey) {
         e.originalEvent.preventDefault();
+        const leaflet = getL();
         const feature = e.target.feature;
         const layer = e.target;
         if (!feature || !state.geojsonLayer)
@@ -176,7 +180,7 @@ export function togglePrecinctSelection(e) {
         });
         const props = feature.properties;
         const yesPct = getYesPercentage(props);
-        const isCircle = layer instanceof L.CircleMarker;
+        const isCircle = layer instanceof leaflet.CircleMarker;
         if (index === -1) {
             // Add to selection
             state.selectedPrecincts.push({ feature: feature, layer: layer });
@@ -188,7 +192,7 @@ export function togglePrecinctSelection(e) {
                 setPolygonStyle(layer, yesPct, true);
             }
             // Bring to front to ensure visibility
-            if (!L.Browser.ie && !L.Browser.opera && !L.Browser.edge) {
+            if (!leaflet.Browser.ie && !leaflet.Browser.opera && !leaflet.Browser.edge) {
                 layer.bringToFront();
             }
         }

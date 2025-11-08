@@ -1,8 +1,8 @@
 // ============================================================================
 // MAP MODE
 // ============================================================================
-import L from 'leaflet';
 import { state } from './state.js';
+import { getL } from './leaflet-helper.js';
 import { parseHashParams } from './url-manager.js';
 import { getVoteCount, getYesPercentage, getCentroid } from './data-helpers.js';
 import { getColor, getCircleRadius } from './map-styling.js';
@@ -18,6 +18,7 @@ export let maxVotes = 0; // Will be calculated from data
 export function createProportionalSymbols(data) {
     if (!state.map)
         return;
+    const leaflet = getL();
     // Remove existing circle layer
     if (circleLayer) {
         state.map.removeLayer(circleLayer);
@@ -39,7 +40,7 @@ export function createProportionalSymbols(data) {
         if (centroid && voteCount > 0) {
             const radius = getCircleRadius(voteCount);
             const color = getColor(yesPct);
-            const circle = L.circleMarker([centroid[0], centroid[1]], {
+            const circle = leaflet.circleMarker([centroid[0], centroid[1]], {
                 radius: radius,
                 fillColor: color,
                 color: '#fff',
@@ -58,7 +59,7 @@ export function createProportionalSymbols(data) {
             circles.push(circle);
         }
     });
-    circleLayer = L.layerGroup(circles).addTo(state.map);
+    circleLayer = leaflet.layerGroup(circles).addTo(state.map);
 }
 // Toggle map mode
 export function toggleMapMode() {

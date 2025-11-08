@@ -1,8 +1,8 @@
 // ============================================================================
 // STATE RESTORE
 // ============================================================================
-import L from 'leaflet';
 import { state } from './state.js';
+import { getL } from './leaflet-helper.js';
 import { parseHashParams, buildHashParams, updateURL } from './url-manager.js';
 import { normalizeCityName, denormalizeCityName, getDisplayCityName } from './city-helpers.js';
 import { safeGet, getYesPercentage, getVoteCount, getPrecinctId } from './data-helpers.js';
@@ -52,6 +52,7 @@ export function restoreSelectionFromURL() {
         }
         // Wait for layers to be populated
         setTimeout(async () => {
+            const leaflet = getL();
             const { mapMode, circleLayer } = await import('./map-mode.js');
             const layerSource = mapMode === 'proportional' && circleLayer ? circleLayer : state.geojsonLayer;
             if (!layerSource) {
@@ -73,7 +74,7 @@ export function restoreSelectionFromURL() {
                     state.selectedPrecincts.push({ feature: feature, layer: layer });
                     // Set style with black border
                     const yesPct = getYesPercentage(props);
-                    const isCircle = layer instanceof L.CircleMarker;
+                    const isCircle = layer instanceof leaflet.CircleMarker;
                     if (isCircle) {
                         const voteCount = getVoteCount(props);
                         setCircleStyle(layer, yesPct, voteCount, true);
@@ -82,7 +83,7 @@ export function restoreSelectionFromURL() {
                         setPolygonStyle(layer, yesPct, true);
                     }
                     // Bring to front to ensure visibility
-                    if (!L.Browser.ie && !L.Browser.opera && !L.Browser.edge) {
+                    if (!leaflet.Browser.ie && !leaflet.Browser.opera && !leaflet.Browser.edge) {
                         layer.bringToFront();
                     }
                 }
@@ -91,12 +92,12 @@ export function restoreSelectionFromURL() {
                 updateAggregatedTotals();
                 updateCityButtonText();
                 // Fit bounds to selected city precincts
-                const cityBounds = L.latLngBounds([]);
+                const cityBounds = leaflet.latLngBounds([]);
                 state.selectedPrecincts.forEach((item) => {
                     const feature = item.feature;
                     if (feature && feature.geometry) {
                         try {
-                            const tmp = L.geoJSON(feature);
+                            const tmp = leaflet.geoJSON(feature);
                             const b = tmp.getBounds();
                             if (b && b.isValid()) {
                                 cityBounds.extend(b);
@@ -112,8 +113,8 @@ export function restoreSelectionFromURL() {
                     const bottomPanel = document.getElementById('bottom-panel');
                     const bottomPadding = bottomPanel ? bottomPanel.offsetHeight + (isMobile ? 140 : 80) : (isMobile ? 360 : 240);
                     state.map.fitBounds(cityBounds, {
-                        paddingTopLeft: L.point(20, 20),
-                        paddingBottomRight: L.point(20, bottomPadding)
+                        paddingTopLeft: leaflet.point(20, 20),
+                        paddingBottomRight: leaflet.point(20, bottomPadding)
                     });
                     applyMobileVerticalBias();
                 }
@@ -142,6 +143,7 @@ export function restoreSelectionFromURL() {
     }
     // Wait for layers to be populated
     setTimeout(async () => {
+        const leaflet = getL();
         const { mapMode, circleLayer } = await import('./map-mode.js');
         const layerSource = mapMode === 'proportional' && circleLayer ? circleLayer : state.geojsonLayer;
         if (!layerSource) {
@@ -160,7 +162,7 @@ export function restoreSelectionFromURL() {
                 state.selectedPrecincts.push({ feature: feature, layer: layer });
                 // Set style with black border
                 const yesPct = getYesPercentage(props);
-                const isCircle = layer instanceof L.CircleMarker;
+                const isCircle = layer instanceof leaflet.CircleMarker;
                 if (isCircle) {
                     const voteCount = getVoteCount(props);
                     setCircleStyle(layer, yesPct, voteCount, true);
@@ -169,7 +171,7 @@ export function restoreSelectionFromURL() {
                     setPolygonStyle(layer, yesPct, true);
                 }
                 // Bring to front to ensure visibility
-                if (!L.Browser.ie && !L.Browser.opera && !L.Browser.edge) {
+                if (!leaflet.Browser.ie && !leaflet.Browser.opera && !leaflet.Browser.edge) {
                     layer.bringToFront();
                 }
             }

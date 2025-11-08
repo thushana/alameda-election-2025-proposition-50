@@ -5,11 +5,17 @@
   "scripts": {
     "build": "tsc",
     "watch": "tsc --watch",
-    "clean": "rm -rf js"
+    "clean": "rm -rf js",
+    "precommit": "npm run build",
+    "serve": "http-server -p 8000 -c-1",
+    "dev": "concurrently \"npm run watch\" \"npm run serve\"",
+    "dev:kill": "lsof -ti:8000 | xargs kill -9 2>/dev/null || true; pkill -f 'tsc --watch' 2>/dev/null || true; pkill -f 'http-server' 2>/dev/null || true; echo 'Killed all dev servers'"
   },
   "devDependencies": {
     "typescript": "^5.3.3",
-    "@types/leaflet": "^1.9.8"
+    "@types/leaflet": "^1.9.8",
+    "http-server": "^14.1.1",
+    "concurrently": "^8.2.2"
   },
   "type": "module"
 }

@@ -2,8 +2,8 @@
 // DATA LOADING
 // ============================================================================
 
-import L from 'leaflet';
 import { state } from './state.js';
+import { getL } from './leaflet-helper.js';
 import { mapMode, createProportionalSymbols } from './map-mode.js';
 import { style } from './map-styling.js';
 import { onEachFeature } from './map-events.js';
@@ -20,19 +20,33 @@ import { restoreSelectionFromURL } from './state-restore.js';
 import { toggleMapMode } from './map-mode.js';
 import type { GeoJSONData } from './types.js';
 
-// Add GeoJSON layer (declared in state.ts, initialized here)
-state.geojsonLayer = L.geoJSON(null, {
-  style: style as any,
-  onEachFeature: onEachFeature
-});
+// Initialize GeoJSON layer when Leaflet is available
+function initGeoJSONLayer() {
+  try {
+    const leaflet = getL();
+    state.geojsonLayer = leaflet.geoJSON(null, {
+      style: style as any,
+      onEachFeature: onEachFeature
+    });
 
-// Only add to map if in shaded mode (default is shaded)
-if (mapMode === 'shaded' && state.map && state.geojsonLayer) {
-  state.geojsonLayer.addTo(state.map);
+    // Only add to map if in shaded mode (default is shaded)
+    if (mapMode === 'shaded' && state.map && state.geojsonLayer) {
+      state.geojsonLayer.addTo(state.map);
+    }
+    
+    // Load data once layer is initialized
+    loadData();
+  } catch (e) {
+    // Retry if Leaflet not loaded yet
+    setTimeout(initGeoJSONLayer, 10);
+  }
 }
 
 // Load GeoJSON data and results.json
-Promise.all([
+function loadData() {
+  const leaflet = getL();
+  
+  Promise.all([
   fetch('precincts_consolidated.geojson').then(response => {
     if (!response.ok) {
       throw new Error('Network response was not ok: ' + response.status + ' ' + response.statusText);
@@ -218,7 +232,7 @@ Promise.all([
     // Check if city/precincts are in URL - if so, fit to those instead of all districts
     const hashParams = parseHashParams();
     let precinctIds: string[] = [];
-    let boundsToFit: L.LatLngBounds | null = null;
+    let boundsToFit: any = null;
     
     if (hashParams.city) {
       // Find precincts by matching city property
@@ -233,7 +247,7 @@ Promise.all([
       }
       
       // Calculate bounds of precincts matching the city
-      const selectedBounds = L.latLngBounds([]);
+      const selectedBounds = leaflet.latLngBounds([]);
       if (!state.geojsonLayer) return;
       state.geojsonLayer.eachLayer((layer: any) => {
         const feature = layer.feature;
@@ -248,7 +262,7 @@ Promise.all([
         
         if (normalizedFeatureCity === normalizedCityName) {
           try {
-            const tmp = L.geoJSON(feature);
+            const tmp = leaflet.geoJSON(feature);
             const b = tmp.getBounds();
             if (b && b.isValid()) selectedBounds.extend(b);
           } catch (e) {}
@@ -261,7 +275,7 @@ Promise.all([
       precinctIds = hashParams.precincts.split(/[+,]/);
       
       // Calculate bounds of selected precincts
-      const selectedBounds = L.latLngBounds([]);
+      const selectedBounds = leaflet.latLngBounds([]);
       if (!state.geojsonLayer) return;
       state.geojsonLayer.eachLayer((layer: any) => {
         const feature = layer.feature;
@@ -271,7 +285,7 @@ Promise.all([
         const precinctIdStr = precinctId ? precinctId.toString() : null;
         if (precinctIdStr && precinctIds.indexOf(precinctIdStr) !== -1) {
           try {
-            const tmp = L.geoJSON(feature);
+            const tmp = leaflet.geoJSON(feature);
             const b = tmp.getBounds();
             if (b && b.isValid()) selectedBounds.extend(b);
           } catch (e) {}
@@ -294,8 +308,8 @@ Promise.all([
       const sidePaddingInit = isMobileInit ? 50 : 80; // Mobile: zoomed out one more level, Desktop: unchanged
       const topPaddingInit = isMobileInit ? 50 : 80; // Mobile: zoomed out one more level, Desktop: unchanged
       state.map.fitBounds(boundsToFit, {
-        paddingTopLeft: L.point(sidePaddingInit, topPaddingInit),
-        paddingBottomRight: L.point(sidePaddingInit, bottomPaddingInit)
+        paddingTopLeft: leaflet.point(sidePaddingInit, topPaddingInit),
+        paddingBottomRight: leaflet.point(sidePaddingInit, bottomPaddingInit)
       });
       setTimeout(() => {
         applyMobileVerticalBias();
@@ -345,4 +359,8 @@ Promise.all([
     console.error('Error loading data:', error);
     alert('Error loading map data: ' + error.message + '\n\nMake sure precincts_consolidated.geojson and results.json are in the same directory as this HTML file and that you are accessing the page through a web server (not file://).');
   });
+}
+
+// Start initialization
+initGeoJSONLayer();
 

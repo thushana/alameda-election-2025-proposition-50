@@ -2,8 +2,9 @@
 // STATE RESTORE
 // ============================================================================
 
-import L, { type CircleMarker } from 'leaflet';
+import type { CircleMarker } from 'leaflet';
 import { state } from './state.js';
+import { getL } from './leaflet-helper.js';
 import { parseHashParams, buildHashParams, updateURL } from './url-manager.js';
 import { normalizeCityName, denormalizeCityName, getDisplayCityName } from './city-helpers.js';
 import { safeGet, getYesPercentage, getVoteCount, getPrecinctId } from './data-helpers.js';
@@ -59,36 +60,37 @@ export function restoreSelectionFromURL(): void {
       window.location.hash = newHash;
     }
     
-    // Wait for layers to be populated
-    setTimeout(async () => {
-      const { mapMode, circleLayer } = await import('./map-mode.js');
-      const layerSource = mapMode === 'proportional' && circleLayer ? circleLayer : state.geojsonLayer;
-      
-      if (!layerSource) {
-        state.restoreInProgress = false;
-        return;
-      }
-      
-      // Find all precincts matching the city name
-      layerSource.eachLayer((layer: any) => {
-        const feature = layer.feature as GeoJSONFeature;
-        if (!feature) return;
-        
-        const props = feature.properties;
-        const featureCity = safeGet<string | null>(props, 'city', null);
-        
-        // Get display city name (treats "Alameda County" as "Unincorporated Alameda County")
-        const displayCity = getDisplayCityName(featureCity);
-        
-        // Normalize both for comparison
-        const normalizedFeatureCity = normalizeCityName(displayCity);
-        
-        if (normalizedFeatureCity === normalizedCityName) {
-          state.selectedPrecincts.push({ feature: feature, layer: layer });
+        // Wait for layers to be populated
+        setTimeout(async () => {
+          const leaflet = getL();
+          const { mapMode, circleLayer } = await import('./map-mode.js');
+          const layerSource = mapMode === 'proportional' && circleLayer ? circleLayer : state.geojsonLayer;
           
-          // Set style with black border
-          const yesPct = getYesPercentage(props);
-          const isCircle = layer instanceof L.CircleMarker;
+          if (!layerSource) {
+            state.restoreInProgress = false;
+            return;
+          }
+          
+          // Find all precincts matching the city name
+          layerSource.eachLayer((layer: any) => {
+            const feature = layer.feature as GeoJSONFeature;
+            if (!feature) return;
+            
+            const props = feature.properties;
+            const featureCity = safeGet<string | null>(props, 'city', null);
+            
+            // Get display city name (treats "Alameda County" as "Unincorporated Alameda County")
+            const displayCity = getDisplayCityName(featureCity);
+            
+            // Normalize both for comparison
+            const normalizedFeatureCity = normalizeCityName(displayCity);
+            
+            if (normalizedFeatureCity === normalizedCityName) {
+              state.selectedPrecincts.push({ feature: feature, layer: layer });
+              
+              // Set style with black border
+              const yesPct = getYesPercentage(props);
+              const isCircle = layer instanceof leaflet.CircleMarker;
           
           if (isCircle) {
             const voteCount = getVoteCount(props);
@@ -98,7 +100,7 @@ export function restoreSelectionFromURL(): void {
           }
           
           // Bring to front to ensure visibility
-          if (!L.Browser.ie && !L.Browser.opera && !L.Browser.edge) {
+          if (!leaflet.Browser.ie && !leaflet.Browser.opera && !leaflet.Browser.edge) {
             layer.bringToFront();
           }
         }
@@ -109,12 +111,12 @@ export function restoreSelectionFromURL(): void {
         updateCityButtonText();
         
         // Fit bounds to selected city precincts
-        const cityBounds = L.latLngBounds([]);
+        const cityBounds = leaflet.latLngBounds([]);
         state.selectedPrecincts.forEach((item) => {
           const feature = item.feature;
           if (feature && feature.geometry) {
             try {
-              const tmp = L.geoJSON(feature);
+              const tmp = leaflet.geoJSON(feature);
               const b = tmp.getBounds();
               if (b && b.isValid()) {
                 cityBounds.extend(b);
@@ -130,8 +132,8 @@ export function restoreSelectionFromURL(): void {
           const bottomPanel = document.getElementById('bottom-panel');
           const bottomPadding = bottomPanel ? bottomPanel.offsetHeight + (isMobile ? 140 : 80) : (isMobile ? 360 : 240);
           state.map.fitBounds(cityBounds, {
-            paddingTopLeft: L.point(20, 20),
-            paddingBottomRight: L.point(20, bottomPadding)
+            paddingTopLeft: leaflet.point(20, 20),
+            paddingBottomRight: leaflet.point(20, bottomPadding)
           });
           applyMobileVerticalBias();
         }
@@ -160,32 +162,33 @@ export function restoreSelectionFromURL(): void {
     return;
   }
   
-  // Wait for layers to be populated
-  setTimeout(async () => {
-    const { mapMode, circleLayer } = await import('./map-mode.js');
-    const layerSource = mapMode === 'proportional' && circleLayer ? circleLayer : state.geojsonLayer;
-    
-    if (!layerSource) {
-      state.restoreInProgress = false;
-      return;
-    }
-    
-    layerSource.eachLayer((layer: any) => {
-      const feature = layer.feature as GeoJSONFeature;
-      if (!feature) return;
-      
-      const props = feature.properties;
-      const precinctId = getPrecinctId(props);
-      
-      // Convert to string for comparison
-      const precinctIdStr = precinctId ? precinctId.toString() : null;
-      
-      if (precinctIdStr && precinctIds.indexOf(precinctIdStr) !== -1) {
-        state.selectedPrecincts.push({ feature: feature, layer: layer });
+      // Wait for layers to be populated
+      setTimeout(async () => {
+        const leaflet = getL();
+        const { mapMode, circleLayer } = await import('./map-mode.js');
+        const layerSource = mapMode === 'proportional' && circleLayer ? circleLayer : state.geojsonLayer;
         
-        // Set style with black border
-        const yesPct = getYesPercentage(props);
-        const isCircle = layer instanceof L.CircleMarker;
+        if (!layerSource) {
+          state.restoreInProgress = false;
+          return;
+        }
+        
+        layerSource.eachLayer((layer: any) => {
+          const feature = layer.feature as GeoJSONFeature;
+          if (!feature) return;
+          
+          const props = feature.properties;
+          const precinctId = getPrecinctId(props);
+          
+          // Convert to string for comparison
+          const precinctIdStr = precinctId ? precinctId.toString() : null;
+          
+          if (precinctIdStr && precinctIds.indexOf(precinctIdStr) !== -1) {
+            state.selectedPrecincts.push({ feature: feature, layer: layer });
+            
+            // Set style with black border
+            const yesPct = getYesPercentage(props);
+            const isCircle = layer instanceof leaflet.CircleMarker;
         
         if (isCircle) {
           const voteCount = getVoteCount(props);
@@ -195,7 +198,7 @@ export function restoreSelectionFromURL(): void {
         }
         
         // Bring to front to ensure visibility
-        if (!L.Browser.ie && !L.Browser.opera && !L.Browser.edge) {
+        if (!leaflet.Browser.ie && !leaflet.Browser.opera && !leaflet.Browser.edge) {
           layer.bringToFront();
         }
       }
