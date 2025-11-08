@@ -187,6 +187,9 @@ function zoomToFeature(e) {
                 }
             });
             
+            // Clear city selection when clicking individual precinct
+            currentCityName = null;
+            
             // Select just this precinct
             selectedPrecincts = [{ feature: feature, layer: target }];
             var yesPct = getYesPercentage(props);
@@ -203,6 +206,9 @@ function zoomToFeature(e) {
             if (!L.Browser.ie && !L.Browser.opera && !L.Browser.edge) {
                 target.bringToFront();
             }
+            
+            // Update city button text
+            updateCityButtonText();
             
             // Update URL and aggregated totals
             updateURL();
@@ -249,6 +255,9 @@ function zoomToFeature(e) {
 var selectedPrecincts = [];
 var currentCityName = null;
 var voteMethodSectionExpanded = false;
+var cityDropdownCloseHandler = null; // Store close handler reference for cleanup
+var cityStats = {}; // Cache for city statistics
+var cityDropdownOpen = false;
 // Stable geographic bounds derived from precinct polygons (never circles)
 var baseDistrictBounds = null;
 // Guards to avoid duplicate listeners and repeated restores
@@ -721,11 +730,11 @@ function updateModeURL() {
         delete hashParams.mode;
     }
     
-    // Preserve city from URL if it exists, or use currentCityName
+    // Preserve city from URL if it exists, or use currentCityName (normalize for URL)
     if (hashParams.city) {
         // Keep city from URL
     } else if (currentCityName) {
-        hashParams.city = currentCityName;
+        hashParams.city = normalizeCityName(currentCityName);
     }
     
     // Preserve precincts from URL if they exist, or use selectedPrecincts
@@ -765,26 +774,48 @@ function updateURL() {
     if (precinctIds && selectedPrecincts.length > 0) {
         hashParams.precincts = precinctIds;
         // Clear city when manually selecting precincts
-        if (hashParams.city && !currentCityName) {
-            delete hashParams.city;
-        }
+        delete hashParams.city;
     } else {
         delete hashParams.precincts;
-    }
-    
-    // Preserve city if it exists
-    if (currentCityName) {
-        hashParams.city = currentCityName;
+        // Only include city if we have a city selection and no individual precincts
+        if (currentCityName) {
+            hashParams.city = normalizeCityName(currentCityName);
+        } else {
+            delete hashParams.city;
+        }
     }
     
     var newHash = buildHashParams(hashParams);
     window.location.hash = newHash;
 }
 
-// City to precinct mapping
-var cityPrecinctMap = {
-    'alameda': ['305110', '304800', '305500', '305700', '303800', '302700', '301900', '302200', '300300', '300130', '300150', '300110']
-};
+// Helper function to normalize city name for URL (lowercase, spaces/underscores to hyphens - kebab-case)
+// Rewrites snake_case to kebab-case
+function normalizeCityName(cityName) {
+    if (!cityName) return null;
+    // Convert to lowercase, then replace spaces and underscores with hyphens (kebab-case)
+    return cityName.toLowerCase().replace(/[\s_]+/g, '-');
+}
+
+// Helper function to denormalize city name from URL (supports both hyphens and underscores, capitalize first letter)
+function denormalizeCityName(normalizedCityName) {
+    if (!normalizedCityName) return null;
+    // Replace both hyphens and underscores with spaces for backwards compatibility
+    return normalizedCityName.replace(/[-_]/g, ' ').split(' ').map(function(word) {
+        return word.charAt(0).toUpperCase() + word.slice(1);
+    }).join(' ');
+}
+
+// Helper function to get display city name (treats "Alameda County" as "Unincorporated Alameda County")
+function getDisplayCityName(city) {
+    if (!city) return null;
+    // Treat "Alameda County" as "Unincorporated Alameda County" for city stats
+    // (The county-wide "Alameda County" option at top shows all precincts combined)
+    if (city.toLowerCase() === 'alameda county') {
+        return 'Unincorporated Alameda County';
+    }
+    return city;
+}
 
 // Restore selection from URL on page load
 function restoreSelectionFromURL() {
@@ -815,25 +846,114 @@ function restoreSelectionFromURL() {
     
     selectedPrecincts = [];
     
-    var precinctIds = [];
     var hashParams = sigObj;
     
-    // Check for city parameter first
-    if (hashParams.city && cityPrecinctMap[hashParams.city.toLowerCase()]) {
-        // Use city mapping
-        precinctIds = cityPrecinctMap[hashParams.city.toLowerCase()];
-        currentCityName = hashParams.city.toLowerCase();
-    } else {
-        currentCityName = null;
+    // Check for city parameter first - find precincts by matching city property
+    if (hashParams.city) {
+        // Normalize city name (converts snake_case to kebab-case)
+        var normalizedCityName = normalizeCityName(hashParams.city);
+        currentCityName = denormalizeCityName(normalizedCityName);
         
-        // Check for precincts in hash
-        if (hashParams.precincts) {
-            // Handle both + and , for backwards compatibility
-            precinctIds = hashParams.precincts.split(/[+,]/);
-        } else {
-            restoreInProgress = false;
-            return;
+        // Rewrite URL to kebab-case if it was snake_case
+        if (hashParams.city !== normalizedCityName) {
+            hashParams.city = normalizedCityName;
+            var newHash = buildHashParams(hashParams);
+            window.location.hash = newHash;
         }
+        
+        // Wait for layers to be populated
+        setTimeout(function() {
+            var layerSource = mapMode === 'proportional' && circleLayer ? circleLayer : geojsonLayer;
+            
+            if (!layerSource) {
+                restoreInProgress = false;
+                return;
+            }
+            
+            // Find all precincts matching the city name
+            layerSource.eachLayer(function(layer) {
+                var feature = layer.feature;
+                if (!feature) return;
+                
+                var props = feature.properties;
+                var featureCity = safeGet(props, 'city', null);
+                
+                // Get display city name (treats "Alameda County" as "Unincorporated Alameda County")
+                var displayCity = getDisplayCityName(featureCity);
+                
+                // Normalize both for comparison
+                var normalizedFeatureCity = normalizeCityName(displayCity);
+                
+                if (normalizedFeatureCity === normalizedCityName) {
+                    selectedPrecincts.push({ feature: feature, layer: layer });
+                    
+                    // Set style with black border
+                    var yesPct = getYesPercentage(props);
+                    var isCircle = layer instanceof L.CircleMarker;
+                    
+                    if (isCircle) {
+                        var voteCount = getVoteCount(props);
+                        setCircleStyle(layer, yesPct, voteCount, true);
+                    } else {
+                        setPolygonStyle(layer, yesPct, true);
+                    }
+                    
+                    // Bring to front to ensure visibility
+                    if (!L.Browser.ie && !L.Browser.opera && !L.Browser.edge) {
+                        layer.bringToFront();
+                    }
+                }
+            });
+            
+            if (selectedPrecincts.length > 0) {
+                updateAggregatedTotals();
+                updateCityButtonText();
+                
+                // Fit bounds to selected city precincts
+                var cityBounds = L.latLngBounds([]);
+                selectedPrecincts.forEach(function(item) {
+                    var feature = item.feature;
+                    if (feature && feature.geometry) {
+                        try {
+                            var tmp = L.geoJSON(feature);
+                            var b = tmp.getBounds();
+                            if (b && b.isValid()) {
+                                cityBounds.extend(b);
+                            }
+                        } catch (e) {
+                            // Skip if bounds can't be calculated
+                        }
+                    }
+                });
+                
+                if (cityBounds.isValid()) {
+                    var isMobile = window.innerWidth <= 768;
+                    var bottomPanel = document.getElementById('bottom-panel');
+                    var bottomPadding = bottomPanel ? bottomPanel.offsetHeight + (isMobile ? 140 : 80) : (isMobile ? 360 : 240);
+                    map.fitBounds(cityBounds, {
+                        paddingTopLeft: L.point(20, 20),
+                        paddingBottomRight: L.point(20, bottomPadding)
+                    });
+                    applyMobileVerticalBias();
+                }
+                
+                restoreInProgress = false;
+            } else {
+                restoreInProgress = false;
+            }
+        }, 1000);
+        return;
+    }
+    
+    // Check for precincts in hash
+    currentCityName = null;
+    var precinctIds = [];
+    if (hashParams.precincts) {
+        // Handle both + and , for backwards compatibility
+        precinctIds = hashParams.precincts.split(/[+,]/);
+    } else {
+        restoreInProgress = false;
+        return;
     }
     
     if (precinctIds.length === 0) {
@@ -884,6 +1004,7 @@ function restoreSelectionFromURL() {
         
         if (selectedPrecincts.length > 0) {
             updateAggregatedTotals();
+            updateCityButtonText();
             // Don't do fitBounds here - it was already done in initial load if city/precincts were in URL
             // Just restore the styling
             restoreInProgress = false;
@@ -1010,6 +1131,8 @@ Promise.all([
             }
         });
         
+        // Calculate city statistics
+        cityStats = calculateCityStats(data);
         
         // Reset county totals before calculation to prevent accumulation
         countyTotals.yes = 0;
@@ -1112,6 +1235,12 @@ Promise.all([
             countyTotals.inPersonYesPct = 0;
         }
         
+        // Build city dropdown (after county totals are calculated)
+        // Only build once to avoid duplicates
+        if (Object.keys(cityStats).length > 0) {
+            buildCityDropdown();
+        }
+        
         // Add data based on current mode
         if (mapMode === 'proportional') {
             createProportionalSymbols(data);
@@ -1131,14 +1260,47 @@ Promise.all([
         // Check if city/precincts are in URL - if so, fit to those instead of all districts
         var hashParams = parseHashParams();
         var precinctIds = [];
-        if (hashParams.city && cityPrecinctMap[hashParams.city.toLowerCase()]) {
-            precinctIds = cityPrecinctMap[hashParams.city.toLowerCase()];
+        var boundsToFit = null;
+        
+        if (hashParams.city) {
+            // Find precincts by matching city property
+            // Normalize city name (converts snake_case to kebab-case)
+            var normalizedCityName = normalizeCityName(hashParams.city);
+            
+            // Rewrite URL to kebab-case if it was snake_case
+            if (hashParams.city !== normalizedCityName) {
+                hashParams.city = normalizedCityName;
+                var newHash = buildHashParams(hashParams);
+                window.location.hash = newHash;
+            }
+            
+            // Calculate bounds of precincts matching the city
+            var selectedBounds = L.latLngBounds([]);
+            geojsonLayer.eachLayer(function(layer) {
+                var feature = layer.feature;
+                if (!feature) return;
+                var props = feature.properties;
+                var featureCity = safeGet(props, 'city', null);
+                
+                // Get display city name (treats "Alameda County" as "Unincorporated Alameda County")
+                var displayCity = getDisplayCityName(featureCity);
+                
+                var normalizedFeatureCity = normalizeCityName(displayCity);
+                
+                if (normalizedFeatureCity === normalizedCityName) {
+                    try {
+                        var tmp = L.geoJSON(feature);
+                        var b = tmp.getBounds();
+                        if (b && b.isValid()) selectedBounds.extend(b);
+                    } catch (e) {}
+                }
+            });
+            if (selectedBounds.isValid()) {
+                boundsToFit = selectedBounds;
+            }
         } else if (hashParams.precincts) {
             precinctIds = hashParams.precincts.split(/[+,]/);
-        }
-        
-        var boundsToFit = null;
-        if (precinctIds.length > 0) {
+            
             // Calculate bounds of selected precincts
             var selectedBounds = L.latLngBounds([]);
             geojsonLayer.eachLayer(function(layer) {
@@ -1192,6 +1354,9 @@ Promise.all([
         
         // Restore selection from URL if present (do this first to set currentCityName)
         restoreSelectionFromURL();
+        
+        // Update city button text after initial load
+        updateCityButtonText();
         
         // Don't set initial hash - only update URL when user actually changes mode
         // This preserves URLs like #city/alameda without adding mode/shaded/
@@ -1611,6 +1776,245 @@ function createHorizontalLegend() {
 }
 
 createHorizontalLegend();
+
+// Calculate city statistics from GeoJSON data
+function calculateCityStats(data) {
+    var stats = {};
+    
+    if (!data || !data.features) {
+        return stats;
+    }
+    
+    data.features.forEach(function(feature) {
+        var props = feature.properties;
+        var city = safeGet(props, 'city', null);
+        
+        if (!city) return;
+        
+        // Get display city name (treats "Alameda County" as "Unincorporated Alameda County")
+        var displayCity = getDisplayCityName(city);
+        
+        // Normalize city name for grouping
+        var normalizedCity = normalizeCityName(displayCity);
+        if (!stats[normalizedCity]) {
+            stats[normalizedCity] = {
+                name: displayCity,
+                yes: 0,
+                no: 0,
+                total: 0
+            };
+        }
+        
+        // Aggregate votes
+        if (props.votes) {
+            if (props.votes.yes) stats[normalizedCity].yes += props.votes.yes;
+            if (props.votes.no) stats[normalizedCity].no += props.votes.no;
+            if (props.votes.total) stats[normalizedCity].total += props.votes.total;
+        }
+    });
+    
+    // Calculate percentages
+    Object.keys(stats).forEach(function(key) {
+        var city = stats[key];
+        if (city.total > 0) {
+            city.yesPct = (city.yes / city.total) * 100;
+        } else {
+            city.yesPct = 0;
+        }
+    });
+    
+    return stats;
+}
+
+// Build city dropdown
+function buildCityDropdown() {
+    var dropdownContent = document.getElementById('city-dropdown-content');
+    if (!dropdownContent) return;
+    
+    // Sort cities by name, but exclude "Alameda County" since we add it manually
+    var cities = Object.keys(cityStats).map(function(key) {
+        return {
+            key: key,
+            name: cityStats[key].name,
+            yesPct: cityStats[key].yesPct || 0
+        };
+    }).filter(function(city) {
+        // Filter out "Alameda County" - we add it manually at the top
+        // Keep "Unincorporated Alameda County" as a distinct option
+        var cityNameLower = city.name.toLowerCase();
+        return cityNameLower !== 'alameda county';
+    }).sort(function(a, b) {
+        // Sort alphabetically, but put "Unincorporated Alameda County" at the end
+        var aIsUnincorporated = a.name.toLowerCase() === 'unincorporated alameda county';
+        var bIsUnincorporated = b.name.toLowerCase() === 'unincorporated alameda county';
+        
+        if (aIsUnincorporated && !bIsUnincorporated) return 1;
+        if (!aIsUnincorporated && bIsUnincorporated) return -1;
+        return a.name.localeCompare(b.name);
+    });
+    
+    // Clear existing content
+    dropdownContent.innerHTML = '';
+    
+    // Add "Alameda County" option at the top
+    var countyItem = document.createElement('div');
+    countyItem.className = 'city-dropdown-item';
+    countyItem.setAttribute('data-city-key', '');
+    var countyName = document.createElement('span');
+    countyName.className = 'city-dropdown-item-name';
+    countyName.textContent = 'Alameda County';
+    var countyStats = document.createElement('span');
+    countyStats.className = 'city-dropdown-item-stats';
+    if (countyTotals.total > 0) {
+        countyStats.textContent = 'Yes – ' + countyTotals.yesPct.toFixed(1) + '%';
+    }
+    countyItem.appendChild(countyName);
+    countyItem.appendChild(countyStats);
+    countyItem.addEventListener('click', function(e) {
+        e.stopPropagation();
+        selectCity(null);
+    });
+    dropdownContent.appendChild(countyItem);
+    
+    // Add each city
+    cities.forEach(function(city) {
+        var cityItem = document.createElement('div');
+        cityItem.className = 'city-dropdown-item';
+        cityItem.setAttribute('data-city-key', city.key);
+        var cityName = document.createElement('span');
+        cityName.className = 'city-dropdown-item-name';
+        cityName.textContent = city.name;
+        var cityStatsEl = document.createElement('span');
+        cityStatsEl.className = 'city-dropdown-item-stats';
+        if (city.yesPct > 0) {
+            cityStatsEl.textContent = 'Yes – ' + city.yesPct.toFixed(1) + '%';
+        }
+        cityItem.appendChild(cityName);
+        cityItem.appendChild(cityStatsEl);
+        cityItem.addEventListener('click', function(e) {
+            e.stopPropagation();
+            selectCity(city.key);
+        });
+        dropdownContent.appendChild(cityItem);
+    });
+}
+
+// Toggle city dropdown
+function toggleCityDropdown() {
+    var dropdown = document.getElementById('city-dropdown');
+    if (!dropdown) return;
+    
+    cityDropdownOpen = !cityDropdownOpen;
+    dropdown.style.display = cityDropdownOpen ? 'block' : 'none';
+    
+    // Close dropdown when clicking outside
+    if (cityDropdownOpen) {
+        // Remove existing handler if any
+        if (cityDropdownCloseHandler) {
+            document.removeEventListener('click', cityDropdownCloseHandler, true);
+            cityDropdownCloseHandler = null;
+        }
+        
+        setTimeout(function() {
+            cityDropdownCloseHandler = function(e) {
+                var btn = document.getElementById('city-selector-btn');
+                var dropdownEl = document.getElementById('city-dropdown');
+                if (btn && dropdownEl && !btn.contains(e.target) && !dropdownEl.contains(e.target)) {
+                    cityDropdownOpen = false;
+                    dropdown.style.display = 'none';
+                    document.removeEventListener('click', cityDropdownCloseHandler, true);
+                    cityDropdownCloseHandler = null;
+                }
+            };
+            // Use capture phase to catch clicks before they bubble
+            document.addEventListener('click', cityDropdownCloseHandler, true);
+        }, 100);
+    } else {
+        // Remove handler when closing dropdown
+        if (cityDropdownCloseHandler) {
+            document.removeEventListener('click', cityDropdownCloseHandler, true);
+            cityDropdownCloseHandler = null;
+        }
+    }
+}
+
+// Make toggleCityDropdown globally accessible
+window.toggleCityDropdown = toggleCityDropdown;
+
+// Select a city
+function selectCity(cityKey) {
+    cityDropdownOpen = false;
+    var dropdown = document.getElementById('city-dropdown');
+    if (dropdown) {
+        dropdown.style.display = 'none';
+    }
+    
+    // Clean up close handler
+    if (cityDropdownCloseHandler) {
+        document.removeEventListener('click', cityDropdownCloseHandler, true);
+        cityDropdownCloseHandler = null;
+    }
+    
+    if (!cityKey) {
+        // Clear city selection - show all precincts
+        selectedPrecincts.forEach(function(item) {
+            if (item.layer && item.feature) {
+                var props = item.feature.properties;
+                var yesPct = getYesPercentage(props);
+                resetLayerStyle(item.layer, yesPct);
+            }
+        });
+        selectedPrecincts = [];
+        currentCityName = null;
+        updateCityButtonText();
+        updateURL();
+        updateInfoSection(null);
+        
+        // Fit to all districts
+        if (baseDistrictBounds && baseDistrictBounds.isValid()) {
+            var isMobile = window.innerWidth <= 768;
+            var bottomPanel = document.getElementById('bottom-panel');
+            var bottomPadding = bottomPanel ? bottomPanel.offsetHeight + (isMobile ? 140 : 80) : (isMobile ? 360 : 240);
+            map.fitBounds(baseDistrictBounds, {
+                paddingTopLeft: L.point(20, 20),
+                paddingBottomRight: L.point(20, bottomPadding)
+            });
+            applyMobileVerticalBias();
+        }
+        return;
+    }
+    
+    // Navigate to city
+    var hashParams = parseHashParams();
+    hashParams.city = cityKey;
+    delete hashParams.precincts; // Clear precincts when selecting city
+    var newHash = buildHashParams(hashParams);
+    window.location.hash = newHash;
+    
+    // restoreSelectionFromURL will handle the rest
+    restoreSelectionFromURL();
+}
+
+// Make selectCity globally accessible
+window.selectCity = selectCity;
+
+// Update city button text
+function updateCityButtonText() {
+    var btn = document.getElementById('city-selector-btn');
+    if (!btn) return;
+    
+    if (currentCityName) {
+        // Don't say "City" for unincorporated areas
+        var isUnincorporated = currentCityName.toLowerCase() === 'unincorporated alameda county';
+        if (isUnincorporated) {
+            btn.textContent = currentCityName;
+        } else {
+            btn.textContent = 'City – ' + currentCityName;
+        }
+    } else {
+        btn.textContent = 'City – Alameda County';
+    }
+}
 
 // Utility: On mobile, bias the map's visual center to 33% from the top
 function applyMobileVerticalBias() {
