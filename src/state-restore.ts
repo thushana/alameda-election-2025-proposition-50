@@ -24,12 +24,11 @@ export function restoreSelectionFromURL(): void {
   // Guard against repeated identical calls
   const sigObj = parseHashParams();
   const sig = JSON.stringify(sigObj);
-  if (state.restoreInProgress) {
-    return;
-  }
   if (sig === state.lastRestoreSignature) {
     return;
   }
+  // If restore is already in progress (e.g., during initial load), skip fitBounds
+  const skipFitBounds = state.restoreInProgress;
   state.restoreInProgress = true;
   state.lastRestoreSignature = sig;
 
@@ -60,7 +59,7 @@ export function restoreSelectionFromURL(): void {
       window.location.hash = newHash;
     }
 
-    // Wait for layers to be populated
+    // Wait for layers to be populated (reduced delay to prevent map bumping)
     setTimeout(async () => {
       const leaflet = getL();
       const { mapMode, circleLayer } = await import('./map-mode.js');
@@ -129,7 +128,7 @@ export function restoreSelectionFromURL(): void {
           }
         });
 
-        if (cityBounds.isValid() && state.map) {
+        if (cityBounds.isValid() && state.map && !skipFitBounds) {
           const isMobile = window.innerWidth <= 768;
           const bottomPanel = document.getElementById('bottom-panel');
           const bottomPadding = bottomPanel
@@ -143,7 +142,6 @@ export function restoreSelectionFromURL(): void {
             paddingTopLeft: leaflet.point(sidePadding, topPadding),
             paddingBottomRight: leaflet.point(sidePadding, bottomPadding),
           });
-          // No bias adjustment needed - initial centering is correct
         }
 
         state.restoreInProgress = false;

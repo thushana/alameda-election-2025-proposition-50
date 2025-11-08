@@ -15,7 +15,7 @@ import { updateCityButtonText } from './ui-city-dropdown.js';
 import { parseHashParams, buildHashParams } from './url-manager.js';
 import { normalizeCityName, getDisplayCityName } from './city-helpers.js';
 import { safeGet } from './data-helpers.js';
-import { applyMobileVerticalBias, applyDesktopDefaultBiasIfNeeded } from './map-utils.js';
+// Bias adjustments removed - they were causing map bumping on initial load
 import { restoreSelectionFromURL } from './state-restore.js';
 import { toggleMapMode } from './map-mode.js';
 import type { GeoJSONData, ResultData } from './types.js';
@@ -251,12 +251,16 @@ function loadData() {
 
       // Check if city/precincts are in URL - if so, fit to those instead of all districts
       const hashParams = parseHashParams();
-      let precinctIds: string[] = [];
       let boundsToFit: LatLngBounds | null = null;
+
+      if (hashParams.city || hashParams.precincts) {
+        // Mark that we've already handled fitBounds during initial load
+        // This prevents restoreSelectionFromURL from calling fitBounds again
+        state.restoreInProgress = true;
+      }
 
       if (hashParams.city) {
         // Find precincts by matching city property
-        // Normalize city name (converts snake_case to kebab-case)
         const normalizedCityName = normalizeCityName(hashParams.city);
 
         // Rewrite URL to kebab-case if it was snake_case
@@ -275,10 +279,7 @@ function loadData() {
           if (!feature) return;
           const props = feature.properties;
           const featureCity = safeGet<string | null>(props, 'city', null);
-
-          // Get display city name (treats "Alameda County" as "Unincorporated Alameda County")
           const displayCity = getDisplayCityName(featureCity);
-
           const normalizedFeatureCity = normalizeCityName(displayCity);
 
           if (normalizedFeatureCity === normalizedCityName) {
@@ -295,9 +296,7 @@ function loadData() {
           boundsToFit = selectedBounds;
         }
       } else if (hashParams.precincts) {
-        precinctIds = hashParams.precincts.split(/[+,]/);
-
-        // Calculate bounds of selected precincts
+        const precinctIds = hashParams.precincts.split(/[+,]/);
         const selectedBounds = leaflet.latLngBounds([]);
         if (!state.geojsonLayer) return;
         // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Leaflet layer iteration API
@@ -341,16 +340,12 @@ function loadData() {
           : isMobileInit
             ? 360
             : 240;
-        const sidePaddingInit = isMobileInit ? 50 : 80; // Mobile: zoomed out one more level, Desktop: unchanged
-        const topPaddingInit = isMobileInit ? 50 : 80; // Mobile: zoomed out one more level, Desktop: unchanged
+        const sidePaddingInit = isMobileInit ? 50 : 80;
+        const topPaddingInit = isMobileInit ? 50 : 80;
         state.map.fitBounds(boundsToFit, {
           paddingTopLeft: leaflet.point(sidePaddingInit, topPaddingInit),
           paddingBottomRight: leaflet.point(sidePaddingInit, bottomPaddingInit),
         });
-        setTimeout(() => {
-          applyMobileVerticalBias();
-          applyDesktopDefaultBiasIfNeeded();
-        }, 100);
       }
 
       // Update info section with county totals
