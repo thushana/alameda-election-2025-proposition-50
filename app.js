@@ -1309,6 +1309,25 @@ function getTitleFromProps(props) {
                       safeGet(props, 'precinct', null) ||
                       safeGet(props, 'ID', null) ||
                       'N/A';
+    
+    // Get neighborhood and city
+    var neighborhood = safeGet(props, 'neighborhood', null);
+    var city = safeGet(props, 'city', null);
+    
+    // Build title with neighborhood and city if available
+    var titleParts = [];
+    if (neighborhood) {
+        titleParts.push(neighborhood);
+    }
+    if (city) {
+        titleParts.push(city);
+    }
+    
+    if (titleParts.length > 0) {
+        return titleParts.join(', ') + ' – Precinct ' + precinctName;
+    }
+    
+    // Fallback to just precinct number if no location data
     return 'Precinct ' + precinctName;
 }
 
