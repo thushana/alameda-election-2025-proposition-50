@@ -2,7 +2,7 @@
 
 ![Alameda Election Map Preview](preview.jpg)
 
-An interactive map showing Proposition 50 vote results by precinct for Alameda County in the November 2025 Election. The data in it comes from a ACVote's Nov 7th, 2025 @ 3:09 PM data release.
+An interactive map showing Proposition 50 vote results by precinct for Alameda County in the November 2025 Election. The data in it comes from a ACVote's Nov 10th, 2025 @ 5:14 PM data release.
 
 [Proposition 50](https://voterguide.sos.ca.gov/quick-reference-guide/50.htm) was approved by voters on November 4, 2025, with 64% support, temporarily replacing the state's independent redistricting commission's congressional maps with Democrat-drawn districts through 2030. The measure, promoted by Governor Newsom as a response to Trump-backed Republican redistricting in Texas, could flip up to five GOP-held House seats to Democrats in the 2026 midterms.
 
