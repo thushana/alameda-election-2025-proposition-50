@@ -17,14 +17,28 @@ const { pick } = pickPkg as { pick: StreamJsonPick };
 const { streamArray } = streamArrayPkg as { streamArray: StreamJsonStreamArray };
 
 type VoteCounts = { yes: number; no: number; total: number };
+type AmbiguousCounts = { yes: number; no: number };
+type NonVoteCounts = { yes: number; no: number };
+type DensityStats = { yes: { sum: number; count: number }; no: { sum: number; count: number } };
 type MethodVotes = Record<number, VoteCounts>;
+type MethodAmbiguous = Record<number, AmbiguousCounts>;
+type MethodNonVotes = Record<number, NonVoteCounts>;
+type MethodDensities = Record<number, DensityStats>;
 type PrecinctTotals = Record<string, VoteCounts>;
 type PrecinctMethods = Record<string, MethodVotes>;
+type PrecinctAmbiguous = Record<string, AmbiguousCounts>;
+type PrecinctNonVotes = Record<string, NonVoteCounts>;
+type PrecinctDensities = Record<string, DensityStats>;
+type PrecinctMethodDensities = Record<string, MethodDensities>;
+type PrecinctMethodAmbiguous = Record<string, MethodAmbiguous>;
+type PrecinctMethodNonVotes = Record<string, MethodNonVotes>;
 
 // CVR data structure types
 interface CvrMark {
   IsVote?: boolean;
+  IsAmbiguous?: boolean;
   CandidateId?: number;
+  MarkDensity?: number;
 }
 
 interface CvrContest {
@@ -317,6 +331,12 @@ async function main(): Promise<void> {
 
   const precinctTotals: PrecinctTotals = {};
   const precinctMethods: PrecinctMethods = {};
+  const precinctDensities: PrecinctDensities = {};
+  const precinctMethodDensities: PrecinctMethodDensities = {};
+  const precinctAmbiguous: PrecinctAmbiguous = {};
+  const precinctNonVotes: PrecinctNonVotes = {};
+  const precinctMethodAmbiguous: PrecinctMethodAmbiguous = {};
+  const precinctMethodNonVotes: PrecinctMethodNonVotes = {};
 
   // Helpers to initialize structures on-demand
   function ensurePrecinct(precinctName: string): void {
@@ -326,11 +346,47 @@ async function main(): Promise<void> {
     if (!precinctMethods[precinctName]) {
       precinctMethods[precinctName] = {};
     }
+    if (!precinctDensities[precinctName]) {
+      precinctDensities[precinctName] = { yes: { sum: 0, count: 0 }, no: { sum: 0, count: 0 } };
+    }
+    if (!precinctMethodDensities[precinctName]) {
+      precinctMethodDensities[precinctName] = {};
+    }
+    if (!precinctAmbiguous[precinctName]) {
+      precinctAmbiguous[precinctName] = { yes: 0, no: 0 };
+    }
+    if (!precinctNonVotes[precinctName]) {
+      precinctNonVotes[precinctName] = { yes: 0, no: 0 };
+    }
+    if (!precinctMethodAmbiguous[precinctName]) {
+      precinctMethodAmbiguous[precinctName] = {};
+    }
+    if (!precinctMethodNonVotes[precinctName]) {
+      precinctMethodNonVotes[precinctName] = {};
+    }
   }
   function ensureMethod(precinctName: string, methodId: number): void {
     const methods = precinctMethods[precinctName];
     if (!methods[methodId]) {
       methods[methodId] = { yes: 0, no: 0, total: 0 };
+    }
+    const methodDensities = precinctMethodDensities[precinctName];
+    if (!methodDensities[methodId]) {
+      methodDensities[methodId] = { yes: { sum: 0, count: 0 }, no: { sum: 0, count: 0 } };
+    }
+    const methodAmbiguous = precinctMethodAmbiguous[precinctName];
+    if (!methodAmbiguous[methodId]) {
+      methodAmbiguous[methodId] = { yes: 0, no: 0 };
+    }
+    const methodNonVotes = precinctMethodNonVotes[precinctName];
+    if (!methodNonVotes[methodId]) {
+      methodNonVotes[methodId] = { yes: 0, no: 0 };
+    }
+  }
+  function addDensity(target: DensityStats, kind: 'yes' | 'no', density: number | undefined): void {
+    if (typeof density === 'number') {
+      target[kind].sum += density;
+      target[kind].count += 1;
     }
   }
 
@@ -376,17 +432,62 @@ async function main(): Promise<void> {
 
           for (const mark of marks) {
             if (!mark || typeof mark !== 'object') continue;
-            if (!mark.IsVote) continue;
             const candidateId = mark.CandidateId as number | undefined;
+            const markDensity = mark.MarkDensity as number | undefined;
+            const isVote = mark.IsVote === true;
+            const isAmbiguous = mark.IsAmbiguous === true;
+
             if (candidateId === 2) {
-              incrementCounts(precinctTotals[precinctName], 'yes');
-              if (typeof countingGroupId === 'number') {
-                incrementCounts(precinctMethods[precinctName][countingGroupId], 'yes');
+              // Yes vote
+              if (isVote) {
+                incrementCounts(precinctTotals[precinctName], 'yes');
+                addDensity(precinctDensities[precinctName], 'yes', markDensity);
+                if (isAmbiguous) {
+                  precinctAmbiguous[precinctName].yes += 1;
+                }
+                if (typeof countingGroupId === 'number') {
+                  incrementCounts(precinctMethods[precinctName][countingGroupId], 'yes');
+                  addDensity(
+                    precinctMethodDensities[precinctName][countingGroupId],
+                    'yes',
+                    markDensity
+                  );
+                  if (isAmbiguous) {
+                    precinctMethodAmbiguous[precinctName][countingGroupId].yes += 1;
+                  }
+                }
+              } else {
+                // Non-vote mark for yes
+                precinctNonVotes[precinctName].yes += 1;
+                if (typeof countingGroupId === 'number') {
+                  precinctMethodNonVotes[precinctName][countingGroupId].yes += 1;
+                }
               }
             } else if (candidateId === 1) {
-              incrementCounts(precinctTotals[precinctName], 'no');
-              if (typeof countingGroupId === 'number') {
-                incrementCounts(precinctMethods[precinctName][countingGroupId], 'no');
+              // No vote
+              if (isVote) {
+                incrementCounts(precinctTotals[precinctName], 'no');
+                addDensity(precinctDensities[precinctName], 'no', markDensity);
+                if (isAmbiguous) {
+                  precinctAmbiguous[precinctName].no += 1;
+                }
+                if (typeof countingGroupId === 'number') {
+                  incrementCounts(precinctMethods[precinctName][countingGroupId], 'no');
+                  addDensity(
+                    precinctMethodDensities[precinctName][countingGroupId],
+                    'no',
+                    markDensity
+                  );
+                  if (isAmbiguous) {
+                    precinctMethodAmbiguous[precinctName][countingGroupId].no += 1;
+                  }
+                }
+              } else {
+                // Non-vote mark for no
+                precinctNonVotes[precinctName].no += 1;
+                if (typeof countingGroupId === 'number') {
+                  precinctMethodNonVotes[precinctName][countingGroupId].no += 1;
+                }
               }
             }
           }
@@ -417,6 +518,24 @@ async function main(): Promise<void> {
     if (!precinctMethods[precinctName]) {
       precinctMethods[precinctName] = {};
     }
+    if (!precinctDensities[precinctName]) {
+      precinctDensities[precinctName] = { yes: { sum: 0, count: 0 }, no: { sum: 0, count: 0 } };
+    }
+    if (!precinctMethodDensities[precinctName]) {
+      precinctMethodDensities[precinctName] = {};
+    }
+    if (!precinctAmbiguous[precinctName]) {
+      precinctAmbiguous[precinctName] = { yes: 0, no: 0 };
+    }
+    if (!precinctNonVotes[precinctName]) {
+      precinctNonVotes[precinctName] = { yes: 0, no: 0 };
+    }
+    if (!precinctMethodAmbiguous[precinctName]) {
+      precinctMethodAmbiguous[precinctName] = {};
+    }
+    if (!precinctMethodNonVotes[precinctName]) {
+      precinctMethodNonVotes[precinctName] = {};
+    }
   }
 
   console.log(`Total precincts in manifest: ${allManifestPrecincts.size}`);
@@ -426,16 +545,34 @@ async function main(): Promise<void> {
     precinct: string;
     votes: VoteCounts;
     percentage: { yes: number; no: number };
+    mark_density: {
+      yes: number | null;
+      no: number | null;
+    };
+    ambiguous: AmbiguousCounts;
+    non_votes: NonVoteCounts;
     vote_method: {
       mail_in: {
         votes: VoteCounts;
         percentage: { yes: number; no: number };
         percentage_of_total: number;
+        mark_density: {
+          yes: number | null;
+          no: number | null;
+        };
+        ambiguous: AmbiguousCounts;
+        non_votes: NonVoteCounts;
       };
       in_person: {
         votes: VoteCounts;
         percentage: { yes: number; no: number };
         percentage_of_total: number;
+        mark_density: {
+          yes: number | null;
+          no: number | null;
+        };
+        ambiguous: AmbiguousCounts;
+        non_votes: NonVoteCounts;
       };
     };
   };
@@ -466,10 +603,56 @@ async function main(): Promise<void> {
     const mailInPctOfTotal = total > 0 ? (mailInTotal / total) * 100 : 0;
     const inPersonPctOfTotal = total > 0 ? (inPersonTotal / total) * 100 : 0;
 
+    // Calculate average mark densities
+    const densities = precinctDensities[precinctName] ?? {
+      yes: { sum: 0, count: 0 },
+      no: { sum: 0, count: 0 },
+    };
+    const avgYesDensity = densities.yes.count > 0 ? densities.yes.sum / densities.yes.count : null;
+    const avgNoDensity = densities.no.count > 0 ? densities.no.sum / densities.no.count : null;
+
+    const methodDensities = precinctMethodDensities[precinctName] || {};
+    const mailInDensities = methodDensities[2] ?? {
+      yes: { sum: 0, count: 0 },
+      no: { sum: 0, count: 0 },
+    };
+    const inPersonDensities = methodDensities[1] ?? {
+      yes: { sum: 0, count: 0 },
+      no: { sum: 0, count: 0 },
+    };
+
+    const mailInAvgYesDensity =
+      mailInDensities.yes.count > 0 ? mailInDensities.yes.sum / mailInDensities.yes.count : null;
+    const mailInAvgNoDensity =
+      mailInDensities.no.count > 0 ? mailInDensities.no.sum / mailInDensities.no.count : null;
+
+    const inPersonAvgYesDensity =
+      inPersonDensities.yes.count > 0
+        ? inPersonDensities.yes.sum / inPersonDensities.yes.count
+        : null;
+    const inPersonAvgNoDensity =
+      inPersonDensities.no.count > 0 ? inPersonDensities.no.sum / inPersonDensities.no.count : null;
+
+    const ambiguous = precinctAmbiguous[precinctName] ?? { yes: 0, no: 0 };
+    const nonVotes = precinctNonVotes[precinctName] ?? { yes: 0, no: 0 };
+
+    const methodAmbiguous = precinctMethodAmbiguous[precinctName] || {};
+    const methodNonVotes = precinctMethodNonVotes[precinctName] || {};
+    const mailInAmbiguous = methodAmbiguous[2] ?? { yes: 0, no: 0 };
+    const mailInNonVotes = methodNonVotes[2] ?? { yes: 0, no: 0 };
+    const inPersonAmbiguous = methodAmbiguous[1] ?? { yes: 0, no: 0 };
+    const inPersonNonVotes = methodNonVotes[1] ?? { yes: 0, no: 0 };
+
     results.push({
       precinct: precinctName,
       votes: { yes: yesCount, no: noCount, total },
       percentage: { yes: formatPercentage(yesPct), no: formatPercentage(noPct) },
+      mark_density: {
+        yes: avgYesDensity !== null ? formatPercentage(avgYesDensity) : null,
+        no: avgNoDensity !== null ? formatPercentage(avgNoDensity) : null,
+      },
+      ambiguous,
+      non_votes: nonVotes,
       vote_method: {
         mail_in: {
           votes: { yes: mailIn.yes, no: mailIn.no, total: mailInTotal },
@@ -478,6 +661,12 @@ async function main(): Promise<void> {
             no: formatPercentage(mailInNoPct),
           },
           percentage_of_total: formatPercentage(mailInPctOfTotal),
+          mark_density: {
+            yes: mailInAvgYesDensity !== null ? formatPercentage(mailInAvgYesDensity) : null,
+            no: mailInAvgNoDensity !== null ? formatPercentage(mailInAvgNoDensity) : null,
+          },
+          ambiguous: mailInAmbiguous,
+          non_votes: mailInNonVotes,
         },
         in_person: {
           votes: { yes: inPerson.yes, no: inPerson.no, total: inPersonTotal },
@@ -486,6 +675,12 @@ async function main(): Promise<void> {
             no: formatPercentage(inPersonNoPct),
           },
           percentage_of_total: formatPercentage(inPersonPctOfTotal),
+          mark_density: {
+            yes: inPersonAvgYesDensity !== null ? formatPercentage(inPersonAvgYesDensity) : null,
+            no: inPersonAvgNoDensity !== null ? formatPercentage(inPersonAvgNoDensity) : null,
+          },
+          ambiguous: inPersonAmbiguous,
+          non_votes: inPersonNonVotes,
         },
       },
     });
@@ -494,6 +689,42 @@ async function main(): Promise<void> {
   const outputPath = path.resolve(process.cwd(), 'results.json');
   fs.writeFileSync(outputPath, stringifyWithDecimals(results), 'utf-8');
   console.log(`\nResults saved to ${outputPath}`);
+
+  // Analyze mark density differences between yes and no
+  console.log('\n=== Mark Density Analysis ===');
+  let totalYesDensity = 0;
+  let totalYesCount = 0;
+  let totalNoDensity = 0;
+  let totalNoCount = 0;
+
+  for (const precinctName of Object.keys(precinctDensities)) {
+    const densities = precinctDensities[precinctName];
+    totalYesDensity += densities.yes.sum;
+    totalYesCount += densities.yes.count;
+    totalNoDensity += densities.no.sum;
+    totalNoCount += densities.no.count;
+  }
+
+  const overallYesAvg = totalYesCount > 0 ? totalYesDensity / totalYesCount : null;
+  const overallNoAvg = totalNoCount > 0 ? totalNoDensity / totalNoCount : null;
+
+  if (overallYesAvg !== null && overallNoAvg !== null) {
+    console.log(`Overall average mark density:`);
+    console.log(`  Yes votes: ${overallYesAvg.toFixed(2)}`);
+    console.log(`  No votes:  ${overallNoAvg.toFixed(2)}`);
+    console.log(`  Difference: ${(overallYesAvg - overallNoAvg).toFixed(2)}`);
+    if (overallYesAvg > overallNoAvg) {
+      console.log(
+        `  → Yes votes have ${((overallYesAvg / overallNoAvg - 1) * 100).toFixed(2)}% higher density`
+      );
+    } else {
+      console.log(
+        `  → No votes have ${((overallNoAvg / overallYesAvg - 1) * 100).toFixed(2)}% higher density`
+      );
+    }
+  } else {
+    console.log('Insufficient data for mark density analysis');
+  }
 
   // Extract date from folder path and update README and index.html
   const dateInfo = extractDateFromPath(absoluteInputDir);
