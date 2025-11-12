@@ -12,7 +12,10 @@ import { calculateCityStats } from './city-stats.js';
 import { buildCityDropdown } from './ui-city-dropdown.js';
 import { updateInfoSection } from './ui-info-section.js';
 import { updateCityButtonText } from './ui-city-dropdown.js';
+import { buildContestDropdown } from './ui-contest-selector.js';
+import { updateElectionButtonText, updatePageHeader } from './ui-election-selector.js';
 import { parseHashParams, buildHashParams } from './url-manager.js';
+import type { ContestInfo } from './types.js';
 import { normalizeCityName, getDisplayCityName } from './city-helpers.js';
 import { safeGet } from './data-helpers.js';
 // Bias adjustments removed - they were causing map bumping on initial load
@@ -47,20 +50,56 @@ function initGeoJSONLayer() {
 // Load GeoJSON data and results.json
 function loadData() {
   const leaflet = getL();
+  const hashParams = parseHashParams();
+
+  // Determine which results file and precinct file to load
+  let resultsFilename = 'results.json'; // Default for backward compatibility
+  let precinctFilename = 'precincts_consolidated.geojson'; // Default for backward compatibility
+  if (hashParams.election) {
+    resultsFilename = `results-${hashParams.election}.json`;
+    precinctFilename = `precincts-${hashParams.election}.geojson`;
+    state.selectedElection = hashParams.election;
+  } else {
+    // Try to find the most recent results file
+    // For now, default to results.json, but could be enhanced to scan available files
+    state.selectedElection = null;
+  }
 
   Promise.all([
-    fetch('precincts_consolidated.geojson').then((response) => {
+    fetch(precinctFilename).then((response) => {
       if (!response.ok) {
+        // Fallback to default if election-specific file doesn't exist
+        if (precinctFilename !== 'precincts_consolidated.geojson') {
+          console.warn(
+            `Could not load ${precinctFilename}, falling back to precincts_consolidated.geojson`
+          );
+          return fetch('precincts_consolidated.geojson').then((r) => {
+            if (!r.ok) {
+              throw new Error('Network response was not ok: ' + r.status + ' ' + r.statusText);
+            }
+            return r.json();
+          });
+        }
         throw new Error(
           'Network response was not ok: ' + response.status + ' ' + response.statusText
         );
       }
       return response.json();
     }),
-    fetch('results.json').then((response) => {
+    fetch(resultsFilename).then((response) => {
       if (!response.ok) {
+        // Fallback to default if election-specific file doesn't exist
+        if (resultsFilename !== 'results.json') {
+          console.warn(`Could not load ${resultsFilename}, falling back to results.json`);
+          return fetch('results.json').then((r) => {
+            if (!r.ok) {
+              throw new Error(`Could not load results file: ` + r.status + ' ' + r.statusText);
+            }
+            return r.json();
+          });
+        }
         throw new Error(
-          'Could not load results.json: ' + response.status + ' ' + response.statusText
+          `Could not load ${resultsFilename}: ` + response.status + ' ' + response.statusText
         );
       }
       return response.json();
@@ -69,40 +108,118 @@ function loadData() {
     .then((results: [GeoJSONData, ResultData[]]) => {
       const data = results[0];
       const resultsData = results[1];
+      const hashParams = parseHashParams(); // Parse hash params early for use throughout
 
       if (!resultsData || !Array.isArray(resultsData)) {
-        throw new Error('results.json is invalid or empty');
+        throw new Error(`${resultsFilename} is invalid or empty`);
       }
 
-      // Create a map of all vote data from results.json
-      const resultsMap: { [key: string]: ResultData } = {};
-      resultsData.forEach((result: ResultData) => {
-        if (result.precinct) {
-          resultsMap[result.precinct.toString()] = {
-            votes: result.votes,
-            percentage: result.percentage,
-            vote_method: result.vote_method,
-          };
-        }
-      });
+      // Detect format: new format has contests, old format has votes/percentage
+      const isNewFormat = resultsData.some((r) => r.contests && Object.keys(r.contests).length > 0);
 
-      // Merge all vote data from results.json into GeoJSON features
-      data.features.forEach((feature) => {
-        const precinctId = getPrecinctId(feature.properties);
+      if (isNewFormat) {
+        // New multi-contest format
+        // Build contest metadata
+        const contestMap = new Map<number, ContestInfo>();
+        resultsData.forEach((result: ResultData) => {
+          if (result.contests) {
+            for (const [contestIdStr, contestData] of Object.entries(result.contests)) {
+              const contestId = parseInt(contestIdStr, 10);
+              if (!contestMap.has(contestId)) {
+                contestMap.set(contestId, {
+                  contestId,
+                  contestName: contestData.contestName,
+                  voteFor: 1, // Default, could be enhanced
+                  numOfRanks: 0, // Default, could be enhanced
+                });
+              }
+            }
+          }
+        });
+        state.contests = Object.fromEntries(contestMap);
 
-        if (precinctId && resultsMap[precinctId.toString()]) {
-          const voteData = resultsMap[precinctId.toString()];
-          if (voteData.votes) {
-            feature.properties.votes = voteData.votes;
-          }
-          if (voteData.percentage) {
-            feature.properties.percentage = voteData.percentage;
-          }
-          if (voteData.vote_method) {
-            feature.properties.vote_method = voteData.vote_method;
-          }
+        // Determine selected contest
+        if (hashParams.contest !== null && hashParams.contest !== undefined) {
+          state.selectedContestId = hashParams.contest;
+        } else if (Object.keys(state.contests).length > 0) {
+          // Default to first contest
+          const firstContestId = parseInt(Object.keys(state.contests)[0], 10);
+          state.selectedContestId = firstContestId;
         }
-      });
+
+        // Create a map of all vote data from results.json
+        const resultsMap: { [key: string]: ResultData } = {};
+        resultsData.forEach((result: ResultData) => {
+          if (result.precinct) {
+            resultsMap[result.precinct.toString()] = result;
+          }
+        });
+
+        // Merge contest data into GeoJSON features
+        data.features.forEach((feature) => {
+          const precinctId = getPrecinctId(feature.properties);
+          if (precinctId && resultsMap[precinctId.toString()]) {
+            const resultData = resultsMap[precinctId.toString()];
+            if (resultData.contests) {
+              feature.properties.contests = resultData.contests;
+            }
+            // Also set legacy format for backward compatibility if contest is yes/no
+            if (state.selectedContestId && resultData.contests?.[state.selectedContestId]) {
+              const contest = resultData.contests[state.selectedContestId];
+              // Check if it's a yes/no contest (2 candidates)
+              if (contest.candidates.length === 2) {
+                const yesCandidate = contest.candidates.find((c) =>
+                  c.candidateName.toUpperCase().includes('YES')
+                );
+                const noCandidate = contest.candidates.find((c) =>
+                  c.candidateName.toUpperCase().includes('NO')
+                );
+                if (yesCandidate && noCandidate) {
+                  feature.properties.votes = {
+                    yes: yesCandidate.votes,
+                    no: noCandidate.votes,
+                    total: contest.totalVotes,
+                  };
+                  feature.properties.percentage = {
+                    yes: yesCandidate.percentage,
+                    no: noCandidate.percentage,
+                  };
+                }
+              }
+            }
+          }
+        });
+      } else {
+        // Legacy format - backward compatibility
+        state.selectedContestId = null;
+        const resultsMap: { [key: string]: ResultData } = {};
+        resultsData.forEach((result: ResultData) => {
+          if (result.precinct) {
+            resultsMap[result.precinct.toString()] = {
+              votes: result.votes,
+              percentage: result.percentage,
+              vote_method: result.vote_method,
+            };
+          }
+        });
+
+        // Merge all vote data from results.json into GeoJSON features
+        data.features.forEach((feature) => {
+          const precinctId = getPrecinctId(feature.properties);
+          if (precinctId && resultsMap[precinctId.toString()]) {
+            const voteData = resultsMap[precinctId.toString()];
+            if (voteData.votes) {
+              feature.properties.votes = voteData.votes;
+            }
+            if (voteData.percentage) {
+              feature.properties.percentage = voteData.percentage;
+            }
+            if (voteData.vote_method) {
+              feature.properties.vote_method = voteData.vote_method;
+            }
+          }
+        });
+      }
 
       // Calculate city statistics
       state.cityStats = calculateCityStats(data);
@@ -120,59 +237,113 @@ function loadData() {
 
       // Calculate county totals from results.json with error handling
       try {
-        resultsData.forEach((result: ResultData) => {
-          if (!result) return;
+        if (isNewFormat && state.selectedContestId) {
+          // New format: calculate totals for selected contest
+          resultsData.forEach((result: ResultData) => {
+            if (!result || !result.contests) return;
+            const contest = result.contests[state.selectedContestId!];
+            if (!contest) return;
 
-          // Calculate overall vote totals
-          if (result.votes && typeof result.votes === 'object') {
-            const votes = result.votes;
-            if (typeof votes.yes === 'number' && votes.yes > 0) {
-              state.countyTotals.yes += votes.yes;
-            }
-            if (typeof votes.no === 'number' && votes.no > 0) {
-              state.countyTotals.no += votes.no;
-            }
-            if (typeof votes.total === 'number' && votes.total > 0) {
-              state.countyTotals.total += votes.total;
-            }
-          }
+            // Find yes/no candidates if it's a yes/no contest
+            const yesCandidate = contest.candidates.find((c) =>
+              c.candidateName.toUpperCase().includes('YES')
+            );
+            const noCandidate = contest.candidates.find((c) =>
+              c.candidateName.toUpperCase().includes('NO')
+            );
 
-          // Calculate county-level vote method totals
-          if (result.vote_method && typeof result.vote_method === 'object') {
-            if (
-              result.vote_method.mail_in &&
-              result.vote_method.mail_in.votes &&
-              typeof result.vote_method.mail_in.votes === 'object'
-            ) {
-              const mailInVotes = result.vote_method.mail_in.votes;
-              if (typeof mailInVotes.total === 'number' && mailInVotes.total > 0) {
-                state.countyTotals.mailInTotal += mailInVotes.total;
-              }
-              if (typeof mailInVotes.yes === 'number' && mailInVotes.yes > 0) {
-                state.countyTotals.mailInYes += mailInVotes.yes;
-              }
-              if (typeof mailInVotes.no === 'number' && mailInVotes.no > 0) {
-                state.countyTotals.mailInNo += mailInVotes.no;
+            if (yesCandidate && noCandidate) {
+              state.countyTotals.yes += yesCandidate.votes;
+              state.countyTotals.no += noCandidate.votes;
+              state.countyTotals.total += contest.totalVotes;
+
+              // Vote method totals
+              if (contest.vote_method) {
+                if (contest.vote_method.mail_in) {
+                  const mailInYes = contest.vote_method.mail_in.candidates.find((c) =>
+                    c.candidateName.toUpperCase().includes('YES')
+                  );
+                  const mailInNo = contest.vote_method.mail_in.candidates.find((c) =>
+                    c.candidateName.toUpperCase().includes('NO')
+                  );
+                  if (mailInYes && mailInNo) {
+                    state.countyTotals.mailInTotal += contest.vote_method.mail_in.totalVotes;
+                    state.countyTotals.mailInYes += mailInYes.votes;
+                    state.countyTotals.mailInNo += mailInNo.votes;
+                  }
+                }
+                if (contest.vote_method.in_person) {
+                  const inPersonYes = contest.vote_method.in_person.candidates.find((c) =>
+                    c.candidateName.toUpperCase().includes('YES')
+                  );
+                  const inPersonNo = contest.vote_method.in_person.candidates.find((c) =>
+                    c.candidateName.toUpperCase().includes('NO')
+                  );
+                  if (inPersonYes && inPersonNo) {
+                    state.countyTotals.inPersonTotal += contest.vote_method.in_person.totalVotes;
+                    state.countyTotals.inPersonYes += inPersonYes.votes;
+                    state.countyTotals.inPersonNo += inPersonNo.votes;
+                  }
+                }
               }
             }
-            if (
-              result.vote_method.in_person &&
-              result.vote_method.in_person.votes &&
-              typeof result.vote_method.in_person.votes === 'object'
-            ) {
-              const inPersonVotes = result.vote_method.in_person.votes;
-              if (typeof inPersonVotes.total === 'number' && inPersonVotes.total > 0) {
-                state.countyTotals.inPersonTotal += inPersonVotes.total;
+          });
+        } else {
+          // Legacy format
+          resultsData.forEach((result: ResultData) => {
+            if (!result) return;
+
+            // Calculate overall vote totals
+            if (result.votes && typeof result.votes === 'object') {
+              const votes = result.votes;
+              if (typeof votes.yes === 'number' && votes.yes > 0) {
+                state.countyTotals.yes += votes.yes;
               }
-              if (typeof inPersonVotes.yes === 'number' && inPersonVotes.yes > 0) {
-                state.countyTotals.inPersonYes += inPersonVotes.yes;
+              if (typeof votes.no === 'number' && votes.no > 0) {
+                state.countyTotals.no += votes.no;
               }
-              if (typeof inPersonVotes.no === 'number' && inPersonVotes.no > 0) {
-                state.countyTotals.inPersonNo += inPersonVotes.no;
+              if (typeof votes.total === 'number' && votes.total > 0) {
+                state.countyTotals.total += votes.total;
               }
             }
-          }
-        });
+
+            // Calculate county-level vote method totals
+            if (result.vote_method && typeof result.vote_method === 'object') {
+              if (
+                result.vote_method.mail_in &&
+                result.vote_method.mail_in.votes &&
+                typeof result.vote_method.mail_in.votes === 'object'
+              ) {
+                const mailInVotes = result.vote_method.mail_in.votes;
+                if (typeof mailInVotes.total === 'number' && mailInVotes.total > 0) {
+                  state.countyTotals.mailInTotal += mailInVotes.total;
+                }
+                if (typeof mailInVotes.yes === 'number' && mailInVotes.yes > 0) {
+                  state.countyTotals.mailInYes += mailInVotes.yes;
+                }
+                if (typeof mailInVotes.no === 'number' && mailInVotes.no > 0) {
+                  state.countyTotals.mailInNo += mailInVotes.no;
+                }
+              }
+              if (
+                result.vote_method.in_person &&
+                result.vote_method.in_person.votes &&
+                typeof result.vote_method.in_person.votes === 'object'
+              ) {
+                const inPersonVotes = result.vote_method.in_person.votes;
+                if (typeof inPersonVotes.total === 'number' && inPersonVotes.total > 0) {
+                  state.countyTotals.inPersonTotal += inPersonVotes.total;
+                }
+                if (typeof inPersonVotes.yes === 'number' && inPersonVotes.yes > 0) {
+                  state.countyTotals.inPersonYes += inPersonVotes.yes;
+                }
+                if (typeof inPersonVotes.no === 'number' && inPersonVotes.no > 0) {
+                  state.countyTotals.inPersonNo += inPersonVotes.no;
+                }
+              }
+            }
+          });
+        }
       } catch (_error) {
         // Reset to safe defaults on error
         state.countyTotals.yes = 0;
@@ -225,6 +396,28 @@ function loadData() {
         buildCityDropdown();
       }
 
+      // Update election button text and page header
+      updateElectionButtonText();
+      updatePageHeader();
+
+      // Show and build contest selector if we have contests
+      const contestButton = document.getElementById('contest-selector-btn');
+      if (Object.keys(state.contests).length > 0) {
+        if (contestButton) {
+          contestButton.style.display = 'inline-block';
+          if (state.selectedContestId && state.contests[state.selectedContestId]) {
+            contestButton.textContent = `Contest – ${state.contests[state.selectedContestId].contestName}`;
+          } else {
+            contestButton.textContent = 'Contest – Select';
+          }
+          buildContestDropdown();
+        }
+      } else {
+        if (contestButton) {
+          contestButton.style.display = 'none';
+        }
+      }
+
       // Add data based on current mode
       if (!state.geojsonLayer) return;
 
@@ -250,7 +443,6 @@ function loadData() {
       }
 
       // Check if city/precincts are in URL - if so, fit to those instead of all districts
-      const hashParams = parseHashParams();
       let boundsToFit: LatLngBounds | null = null;
 
       // Default to city of Alameda if no hash parameters are present (empty hash or no hash)
@@ -381,6 +573,18 @@ function loadData() {
         window.addEventListener('hashchange', async () => {
           const hashParams = parseHashParams();
           const newMode = hashParams.mode === 'proportional' ? 'proportional' : 'shaded';
+
+          // Check if election or contest changed - if so, reload data
+          const electionChanged = hashParams.election !== state.selectedElection;
+          const contestChanged =
+            hashParams.contest !== state.selectedContestId &&
+            (hashParams.contest !== null || state.selectedContestId !== null);
+
+          if (electionChanged || contestChanged) {
+            // Reload data for new election/contest
+            loadData();
+            return;
+          }
 
           // Update mode if changed
           const { mapMode } = await import('./map-mode.js');

@@ -6,7 +6,7 @@ import { state } from './state.js';
 import { SIZES, OPACITY } from './constants.js';
 import { safeGet } from './data-helpers.js';
 import { generateVoteMethodBarGraph, generateMethodBreakdownBarGraph } from './ui-bar-graphs.js';
-import type { FeatureProperties, VoteData } from './types.js';
+import type { FeatureProperties, VoteData, ContestResults } from './types.js';
 
 // Helper function to generate county totals HTML
 export function generateCountyTotalsHTML(): string {
@@ -74,6 +74,31 @@ export function getTitleFromProps(props: FeatureProperties): string {
 
 // Helper function to extract vote data from props
 export function extractVoteData(props: FeatureProperties | null): VoteData {
+  // Try new format first (contests)
+  if (props && props.contests && state.selectedContestId) {
+    const contest = props.contests[state.selectedContestId];
+    if (contest) {
+      // Check if it's a yes/no contest
+      const yesCandidate = contest.candidates.find((c) =>
+        c.candidateName.toUpperCase().includes('YES')
+      );
+      const noCandidate = contest.candidates.find((c) =>
+        c.candidateName.toUpperCase().includes('NO')
+      );
+      if (yesCandidate && noCandidate) {
+        return {
+          hasVotes: true,
+          yesPct: yesCandidate.percentage,
+          yesVotes: yesCandidate.votes,
+          noPct: noCandidate.percentage,
+          noVotes: noCandidate.votes,
+          totalVotes: contest.totalVotes,
+        };
+      }
+    }
+  }
+
+  // Fall back to legacy format
   const hasVotes = !!(
     props &&
     props.votes &&
@@ -100,6 +125,54 @@ export function extractVoteData(props: FeatureProperties | null): VoteData {
     noVotes: safeGet<number>(props, 'votes.no', 0),
     totalVotes: safeGet<number>(props, 'votes.total', 0),
   };
+}
+
+// Helper function to get contest data from props
+export function getContestData(props: FeatureProperties | null): ContestResults | null {
+  if (!props || !props.contests || !state.selectedContestId) {
+    return null;
+  }
+  return props.contests[state.selectedContestId] || null;
+}
+
+// Helper function to generate candidate list HTML
+export function generateCandidateListHTML(contest: ContestResults): string {
+  if (!contest || !contest.candidates || contest.candidates.length === 0) {
+    return '';
+  }
+
+  const candidateRows = contest.candidates
+    .map((candidate) => {
+      return `
+        <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid ${OPACITY.BORDER_LIGHT};">
+          <div style="flex: 1; font-weight: 500;">${candidate.candidateName}</div>
+          <div style="text-align: right; margin-left: 16px;">
+            <div style="font-weight: 600;">${candidate.votes.toLocaleString()} votes</div>
+            <div style="font-size: ${SIZES.FONT_SMALL}; color: ${OPACITY.TEXT_SECONDARY};">
+              ${candidate.percentage.toFixed(1)}%
+            </div>
+          </div>
+        </div>
+      `;
+    })
+    .join('');
+
+  return `
+    <div style="margin-top: ${SIZES.MARGIN_TOP_SECTION};">
+      <div style="font-weight: 600; margin-bottom: 8px; font-size: ${SIZES.FONT_MEDIUM};">
+        Candidates
+      </div>
+      <div>
+        ${candidateRows}
+      </div>
+      <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid ${OPACITY.BORDER_LIGHT};">
+        <div style="display: flex; justify-content: space-between; font-weight: 600;">
+          <div>Total Votes</div>
+          <div>${contest.totalVotes.toLocaleString()}</div>
+        </div>
+      </div>
+    </div>
+  `;
 }
 
 // Helper function to generate main bar graph HTML
@@ -172,32 +245,83 @@ export function generateVoteMethodBreakdownHTML(
   props: FeatureProperties,
   voteData: VoteData
 ): string {
-  if (!voteData.hasVotes || !props.vote_method || typeof props.vote_method !== 'object') {
+  if (!voteData.hasVotes) {
     return '';
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Dynamic vote method data structure
-  const mailIn = safeGet<any>(props, 'vote_method.mail_in', {});
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Dynamic vote method data structure
-  const inPerson = safeGet<any>(props, 'vote_method.in_person', {});
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Dynamic vote method data structure
-  const mailInVotes = safeGet<any>(mailIn, 'votes', {});
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Dynamic vote method data structure
-  const inPersonVotes = safeGet<any>(inPerson, 'votes', {});
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Dynamic vote method data structure
-  const mailInPct = safeGet<any>(mailIn, 'percentage', {});
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Dynamic vote method data structure
-  const inPersonPct = safeGet<any>(inPerson, 'percentage', {});
+  // Try new format first (contests)
+  let mailInYesPct = 0;
+  let mailInNoPct = 0;
+  let inPersonYesPct = 0;
+  let inPersonNoPct = 0;
+  let mailInTotal = 0;
+  let inPersonTotal = 0;
+  let mailInPctOfTotal = 0;
+  let inPersonPctOfTotal = 0;
 
-  const mailInYesPct = safeGet<number>(mailInPct, 'yes', 0);
-  const mailInNoPct = safeGet<number>(mailInPct, 'no', 0);
-  const inPersonYesPct = safeGet<number>(inPersonPct, 'yes', 0);
-  const inPersonNoPct = safeGet<number>(inPersonPct, 'no', 0);
-  const mailInPctOfTotal = safeGet<number>(mailIn, 'percentage_of_total', 0);
-  const inPersonPctOfTotal = safeGet<number>(inPerson, 'percentage_of_total', 0);
-  const methodBreakdownTotal =
-    (safeGet<number>(mailInVotes, 'total', 0) || 0) +
-    (safeGet<number>(inPersonVotes, 'total', 0) || 0);
+  if (props.contests && state.selectedContestId && props.contests[state.selectedContestId]) {
+    const contest = props.contests[state.selectedContestId];
+    if (contest.vote_method) {
+      if (contest.vote_method.mail_in) {
+        mailInTotal = contest.vote_method.mail_in.totalVotes;
+        mailInPctOfTotal = contest.vote_method.mail_in.percentage_of_total;
+        const mailInYes = contest.vote_method.mail_in.candidates.find((c) =>
+          c.candidateName.toUpperCase().includes('YES')
+        );
+        const mailInNo = contest.vote_method.mail_in.candidates.find((c) =>
+          c.candidateName.toUpperCase().includes('NO')
+        );
+        if (mailInYes && mailInNo) {
+          mailInYesPct = mailInYes.percentage;
+          mailInNoPct = mailInNo.percentage;
+        }
+      }
+      if (contest.vote_method.in_person) {
+        inPersonTotal = contest.vote_method.in_person.totalVotes;
+        inPersonPctOfTotal = contest.vote_method.in_person.percentage_of_total;
+        const inPersonYes = contest.vote_method.in_person.candidates.find((c) =>
+          c.candidateName.toUpperCase().includes('YES')
+        );
+        const inPersonNo = contest.vote_method.in_person.candidates.find((c) =>
+          c.candidateName.toUpperCase().includes('NO')
+        );
+        if (inPersonYes && inPersonNo) {
+          inPersonYesPct = inPersonYes.percentage;
+          inPersonNoPct = inPersonNo.percentage;
+        }
+      }
+    }
+  } else if (props.vote_method && typeof props.vote_method === 'object') {
+    // Legacy format
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Dynamic vote method data structure
+    const mailIn = safeGet<any>(props, 'vote_method.mail_in', {});
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Dynamic vote method data structure
+    const inPerson = safeGet<any>(props, 'vote_method.in_person', {});
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Dynamic vote method data structure
+    const mailInVotes = safeGet<any>(mailIn, 'votes', {});
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Dynamic vote method data structure
+    const inPersonVotes = safeGet<any>(inPerson, 'votes', {});
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Dynamic vote method data structure
+    const mailInPct = safeGet<any>(mailIn, 'percentage', {});
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Dynamic vote method data structure
+    const inPersonPct = safeGet<any>(inPerson, 'percentage', {});
+
+    mailInYesPct = safeGet<number>(mailInPct, 'yes', 0);
+    mailInNoPct = safeGet<number>(mailInPct, 'no', 0);
+    inPersonYesPct = safeGet<number>(inPersonPct, 'yes', 0);
+    inPersonNoPct = safeGet<number>(inPersonPct, 'no', 0);
+    mailInPctOfTotal = safeGet<number>(mailIn, 'percentage_of_total', 0);
+    inPersonPctOfTotal = safeGet<number>(inPerson, 'percentage_of_total', 0);
+    mailInTotal = safeGet<number>(mailInVotes, 'total', 0) || 0;
+    inPersonTotal = safeGet<number>(inPersonVotes, 'total', 0) || 0;
+  }
+
+  // Only show vote method breakdown if we have data
+  if (mailInTotal === 0 && inPersonTotal === 0) {
+    return '';
+  }
+
+  const methodBreakdownTotal = mailInTotal + inPersonTotal;
 
   return `
     <div class="vote-method-breakdown" style="margin-top: ${SIZES.MARGIN_TOP_SECTION}; padding-top: ${SIZES.MARGIN_TOP_SECTION}; border-top: 1px solid ${OPACITY.BORDER_LIGHT};">
@@ -209,14 +333,14 @@ export function generateVoteMethodBreakdownHTML(
         ${generateVoteMethodBarGraph({
           yesPct: mailInYesPct,
           noPct: mailInNoPct,
-          totalVotes: safeGet<number>(mailInVotes, 'total', 0) || 0,
+          totalVotes: mailInTotal,
           label: 'MAIL IN',
           countyAvgPct: state.countyTotals.mailInYesPct,
         })}
                   ${generateVoteMethodBarGraph({
                     yesPct: inPersonYesPct,
                     noPct: inPersonNoPct,
-                    totalVotes: safeGet<number>(inPersonVotes, 'total', 0) || 0,
+                    totalVotes: inPersonTotal,
                     label: 'IN PERSON',
                     countyAvgPct: state.countyTotals.inPersonYesPct,
                   })}
@@ -276,13 +400,30 @@ export function updateInfoSection(props: FeatureProperties | null): void {
       // Generate content for precinct or aggregated data
       const title = getTitleFromProps(props);
       const voteData = extractVoteData(props);
+      const contestData = getContestData(props);
 
-      content = `
-        <div class="precinct-name">${title}</div>
-        ${generateDataColumnsHTML(voteData)}
-        ${generateMainBarGraphHTML(voteData)}
-        ${generateVoteMethodBreakdownHTML(props, voteData)}
-      `;
+      // Check if we should show candidate list (multi-candidate race) or yes/no (2 candidates)
+      const showCandidateList =
+        contestData &&
+        contestData.candidates.length > 2 &&
+        !contestData.candidates.some((c) => c.candidateName.toUpperCase().includes('YES'));
+
+      if (showCandidateList) {
+        // Multi-candidate race - show candidate list
+        content = `
+          <div class="precinct-name">${title}</div>
+          ${generateCandidateListHTML(contestData)}
+          ${generateVoteMethodBreakdownHTML(props, voteData)}
+        `;
+      } else {
+        // Yes/No or 2-candidate race - show traditional format
+        content = `
+          <div class="precinct-name">${title}</div>
+          ${generateDataColumnsHTML(voteData)}
+          ${generateMainBarGraphHTML(voteData)}
+          ${generateVoteMethodBreakdownHTML(props, voteData)}
+        `;
+      }
     }
 
     infoSection.innerHTML = content;

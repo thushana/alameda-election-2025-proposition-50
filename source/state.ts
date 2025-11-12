@@ -3,7 +3,7 @@
 // ============================================================================
 
 import type { Map, GeoJSON as LeafletGeoJSON, LatLngBounds } from 'leaflet';
-import type { SelectedPrecinct, CityStats, CountyTotals } from './types.js';
+import type { SelectedPrecinct, CityStats, CountyTotals, ContestInfo } from './types.js';
 
 // State object - all state is mutable through this object
 export const state = {
@@ -21,6 +21,8 @@ export const state = {
   voteMethodSectionExpanded: false,
 
   cityDropdownCloseHandler: null as ((e: MouseEvent) => void) | null, // Store close handler reference for cleanup
+
+  contestDropdownCloseHandler: null as ((e: MouseEvent) => void) | null, // Store close handler reference for cleanup
 
   cityStats: {} as CityStats, // Cache for city statistics
 
@@ -53,4 +55,10 @@ export const state = {
     inPersonNo: 0,
     inPersonYesPct: 0,
   } as CountyTotals,
+
+  // Multi-contest support
+  selectedContestId: null as number | null,
+  selectedElection: null as string | null, // e.g., "2024-11"
+  contests: {} as Record<number, ContestInfo>,
+  countyTotalsByContest: {} as Record<number, CountyTotals>,
 };

@@ -60,6 +60,33 @@ export interface Percentage {
   no: number;
 }
 
+// Multi-candidate support
+export interface CandidateVotes {
+  candidateId: number;
+  candidateName: string;
+  votes: number;
+  percentage: number;
+}
+
+export interface ContestResults {
+  contestId: number;
+  contestName: string;
+  candidates: CandidateVotes[];
+  totalVotes: number;
+  vote_method?: {
+    mail_in: {
+      candidates: CandidateVotes[];
+      totalVotes: number;
+      percentage_of_total: number;
+    };
+    in_person: {
+      candidates: CandidateVotes[];
+      totalVotes: number;
+      percentage_of_total: number;
+    };
+  };
+}
+
 export interface VoteMethodVotes {
   votes: Votes;
   percentage: Percentage;
@@ -77,9 +104,10 @@ export interface FeatureProperties {
   ID?: string | number;
   city?: string;
   neighborhood?: string;
-  votes?: Votes;
-  percentage?: Percentage;
-  vote_method?: VoteMethod;
+  votes?: Votes; // Legacy yes/no format
+  percentage?: Percentage; // Legacy yes/no format
+  vote_method?: VoteMethod; // Legacy yes/no format
+  contests?: Record<number, ContestResults>; // New multi-contest format
   aggregated?: boolean;
   count?: number;
   cityName?: string;
@@ -132,6 +160,8 @@ export interface HashParams {
   mode: 'shaded' | 'proportional' | null;
   city: string | null;
   precincts: string | null;
+  election?: string | null; // e.g., "2024-11"
+  contest?: number | null; // Contest ID
 }
 
 export interface VoteData {
@@ -167,7 +197,17 @@ export type MapMode = 'shaded' | 'proportional';
 // Result data structure from results.json
 export interface ResultData {
   precinct?: string | number;
-  votes?: Votes;
-  percentage?: Percentage;
-  vote_method?: VoteMethod;
+  votes?: Votes; // Legacy yes/no format
+  percentage?: Percentage; // Legacy yes/no format
+  vote_method?: VoteMethod; // Legacy yes/no format
+  contests?: Record<number, ContestResults>; // New multi-contest format
+}
+
+// Contest metadata
+export interface ContestInfo {
+  contestId: number;
+  contestName: string;
+  voteFor: number; // Number of candidates to vote for
+  numOfRanks: number; // For ranked choice voting
+  districtId?: number;
 }

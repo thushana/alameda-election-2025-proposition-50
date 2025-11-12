@@ -16,22 +16,7 @@ const { parser } = streamJson as { parser: StreamJsonParser };
 const { pick } = pickPkg as { pick: StreamJsonPick };
 const { streamArray } = streamArrayPkg as { streamArray: StreamJsonStreamArray };
 
-type VoteCounts = { yes: number; no: number; total: number };
-type AmbiguousCounts = { yes: number; no: number };
-type NonVoteCounts = { yes: number; no: number };
-type DensityStats = { yes: { sum: number; count: number }; no: { sum: number; count: number } };
-type MethodVotes = Record<number, VoteCounts>;
-type MethodAmbiguous = Record<number, AmbiguousCounts>;
-type MethodNonVotes = Record<number, NonVoteCounts>;
-type MethodDensities = Record<number, DensityStats>;
-type PrecinctTotals = Record<string, VoteCounts>;
-type PrecinctMethods = Record<string, MethodVotes>;
-type PrecinctAmbiguous = Record<string, AmbiguousCounts>;
-type PrecinctNonVotes = Record<string, NonVoteCounts>;
-type PrecinctDensities = Record<string, DensityStats>;
-type PrecinctMethodDensities = Record<string, MethodDensities>;
-type PrecinctMethodAmbiguous = Record<string, MethodAmbiguous>;
-type PrecinctMethodNonVotes = Record<string, MethodNonVotes>;
+// Old types removed - now using new multi-contest structures
 
 // CVR data structure types
 interface CvrMark {
@@ -73,6 +58,59 @@ function ensureDirExists(dirPath: string): void {
   if (!fs.existsSync(dirPath) || !fs.statSync(dirPath).isDirectory()) {
     throw new Error(`Input path is not a directory or does not exist: ${dirPath}`);
   }
+}
+
+// Extract election date from folder path for file naming (e.g., "2024-11" or "2025-11")
+function extractElectionDate(folderPath: string): string | null {
+  const folderName = path.basename(folderPath);
+  // Try to extract from folder name patterns like "CVR Export - November 5, 2024 General Election"
+  const yearMatch = folderName.match(/(\d{4})/);
+  const monthMatch = folderName.match(
+    /November|Nov|November|December|Dec|January|Jan|February|Feb|March|Mar|April|Apr|May|June|Jun|July|Jul|August|Aug|September|Sep|October|Oct/i
+  );
+
+  if (yearMatch) {
+    const year = yearMatch[1];
+    let month = '11'; // Default to November
+    if (monthMatch) {
+      const monthName = monthMatch[0].toLowerCase();
+      const monthMap: Record<string, string> = {
+        january: '01',
+        jan: '01',
+        february: '02',
+        feb: '02',
+        march: '03',
+        mar: '03',
+        april: '04',
+        apr: '04',
+        may: '05',
+        june: '06',
+        jun: '06',
+        july: '07',
+        jul: '07',
+        august: '08',
+        aug: '08',
+        september: '09',
+        sep: '09',
+        october: '10',
+        oct: '10',
+        november: '11',
+        nov: '11',
+        december: '12',
+        dec: '12',
+      };
+      month = monthMap[monthName] || '11';
+    }
+    return `${year}-${month}`;
+  }
+
+  // Fallback: try CVR_Export_YYYYMMDDHHMMSS pattern
+  const match = folderName.match(/CVR_Export_(\d{4})(\d{2})/);
+  if (match) {
+    return `${match[1]}-${match[2]}`;
+  }
+
+  return null;
 }
 
 // Extract date from folder path (e.g., CVR_Export_20251107150911 -> Nov 7, 2025)
@@ -246,14 +284,31 @@ function stringifyWithDecimals(obj: unknown, indent = 2): string {
   return result.join('\n');
 }
 
-function resolveCvrFile(inputDir: string): string {
+function resolveCvrFiles(inputDir: string): string[] {
   const direct = path.join(inputDir, 'CvrExport.json');
-  if (fs.existsSync(direct)) return direct;
+  if (fs.existsSync(direct)) return [direct];
+
+  // Check for single CVR_Export*.json file
   const files = fs.readdirSync(inputDir);
-  const alt = files.find((f: string) => /^CVR_Export.*\.json$/i.test(f));
-  if (alt) return path.join(inputDir, alt);
+  const singleAlt = files.find(
+    (f: string) => /^CVR_Export.*\.json$/i.test(f) && !/^CvrExport_\d+\.json$/i.test(f)
+  );
+  if (singleAlt) return [path.join(inputDir, singleAlt)];
+
+  // Check for multiple CvrExport_*.json files
+  const multiFiles = files
+    .filter((f: string) => /^CvrExport_\d+\.json$/i.test(f))
+    .sort((a, b) => {
+      const numA = parseInt(a.match(/\d+/)?.[0] || '0', 10);
+      const numB = parseInt(b.match(/\d+/)?.[0] || '0', 10);
+      return numA - numB;
+    })
+    .map((f: string) => path.join(inputDir, f));
+
+  if (multiFiles.length > 0) return multiFiles;
+
   throw new Error(
-    `Could not find CVR export file. Expected 'CvrExport.json' or 'CVR_Export*.json' in ${inputDir}`
+    `Could not find CVR export file(s). Expected 'CvrExport.json', 'CVR_Export*.json', or 'CvrExport_*.json' files in ${inputDir}`
   );
 }
 
@@ -261,10 +316,7 @@ function safeGetArray<T>(value: unknown): T[] {
   return Array.isArray(value) ? (value as T[]) : [];
 }
 
-function incrementCounts(target: VoteCounts, kind: 'yes' | 'no'): void {
-  target[kind] += 1;
-  target.total += 1;
-}
+// Old incrementCounts function removed - using incrementCandidateVote instead
 
 async function main(): Promise<void> {
   const inputDir = process.argv[2];
@@ -277,10 +329,11 @@ async function main(): Promise<void> {
   ensureDirExists(absoluteInputDir);
 
   // Resolve files
-  const cvrFile = resolveCvrFile(absoluteInputDir);
+  const cvrFiles = resolveCvrFiles(absoluteInputDir);
   const portionManifestPath = path.join(absoluteInputDir, 'PrecinctPortionManifest.json');
   const precinctManifestPath = path.join(absoluteInputDir, 'PrecinctManifest.json');
   const candidateManifestPath = path.join(absoluteInputDir, 'CandidateManifest.json');
+  const contestManifestPath = path.join(absoluteInputDir, 'ContestManifest.json');
   const countingGroupManifestPath = path.join(absoluteInputDir, 'CountingGroupManifest.json');
 
   const requiredFiles = [
@@ -309,19 +362,45 @@ async function main(): Promise<void> {
     List: Array<{ Id: number; Description: string }>;
   }>(countingGroupManifestPath);
 
+  // Load contest manifest if available
+  let contestManifest: {
+    List: Array<{
+      Id: number;
+      Description: string;
+      VoteFor?: number;
+      NumOfRanks?: number;
+      DistrictId?: number;
+    }>;
+  } | null = null;
+  if (fs.existsSync(contestManifestPath)) {
+    contestManifest = readJsonFile<{
+      List: Array<{
+        Id: number;
+        Description: string;
+        VoteFor?: number;
+        NumOfRanks?: number;
+        DistrictId?: number;
+      }>;
+    }>(contestManifestPath);
+    console.log(`Loaded ${contestManifest.List.length} contests from manifest`);
+  }
+
   const portionToPrecinctId = new Map<number, number>(
     portionManifest.List.map((p) => [p.Id, p.PrecinctId])
   );
   const precinctIdToName = new Map<number, string>(
     precinctManifest.List.map((p) => [p.Id, p.Description])
   );
-  const contest1Candidates = candidateManifest.List.filter((c) => c.ContestId === 1).reduce<
-    Record<number, string>
-  >((acc, c) => {
-    acc[c.Id] = c.Description;
-    return acc;
-  }, {});
-  console.log('Contest 1 candidates:', contest1Candidates);
+
+  // Build candidate mappings for all contests
+  const candidatesByContest = new Map<number, Map<number, string>>();
+  for (const candidate of candidateManifest.List) {
+    if (!candidatesByContest.has(candidate.ContestId)) {
+      candidatesByContest.set(candidate.ContestId, new Map());
+    }
+    candidatesByContest.get(candidate.ContestId)!.set(candidate.Id, candidate.Description);
+  }
+  console.log(`Loaded candidates for ${candidatesByContest.size} contests`);
 
   const countingGroups = countingGroupManifest.List.reduce<Record<number, string>>((acc, cg) => {
     acc[cg.Id] = cg.Description;
@@ -329,402 +408,400 @@ async function main(): Promise<void> {
   }, {});
   console.log('Counting groups:', countingGroups);
 
-  const precinctTotals: PrecinctTotals = {};
-  const precinctMethods: PrecinctMethods = {};
-  const precinctDensities: PrecinctDensities = {};
-  const precinctMethodDensities: PrecinctMethodDensities = {};
-  const precinctAmbiguous: PrecinctAmbiguous = {};
-  const precinctNonVotes: PrecinctNonVotes = {};
-  const precinctMethodAmbiguous: PrecinctMethodAmbiguous = {};
-  const precinctMethodNonVotes: PrecinctMethodNonVotes = {};
+  // New data structures: precinct -> contest -> candidate -> votes
+  type CandidateVoteCounts = Record<number, number>; // candidateId -> vote count
+  type ContestVotes = Record<number, CandidateVoteCounts>; // contestId -> candidate votes
+  type PrecinctContestVotes = Record<string, ContestVotes>; // precinct -> contest votes
+  // For method-specific votes: precinct -> methodId -> contestId -> candidate votes
+  type PrecinctMethodContestVotes = Record<string, Record<number, ContestVotes>>;
+
+  const precinctContestVotes: PrecinctContestVotes = {};
+  const precinctMethodContestVotes: PrecinctMethodContestVotes = {};
 
   // Helpers to initialize structures on-demand
-  function ensurePrecinct(precinctName: string): void {
-    if (!precinctTotals[precinctName]) {
-      precinctTotals[precinctName] = { yes: 0, no: 0, total: 0 };
+  function ensurePrecinctContest(precinctName: string, contestId: number): void {
+    if (!precinctContestVotes[precinctName]) {
+      precinctContestVotes[precinctName] = {};
     }
-    if (!precinctMethods[precinctName]) {
-      precinctMethods[precinctName] = {};
-    }
-    if (!precinctDensities[precinctName]) {
-      precinctDensities[precinctName] = { yes: { sum: 0, count: 0 }, no: { sum: 0, count: 0 } };
-    }
-    if (!precinctMethodDensities[precinctName]) {
-      precinctMethodDensities[precinctName] = {};
-    }
-    if (!precinctAmbiguous[precinctName]) {
-      precinctAmbiguous[precinctName] = { yes: 0, no: 0 };
-    }
-    if (!precinctNonVotes[precinctName]) {
-      precinctNonVotes[precinctName] = { yes: 0, no: 0 };
-    }
-    if (!precinctMethodAmbiguous[precinctName]) {
-      precinctMethodAmbiguous[precinctName] = {};
-    }
-    if (!precinctMethodNonVotes[precinctName]) {
-      precinctMethodNonVotes[precinctName] = {};
-    }
-  }
-  function ensureMethod(precinctName: string, methodId: number): void {
-    const methods = precinctMethods[precinctName];
-    if (!methods[methodId]) {
-      methods[methodId] = { yes: 0, no: 0, total: 0 };
-    }
-    const methodDensities = precinctMethodDensities[precinctName];
-    if (!methodDensities[methodId]) {
-      methodDensities[methodId] = { yes: { sum: 0, count: 0 }, no: { sum: 0, count: 0 } };
-    }
-    const methodAmbiguous = precinctMethodAmbiguous[precinctName];
-    if (!methodAmbiguous[methodId]) {
-      methodAmbiguous[methodId] = { yes: 0, no: 0 };
-    }
-    const methodNonVotes = precinctMethodNonVotes[precinctName];
-    if (!methodNonVotes[methodId]) {
-      methodNonVotes[methodId] = { yes: 0, no: 0 };
-    }
-  }
-  function addDensity(target: DensityStats, kind: 'yes' | 'no', density: number | undefined): void {
-    if (typeof density === 'number') {
-      target[kind].sum += density;
-      target[kind].count += 1;
+    if (!precinctContestVotes[precinctName][contestId]) {
+      precinctContestVotes[precinctName][contestId] = {};
     }
   }
 
-  console.log('Processing CVR export (streaming)...');
+  function ensurePrecinctMethodContest(
+    precinctName: string,
+    methodId: number,
+    contestId: number
+  ): void {
+    if (!precinctMethodContestVotes[precinctName]) {
+      precinctMethodContestVotes[precinctName] = {};
+    }
+    if (!precinctMethodContestVotes[precinctName][methodId]) {
+      precinctMethodContestVotes[precinctName][methodId] = {};
+    }
+    if (!precinctMethodContestVotes[precinctName][methodId][contestId]) {
+      precinctMethodContestVotes[precinctName][methodId][contestId] = {};
+    }
+  }
+
+  function incrementCandidateVote(target: CandidateVoteCounts, candidateId: number): void {
+    if (!target[candidateId]) {
+      target[candidateId] = 0;
+    }
+    target[candidateId] += 1;
+  }
+
+  console.log(`Processing ${cvrFiles.length} CVR export file(s) (streaming)...`);
   let processed = 0;
 
-  await new Promise<void>((resolve, reject) => {
-    const source = fs.createReadStream(cvrFile);
-    const p = parser();
-    const sessionsPicker = pick({ filter: 'Sessions' });
-    const sessionsArray = streamArray();
+  // Process each CVR file
+  for (const cvrFile of cvrFiles) {
+    console.log(`Processing ${path.basename(cvrFile)}...`);
+    await new Promise<void>((resolve, reject) => {
+      const source = fs.createReadStream(cvrFile);
+      const p = parser();
+      const sessionsPicker = pick({ filter: 'Sessions' });
+      const sessionsArray = streamArray();
 
-    sessionsArray.on('data', ({ value }: CvrStreamValue) => {
-      processed += 1;
-      if (processed % 100000 === 0) {
-        console.log(`  Processed ${processed.toLocaleString()} records...`);
-      }
+      sessionsArray.on('data', ({ value }: CvrStreamValue) => {
+        processed += 1;
+        if (processed % 100000 === 0) {
+          console.log(`  Processed ${processed.toLocaleString()} records...`);
+        }
 
-      const record: CvrRecord = value ?? {};
-      const original: CvrOriginal = (record.Original ?? {}) as CvrOriginal;
-      const cards = safeGetArray<CvrCard>(original.Cards);
-      const precinctPortionId = original.PrecinctPortionId;
-      const countingGroupId = record.CountingGroupId;
+        const record: CvrRecord = value ?? {};
+        const original: CvrOriginal = (record.Original ?? {}) as CvrOriginal;
+        const cards = safeGetArray<CvrCard>(original.Cards);
+        const precinctPortionId = original.PrecinctPortionId;
+        const countingGroupId = record.CountingGroupId;
 
-      if (!precinctPortionId) return;
-      const precinctId = portionToPrecinctId.get(precinctPortionId);
-      if (!precinctId) return;
-      const precinctName = precinctIdToName.get(precinctId);
-      if (!precinctName) return;
+        if (!precinctPortionId) return;
+        const precinctId = portionToPrecinctId.get(precinctPortionId);
+        if (!precinctId) return;
+        const precinctName = precinctIdToName.get(precinctId);
+        if (!precinctName) return;
 
-      for (const card of cards) {
-        const contests = safeGetArray<CvrContest>(card.Contests);
-        for (const contest of contests) {
-          const contestId = contest?.Id;
-          if (contestId !== 1) continue;
-          const marks = safeGetArray<CvrMark>(contest.Marks);
-          if (marks.length === 0) continue;
+        for (const card of cards) {
+          const contests = safeGetArray<CvrContest>(card.Contests);
+          for (const contest of contests) {
+            const contestId = contest?.Id;
+            if (!contestId) continue;
 
-          ensurePrecinct(precinctName);
-          if (typeof countingGroupId === 'number') {
-            ensureMethod(precinctName, countingGroupId);
-          }
+            // Skip if we don't have candidate mappings for this contest
+            if (!candidatesByContest.has(contestId)) continue;
 
-          for (const mark of marks) {
-            if (!mark || typeof mark !== 'object') continue;
-            const candidateId = mark.CandidateId as number | undefined;
-            const markDensity = mark.MarkDensity as number | undefined;
-            const isVote = mark.IsVote === true;
-            const isAmbiguous = mark.IsAmbiguous === true;
+            const marks = safeGetArray<CvrMark>(contest.Marks);
+            if (marks.length === 0) continue;
 
-            if (candidateId === 2) {
-              // Yes vote
-              if (isVote) {
-                incrementCounts(precinctTotals[precinctName], 'yes');
-                addDensity(precinctDensities[precinctName], 'yes', markDensity);
-                if (isAmbiguous) {
-                  precinctAmbiguous[precinctName].yes += 1;
-                }
+            ensurePrecinctContest(precinctName, contestId);
+            if (typeof countingGroupId === 'number') {
+              ensurePrecinctMethodContest(precinctName, countingGroupId, contestId);
+            }
+
+            for (const mark of marks) {
+              if (!mark || typeof mark !== 'object') continue;
+              const candidateId = mark.CandidateId as number | undefined;
+              const isVote = mark.IsVote === true;
+
+              if (candidateId && isVote) {
+                // Only count actual votes
+                incrementCandidateVote(precinctContestVotes[precinctName][contestId], candidateId);
                 if (typeof countingGroupId === 'number') {
-                  incrementCounts(precinctMethods[precinctName][countingGroupId], 'yes');
-                  addDensity(
-                    precinctMethodDensities[precinctName][countingGroupId],
-                    'yes',
-                    markDensity
-                  );
-                  if (isAmbiguous) {
-                    precinctMethodAmbiguous[precinctName][countingGroupId].yes += 1;
+                  const methodContestVotes =
+                    precinctMethodContestVotes[precinctName]?.[countingGroupId];
+                  if (methodContestVotes) {
+                    const contestVotes = methodContestVotes[contestId];
+                    if (contestVotes) {
+                      incrementCandidateVote(contestVotes, candidateId);
+                    }
                   }
-                }
-              } else {
-                // Non-vote mark for yes
-                precinctNonVotes[precinctName].yes += 1;
-                if (typeof countingGroupId === 'number') {
-                  precinctMethodNonVotes[precinctName][countingGroupId].yes += 1;
-                }
-              }
-            } else if (candidateId === 1) {
-              // No vote
-              if (isVote) {
-                incrementCounts(precinctTotals[precinctName], 'no');
-                addDensity(precinctDensities[precinctName], 'no', markDensity);
-                if (isAmbiguous) {
-                  precinctAmbiguous[precinctName].no += 1;
-                }
-                if (typeof countingGroupId === 'number') {
-                  incrementCounts(precinctMethods[precinctName][countingGroupId], 'no');
-                  addDensity(
-                    precinctMethodDensities[precinctName][countingGroupId],
-                    'no',
-                    markDensity
-                  );
-                  if (isAmbiguous) {
-                    precinctMethodAmbiguous[precinctName][countingGroupId].no += 1;
-                  }
-                }
-              } else {
-                // Non-vote mark for no
-                precinctNonVotes[precinctName].no += 1;
-                if (typeof countingGroupId === 'number') {
-                  precinctMethodNonVotes[precinctName][countingGroupId].no += 1;
                 }
               }
             }
           }
         }
-      }
+      });
+
+      sessionsArray.on('error', reject);
+      p.on('error', reject);
+      sessionsPicker.on('error', reject);
+      source.on('error', reject);
+
+      sessionsArray.on('end', resolve);
+
+      pipeline(source, p, sessionsPicker, sessionsArray, (err: unknown) => {
+        if (err) reject(err);
+      });
     });
-
-    sessionsArray.on('error', reject);
-    p.on('error', reject);
-    sessionsPicker.on('error', reject);
-    source.on('error', reject);
-
-    sessionsArray.on('end', resolve);
-
-    pipeline(source, p, sessionsPicker, sessionsArray, (err: unknown) => {
-      if (err) reject(err);
-    });
-  });
-
-  console.log(`\nFound votes in ${Object.keys(precinctTotals).length} precincts`);
-
-  // Include any precincts appearing in data with zero totals and also all from manifest
-  const allManifestPrecincts = new Set<string>(Array.from(precinctIdToName.values()));
-  for (const precinctName of allManifestPrecincts) {
-    if (!precinctTotals[precinctName]) {
-      precinctTotals[precinctName] = { yes: 0, no: 0, total: 0 };
-    }
-    if (!precinctMethods[precinctName]) {
-      precinctMethods[precinctName] = {};
-    }
-    if (!precinctDensities[precinctName]) {
-      precinctDensities[precinctName] = { yes: { sum: 0, count: 0 }, no: { sum: 0, count: 0 } };
-    }
-    if (!precinctMethodDensities[precinctName]) {
-      precinctMethodDensities[precinctName] = {};
-    }
-    if (!precinctAmbiguous[precinctName]) {
-      precinctAmbiguous[precinctName] = { yes: 0, no: 0 };
-    }
-    if (!precinctNonVotes[precinctName]) {
-      precinctNonVotes[precinctName] = { yes: 0, no: 0 };
-    }
-    if (!precinctMethodAmbiguous[precinctName]) {
-      precinctMethodAmbiguous[precinctName] = {};
-    }
-    if (!precinctMethodNonVotes[precinctName]) {
-      precinctMethodNonVotes[precinctName] = {};
-    }
   }
 
+  const precinctsWithVotes = new Set<string>(Object.keys(precinctContestVotes));
+  console.log(`\nFound votes in ${precinctsWithVotes.size} precincts`);
+
+  // Get all precincts from manifest
+  const allManifestPrecincts = new Set<string>(Array.from(precinctIdToName.values()));
   console.log(`Total precincts in manifest: ${allManifestPrecincts.size}`);
-  console.log(`Total precincts in results: ${Object.keys(precinctTotals).length}`);
+
+  // Get all contest IDs that have votes
+  const allContestIds = new Set<number>();
+  for (const precinctName of Object.keys(precinctContestVotes)) {
+    for (const contestId of Object.keys(precinctContestVotes[precinctName]).map(Number)) {
+      allContestIds.add(contestId);
+    }
+  }
+  console.log(`Found ${allContestIds.size} contests with votes`);
+
+  // Build contest name map
+  const contestNameMap = new Map<number, string>();
+  if (contestManifest) {
+    for (const contest of contestManifest.List) {
+      contestNameMap.set(contest.Id, contest.Description);
+    }
+  }
 
   type OutputItem = {
     precinct: string;
-    votes: VoteCounts;
-    percentage: { yes: number; no: number };
-    mark_density: {
-      yes: number | null;
-      no: number | null;
-    };
-    ambiguous: AmbiguousCounts;
-    non_votes: NonVoteCounts;
-    vote_method: {
-      mail_in: {
-        votes: VoteCounts;
-        percentage: { yes: number; no: number };
-        percentage_of_total: number;
-        mark_density: {
-          yes: number | null;
-          no: number | null;
+    contests: Record<
+      number,
+      {
+        contestId: number;
+        contestName: string;
+        candidates: Array<{
+          candidateId: number;
+          candidateName: string;
+          votes: number;
+          percentage: number;
+        }>;
+        totalVotes: number;
+        vote_method?: {
+          mail_in: {
+            candidates: Array<{
+              candidateId: number;
+              candidateName: string;
+              votes: number;
+              percentage: number;
+            }>;
+            totalVotes: number;
+            percentage_of_total: number;
+          };
+          in_person: {
+            candidates: Array<{
+              candidateId: number;
+              candidateName: string;
+              votes: number;
+              percentage: number;
+            }>;
+            totalVotes: number;
+            percentage_of_total: number;
+          };
         };
-        ambiguous: AmbiguousCounts;
-        non_votes: NonVoteCounts;
-      };
-      in_person: {
-        votes: VoteCounts;
-        percentage: { yes: number; no: number };
-        percentage_of_total: number;
-        mark_density: {
-          yes: number | null;
-          no: number | null;
-        };
-        ambiguous: AmbiguousCounts;
-        non_votes: NonVoteCounts;
-      };
-    };
+      }
+    >;
   };
 
   const results: OutputItem[] = [];
-  const precinctNames = Object.keys(precinctTotals).sort((a, b) => (a < b ? -1 : a > b ? 1 : 0));
+  const precinctNames = Array.from(allManifestPrecincts).sort((a, b) =>
+    a < b ? -1 : a > b ? 1 : 0
+  );
+
   for (const precinctName of precinctNames) {
-    const totals = precinctTotals[precinctName];
-    const total = totals.total;
-    const yesCount = totals.yes;
-    const noCount = totals.no;
+    const precinctContests: Record<
+      number,
+      {
+        contestId: number;
+        contestName: string;
+        candidates: Array<{
+          candidateId: number;
+          candidateName: string;
+          votes: number;
+          percentage: number;
+        }>;
+        totalVotes: number;
+        vote_method?: {
+          mail_in?: {
+            candidates: Array<{
+              candidateId: number;
+              candidateName: string;
+              votes: number;
+              percentage: number;
+            }>;
+            totalVotes: number;
+            percentage_of_total: number;
+          };
+          in_person?: {
+            candidates: Array<{
+              candidateId: number;
+              candidateName: string;
+              votes: number;
+              percentage: number;
+            }>;
+            totalVotes: number;
+            percentage_of_total: number;
+          };
+        };
+      }
+    > = {};
+    const contestVotes = precinctContestVotes[precinctName] || {};
 
-    const yesPct = total > 0 ? (yesCount / total) * 100 : 0;
-    const noPct = total > 0 ? (noCount / total) * 100 : 0;
+    // Process each contest for this precinct
+    for (const contestId of allContestIds) {
+      const candidateVotes = contestVotes[contestId] || {};
+      const contestCandidates = candidatesByContest.get(contestId);
+      if (!contestCandidates) continue;
 
-    const methodVotes = precinctMethods[precinctName] || {};
-    const mailIn = methodVotes[2] ?? { yes: 0, no: 0, total: 0 };
-    const inPerson = methodVotes[1] ?? { yes: 0, no: 0, total: 0 };
+      // Calculate total votes for this contest
+      let totalVotes = 0;
+      for (const voteCount of Object.values(candidateVotes)) {
+        totalVotes += voteCount;
+      }
 
-    const mailInTotal = mailIn.total;
-    const mailInYesPct = mailInTotal > 0 ? (mailIn.yes / mailInTotal) * 100 : 0;
-    const mailInNoPct = mailInTotal > 0 ? (mailIn.no / mailInTotal) * 100 : 0;
+      // Build candidate results
+      const candidates: Array<{
+        candidateId: number;
+        candidateName: string;
+        votes: number;
+        percentage: number;
+      }> = [];
+      for (const [candidateId, candidateName] of contestCandidates.entries()) {
+        const votes = candidateVotes[candidateId] || 0;
+        const percentage = totalVotes > 0 ? (votes / totalVotes) * 100 : 0;
+        candidates.push({
+          candidateId,
+          candidateName,
+          votes,
+          percentage: formatPercentage(percentage),
+        });
+      }
+      // Sort by votes descending
+      candidates.sort((a, b) => b.votes - a.votes);
 
-    const inPersonTotal = inPerson.total;
-    const inPersonYesPct = inPersonTotal > 0 ? (inPerson.yes / inPersonTotal) * 100 : 0;
-    const inPersonNoPct = inPersonTotal > 0 ? (inPerson.no / inPersonTotal) * 100 : 0;
+      const contestName = contestNameMap.get(contestId) || `Contest ${contestId}`;
 
-    const mailInPctOfTotal = total > 0 ? (mailInTotal / total) * 100 : 0;
-    const inPersonPctOfTotal = total > 0 ? (inPersonTotal / total) * 100 : 0;
+      // Process vote method data
+      const methodVotes = precinctMethodContestVotes[precinctName] || {};
+      const mailInMethod = methodVotes[2]; // CountingGroupId 2 = mail in
+      const inPersonMethod = methodVotes[1]; // CountingGroupId 1 = in person
 
-    // Calculate average mark densities
-    const densities = precinctDensities[precinctName] ?? {
-      yes: { sum: 0, count: 0 },
-      no: { sum: 0, count: 0 },
-    };
-    const avgYesDensity = densities.yes.count > 0 ? densities.yes.sum / densities.yes.count : null;
-    const avgNoDensity = densities.no.count > 0 ? densities.no.sum / densities.no.count : null;
+      let voteMethod:
+        | {
+            mail_in?: {
+              candidates: Array<{
+                candidateId: number;
+                candidateName: string;
+                votes: number;
+                percentage: number;
+              }>;
+              totalVotes: number;
+              percentage_of_total: number;
+            };
+            in_person?: {
+              candidates: Array<{
+                candidateId: number;
+                candidateName: string;
+                votes: number;
+                percentage: number;
+              }>;
+              totalVotes: number;
+              percentage_of_total: number;
+            };
+          }
+        | undefined = undefined;
+      if (mailInMethod || inPersonMethod) {
+        voteMethod = {};
 
-    const methodDensities = precinctMethodDensities[precinctName] || {};
-    const mailInDensities = methodDensities[2] ?? {
-      yes: { sum: 0, count: 0 },
-      no: { sum: 0, count: 0 },
-    };
-    const inPersonDensities = methodDensities[1] ?? {
-      yes: { sum: 0, count: 0 },
-      no: { sum: 0, count: 0 },
-    };
+        // Mail in
+        if (mailInMethod && mailInMethod[contestId]) {
+          const mailInCandidateVotes = mailInMethod[contestId];
+          let mailInTotal = 0;
+          for (const candidateId of Object.keys(mailInCandidateVotes).map(Number)) {
+            const voteCount = mailInCandidateVotes[candidateId];
+            if (typeof voteCount === 'number') {
+              mailInTotal += voteCount;
+            }
+          }
 
-    const mailInAvgYesDensity =
-      mailInDensities.yes.count > 0 ? mailInDensities.yes.sum / mailInDensities.yes.count : null;
-    const mailInAvgNoDensity =
-      mailInDensities.no.count > 0 ? mailInDensities.no.sum / mailInDensities.no.count : null;
+          const mailInCandidates = Array.from(contestCandidates.entries()).map(
+            ([candidateId, candidateName]) => {
+              const voteCount = mailInCandidateVotes[candidateId];
+              const votes = typeof voteCount === 'number' ? voteCount : 0;
+              const percentage = mailInTotal > 0 ? (votes / mailInTotal) * 100 : 0;
+              return {
+                candidateId,
+                candidateName,
+                votes,
+                percentage: formatPercentage(percentage),
+              };
+            }
+          );
+          mailInCandidates.sort((a, b) => b.votes - a.votes);
 
-    const inPersonAvgYesDensity =
-      inPersonDensities.yes.count > 0
-        ? inPersonDensities.yes.sum / inPersonDensities.yes.count
-        : null;
-    const inPersonAvgNoDensity =
-      inPersonDensities.no.count > 0 ? inPersonDensities.no.sum / inPersonDensities.no.count : null;
+          voteMethod.mail_in = {
+            candidates: mailInCandidates,
+            totalVotes: mailInTotal,
+            percentage_of_total:
+              totalVotes > 0 ? formatPercentage((mailInTotal / totalVotes) * 100) : 0,
+          };
+        }
 
-    const ambiguous = precinctAmbiguous[precinctName] ?? { yes: 0, no: 0 };
-    const nonVotes = precinctNonVotes[precinctName] ?? { yes: 0, no: 0 };
+        // In person
+        if (inPersonMethod && inPersonMethod[contestId]) {
+          const inPersonCandidateVotes = inPersonMethod[contestId];
+          let inPersonTotal = 0;
+          for (const candidateId of Object.keys(inPersonCandidateVotes).map(Number)) {
+            const voteCount = inPersonCandidateVotes[candidateId];
+            if (typeof voteCount === 'number') {
+              inPersonTotal += voteCount;
+            }
+          }
 
-    const methodAmbiguous = precinctMethodAmbiguous[precinctName] || {};
-    const methodNonVotes = precinctMethodNonVotes[precinctName] || {};
-    const mailInAmbiguous = methodAmbiguous[2] ?? { yes: 0, no: 0 };
-    const mailInNonVotes = methodNonVotes[2] ?? { yes: 0, no: 0 };
-    const inPersonAmbiguous = methodAmbiguous[1] ?? { yes: 0, no: 0 };
-    const inPersonNonVotes = methodNonVotes[1] ?? { yes: 0, no: 0 };
+          const inPersonCandidates = Array.from(contestCandidates.entries()).map(
+            ([candidateId, candidateName]) => {
+              const voteCount = inPersonCandidateVotes[candidateId];
+              const votes = typeof voteCount === 'number' ? voteCount : 0;
+              const percentage = inPersonTotal > 0 ? (votes / inPersonTotal) * 100 : 0;
+              return {
+                candidateId,
+                candidateName,
+                votes,
+                percentage: formatPercentage(percentage),
+              };
+            }
+          );
+          inPersonCandidates.sort((a, b) => b.votes - a.votes);
 
-    results.push({
-      precinct: precinctName,
-      votes: { yes: yesCount, no: noCount, total },
-      percentage: { yes: formatPercentage(yesPct), no: formatPercentage(noPct) },
-      mark_density: {
-        yes: avgYesDensity !== null ? formatPercentage(avgYesDensity) : null,
-        no: avgNoDensity !== null ? formatPercentage(avgNoDensity) : null,
-      },
-      ambiguous,
-      non_votes: nonVotes,
-      vote_method: {
-        mail_in: {
-          votes: { yes: mailIn.yes, no: mailIn.no, total: mailInTotal },
-          percentage: {
-            yes: formatPercentage(mailInYesPct),
-            no: formatPercentage(mailInNoPct),
-          },
-          percentage_of_total: formatPercentage(mailInPctOfTotal),
-          mark_density: {
-            yes: mailInAvgYesDensity !== null ? formatPercentage(mailInAvgYesDensity) : null,
-            no: mailInAvgNoDensity !== null ? formatPercentage(mailInAvgNoDensity) : null,
-          },
-          ambiguous: mailInAmbiguous,
-          non_votes: mailInNonVotes,
-        },
-        in_person: {
-          votes: { yes: inPerson.yes, no: inPerson.no, total: inPersonTotal },
-          percentage: {
-            yes: formatPercentage(inPersonYesPct),
-            no: formatPercentage(inPersonNoPct),
-          },
-          percentage_of_total: formatPercentage(inPersonPctOfTotal),
-          mark_density: {
-            yes: inPersonAvgYesDensity !== null ? formatPercentage(inPersonAvgYesDensity) : null,
-            no: inPersonAvgNoDensity !== null ? formatPercentage(inPersonAvgNoDensity) : null,
-          },
-          ambiguous: inPersonAmbiguous,
-          non_votes: inPersonNonVotes,
-        },
-      },
-    });
+          voteMethod.in_person = {
+            candidates: inPersonCandidates,
+            totalVotes: inPersonTotal,
+            percentage_of_total:
+              totalVotes > 0 ? formatPercentage((inPersonTotal / totalVotes) * 100) : 0,
+          };
+        }
+      }
+
+      precinctContests[contestId] = {
+        contestId,
+        contestName,
+        candidates,
+        totalVotes,
+        vote_method: voteMethod,
+      };
+    }
+
+    // Only include precinct if it has at least one contest with votes
+    if (Object.keys(precinctContests).length > 0) {
+      results.push({
+        precinct: precinctName,
+        contests: precinctContests,
+      });
+    }
   }
 
-  const outputPath = path.resolve(process.cwd(), 'results.json');
+  // Determine output filename
+  const electionDate = extractElectionDate(absoluteInputDir);
+  const outputFilename = electionDate ? `results-${electionDate}.json` : 'results.json';
+  const outputPath = path.resolve(process.cwd(), outputFilename);
   fs.writeFileSync(outputPath, stringifyWithDecimals(results), 'utf-8');
   console.log(`\nResults saved to ${outputPath}`);
-
-  // Analyze mark density differences between yes and no
-  console.log('\n=== Mark Density Analysis ===');
-  let totalYesDensity = 0;
-  let totalYesCount = 0;
-  let totalNoDensity = 0;
-  let totalNoCount = 0;
-
-  for (const precinctName of Object.keys(precinctDensities)) {
-    const densities = precinctDensities[precinctName];
-    totalYesDensity += densities.yes.sum;
-    totalYesCount += densities.yes.count;
-    totalNoDensity += densities.no.sum;
-    totalNoCount += densities.no.count;
-  }
-
-  const overallYesAvg = totalYesCount > 0 ? totalYesDensity / totalYesCount : null;
-  const overallNoAvg = totalNoCount > 0 ? totalNoDensity / totalNoCount : null;
-
-  if (overallYesAvg !== null && overallNoAvg !== null) {
-    console.log(`Overall average mark density:`);
-    console.log(`  Yes votes: ${overallYesAvg.toFixed(2)}`);
-    console.log(`  No votes:  ${overallNoAvg.toFixed(2)}`);
-    console.log(`  Difference: ${(overallYesAvg - overallNoAvg).toFixed(2)}`);
-    if (overallYesAvg > overallNoAvg) {
-      console.log(
-        `  → Yes votes have ${((overallYesAvg / overallNoAvg - 1) * 100).toFixed(2)}% higher density`
-      );
-    } else {
-      console.log(
-        `  → No votes have ${((overallNoAvg / overallYesAvg - 1) * 100).toFixed(2)}% higher density`
-      );
-    }
-  } else {
-    console.log('Insufficient data for mark density analysis');
-  }
 
   // Extract date from folder path and update README and index.html
   const dateInfo = extractDateFromPath(absoluteInputDir);

@@ -3,6 +3,7 @@
 // ============================================================================
 
 import type { FeatureProperties, GeoJSONFeature } from './types.js';
+import { state } from './state.js';
 
 // Helper function to extract precinct ID from properties
 export function getPrecinctId(props: FeatureProperties): string | number | null {
@@ -19,11 +20,32 @@ export function getPrecinctId(props: FeatureProperties): string | number | null 
 
 // Helper function to get yes percentage from properties
 export function getYesPercentage(props: FeatureProperties): number | null {
+  // Try new format first (contests)
+  if (props.contests && state.selectedContestId && props.contests[state.selectedContestId]) {
+    const contest = props.contests[state.selectedContestId];
+    // Check if it's a yes/no contest
+    const yesCandidate = contest.candidates.find((c) =>
+      c.candidateName.toUpperCase().includes('YES')
+    );
+    if (yesCandidate) {
+      return yesCandidate.percentage;
+    }
+    // For multi-candidate races, return top candidate's percentage
+    if (contest.candidates.length > 0) {
+      return contest.candidates[0].percentage;
+    }
+  }
+  // Fall back to legacy format
   return props.percentage && props.percentage.yes !== undefined ? props.percentage.yes : null;
 }
 
 // Helper function to get vote count from properties
 export function getVoteCount(props: FeatureProperties): number {
+  // Try new format first (contests)
+  if (props.contests && state.selectedContestId && props.contests[state.selectedContestId]) {
+    return props.contests[state.selectedContestId].totalVotes;
+  }
+  // Fall back to legacy format
   return props.votes && props.votes.total ? props.votes.total : 0;
 }
 

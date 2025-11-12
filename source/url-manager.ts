@@ -26,6 +26,8 @@ export function parseHashParams(): HashParams {
     mode: null,
     city: null,
     precincts: null,
+    election: null,
+    contest: null,
   };
 
   // Mode synonyms: choropleth -> shaded, bubble -> proportional
@@ -41,6 +43,15 @@ export function parseHashParams(): HashParams {
     if (parts[i] === 'mode' && i + 1 < parts.length) {
       params.mode = normalizeMode(parts[i + 1]);
       i++;
+    } else if (parts[i] === 'election' && i + 1 < parts.length) {
+      params.election = parts[i + 1];
+      i++;
+    } else if (parts[i] === 'contest' && i + 1 < parts.length) {
+      const contestId = parseInt(parts[i + 1], 10);
+      if (!isNaN(contestId)) {
+        params.contest = contestId;
+      }
+      i++;
     } else if (parts[i] === 'city' && i + 1 < parts.length) {
       params.city = parts[i + 1];
       i++;
@@ -55,6 +66,16 @@ export function parseHashParams(): HashParams {
 
 export function buildHashParams(params: HashParams): string {
   const pathParts: string[] = [];
+
+  // Add election if present
+  if (params.election) {
+    pathParts.push('election', params.election);
+  }
+
+  // Add contest if present
+  if (params.contest !== null && params.contest !== undefined) {
+    pathParts.push('contest', params.contest.toString());
+  }
 
   // Only include mode if it's not the default 'shaded'
   if (params.mode && params.mode !== 'shaded') {
