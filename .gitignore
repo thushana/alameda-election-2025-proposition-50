@@ -20,3 +20,6 @@ scripts/*.js
 # OS
 .DS_Store
 Thumbs.db
+cvr-data.db
+cvr-data.db-shm
+cvr-data.db-wal
