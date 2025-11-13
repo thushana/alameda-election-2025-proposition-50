@@ -53,10 +53,10 @@ function loadData() {
   const hashParams = parseHashParams();
 
   // Determine which results file and precinct file to load
-  let resultsFilename = 'results.json'; // Default for backward compatibility
+  let resultsFilename = 'data/results/results.json'; // Default for backward compatibility
   let precinctFilename = 'precincts_consolidated.geojson'; // Default for backward compatibility
   if (hashParams.election) {
-    resultsFilename = `results-${hashParams.election}.json`;
+    resultsFilename = `data/results/results-${hashParams.election}.json`;
     precinctFilename = `precincts-${hashParams.election}.geojson`;
     state.selectedElection = hashParams.election;
   } else {
@@ -89,9 +89,11 @@ function loadData() {
     fetch(resultsFilename).then((response) => {
       if (!response.ok) {
         // Fallback to default if election-specific file doesn't exist
-        if (resultsFilename !== 'results.json') {
-          console.warn(`Could not load ${resultsFilename}, falling back to results.json`);
-          return fetch('results.json').then((r) => {
+        if (resultsFilename !== 'data/results/results.json') {
+          console.warn(
+            `Could not load ${resultsFilename}, falling back to data/results/results.json`
+          );
+          return fetch('data/results/results.json').then((r) => {
             if (!r.ok) {
               throw new Error(`Could not load results file: ` + r.status + ' ' + r.statusText);
             }
@@ -605,7 +607,7 @@ function loadData() {
       alert(
         'Error loading map data: ' +
           error.message +
-          '\n\nMake sure precincts_consolidated.geojson and results.json are in the same directory as this HTML file and that you are accessing the page through a web server (not file://).'
+          '\n\nMake sure precincts_consolidated.geojson and data/results/results.json are in the correct locations and that you are accessing the page through a web server (not file://).'
       );
     });
 }

@@ -9,7 +9,7 @@ import * as path from 'path';
 import Database from 'better-sqlite3';
 
 async function main(): Promise<void> {
-  const dbPath = process.argv[2] || 'cvr-data.db';
+  const dbPath = process.argv[2] || 'data/database/cvr-data.db';
   const sourceContestId = parseInt(process.argv[3] || '40', 10); // City Council
   const targetContestId = parseInt(process.argv[4] || '1', 10); // Presidential
   const sourceCandidateId = process.argv[5] ? parseInt(process.argv[5], 10) : null;

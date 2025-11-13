@@ -92,25 +92,28 @@ The map uses hash-based routing for clean URLs:
 
 To import new CVR (Cast Voter Record) data:
 
-**Run the import script** with the path to your CVR export folder:
+1. **Place CVR export data** in `data/incoming-vote-data/<election-folder>/` (e.g., `data/incoming-vote-data/2025-11/`)
+   - The folder should contain a CVR export directory (e.g., `CVR_Export_YYYYMMDDHHMMSS/` or `CVR Export - [Election Name]/`)
+   - Each CVR export directory should contain:
+     - `CvrExport.json` (or `CvrExport_*.json` files)
+     - `PrecinctPortionManifest.json`
+     - `PrecinctManifest.json`
+     - `CandidateManifest.json`
+     - `CountingGroupManifest.json`
+
+2. **Run the import script** with the election folder name:
 ```bash
-npm run import:results /path/to/CVR_Export_YYYYMMDDHHMMSS
+npm run import:results <election-folder>
 ```
 
-The folder should contain:
-   - `CvrExport.json` (or `CVR_Export*.json`)
-   - `PrecinctPortionManifest.json`
-   - `PrecinctManifest.json`
-   - `CandidateManifest.json`
-   - `CountingGroupManifest.json`
-
 **The script will**:
+   - Look for CVR export data in `data/incoming-vote-data/<election-folder>/`
    - Stream and process the CVR data
-   - Generate `results.json` with precinct-level vote counts and percentages
-   - Extract the date from the folder name (e.g., `CVR_Export_20251107150911` → Nov 7th, 2025 @ 3:09 PM)
+   - Generate `data/results/results-<election-folder>.json` with precinct-level vote counts and percentages
+   - Extract the date from the CVR export folder name (e.g., `CVR_Export_20251107150911` → Nov 7th, 2025 @ 3:09 PM)
    - Automatically update `README.md` and `index.html` with the extracted date
 
 **Example:**
 ```bash
-npm run import:results /Users/thushan/Downloads/CVR_Export_20251107150911
+npm run import:results 2025-11
 ```

@@ -60,59 +60,6 @@ function ensureDirExists(dirPath: string): void {
   }
 }
 
-// Extract election date from folder path for file naming (e.g., "2024-11" or "2025-11")
-function extractElectionDate(folderPath: string): string | null {
-  const folderName = path.basename(folderPath);
-  // Try to extract from folder name patterns like "CVR Export - November 5, 2024 General Election"
-  const yearMatch = folderName.match(/(\d{4})/);
-  const monthMatch = folderName.match(
-    /November|Nov|November|December|Dec|January|Jan|February|Feb|March|Mar|April|Apr|May|June|Jun|July|Jul|August|Aug|September|Sep|October|Oct/i
-  );
-
-  if (yearMatch) {
-    const year = yearMatch[1];
-    let month = '11'; // Default to November
-    if (monthMatch) {
-      const monthName = monthMatch[0].toLowerCase();
-      const monthMap: Record<string, string> = {
-        january: '01',
-        jan: '01',
-        february: '02',
-        feb: '02',
-        march: '03',
-        mar: '03',
-        april: '04',
-        apr: '04',
-        may: '05',
-        june: '06',
-        jun: '06',
-        july: '07',
-        jul: '07',
-        august: '08',
-        aug: '08',
-        september: '09',
-        sep: '09',
-        october: '10',
-        oct: '10',
-        november: '11',
-        nov: '11',
-        december: '12',
-        dec: '12',
-      };
-      month = monthMap[monthName] || '11';
-    }
-    return `${year}-${month}`;
-  }
-
-  // Fallback: try CVR_Export_YYYYMMDDHHMMSS pattern
-  const match = folderName.match(/CVR_Export_(\d{4})(\d{2})/);
-  if (match) {
-    return `${match[1]}-${match[2]}`;
-  }
-
-  return null;
-}
-
 // Extract date from folder path (e.g., CVR_Export_20251107150911 -> Nov 7, 2025)
 function extractDateFromPath(folderPath: string): {
   dateStr: string;
@@ -316,16 +263,55 @@ function safeGetArray<T>(value: unknown): T[] {
   return Array.isArray(value) ? (value as T[]) : [];
 }
 
+// Find CVR export directory in the election folder
+function findCvrExportDir(electionFolder: string): string {
+  const electionDir = path.resolve(process.cwd(), 'data', 'incoming-vote-data', electionFolder);
+  if (!fs.existsSync(electionDir)) {
+    throw new Error(`Election folder not found: ${electionDir}`);
+  }
+
+  // Look for CVR export directories
+  const entries = fs.readdirSync(electionDir, { withFileTypes: true });
+  const cvrDirs = entries
+    .filter((entry) => entry.isDirectory())
+    .filter((entry) => {
+      const name = entry.name;
+      return (
+        name.startsWith('CVR_Export') ||
+        name.startsWith('CVR Export') ||
+        name.toLowerCase().includes('cvr export')
+      );
+    })
+    .map((entry) => path.join(electionDir, entry.name));
+
+  if (cvrDirs.length === 0) {
+    throw new Error(
+      `No CVR export directory found in ${electionDir}. Expected a directory starting with "CVR_Export" or "CVR Export".`
+    );
+  }
+
+  if (cvrDirs.length > 1) {
+    console.warn(
+      `Multiple CVR export directories found. Using the first one: ${path.basename(cvrDirs[0])}`
+    );
+  }
+
+  return cvrDirs[0];
+}
+
 // Old incrementCounts function removed - using incrementCandidateVote instead
 
 async function main(): Promise<void> {
-  const inputDir = process.argv[2];
-  if (!inputDir) {
-    console.error('Usage: node js/results-import.js /absolute/path/to/CVR_Export_YYYYMMDDHHMMSS');
+  const electionFolder = process.argv[2];
+  if (!electionFolder) {
+    console.error('Usage: tsx scripts/results-import.ts <election-folder>');
+    console.error('Example: tsx scripts/results-import.ts 2024-11');
+    console.error('Looks for CVR export data in: data/incoming-vote-data/<election-folder>/');
     process.exit(1);
   }
 
-  const absoluteInputDir = path.resolve(inputDir);
+  // Find the CVR export directory
+  const absoluteInputDir = findCvrExportDir(electionFolder);
   ensureDirExists(absoluteInputDir);
 
   // Resolve files
@@ -796,10 +782,14 @@ async function main(): Promise<void> {
     }
   }
 
-  // Determine output filename
-  const electionDate = extractElectionDate(absoluteInputDir);
-  const outputFilename = electionDate ? `results-${electionDate}.json` : 'results.json';
-  const outputPath = path.resolve(process.cwd(), outputFilename);
+  // Determine output filename using the election folder name
+  const outputFilename = `results-${electionFolder}.json`;
+  const resultsDir = path.resolve(process.cwd(), 'data', 'results');
+  // Ensure the directory exists
+  if (!fs.existsSync(resultsDir)) {
+    fs.mkdirSync(resultsDir, { recursive: true });
+  }
+  const outputPath = path.join(resultsDir, outputFilename);
   fs.writeFileSync(outputPath, stringifyWithDecimals(results), 'utf-8');
   console.log(`\nResults saved to ${outputPath}`);
 

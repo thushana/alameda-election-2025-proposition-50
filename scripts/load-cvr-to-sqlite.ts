@@ -11,9 +11,14 @@ import pickPkg from 'stream-json/filters/Pick.js';
 import streamArrayPkg from 'stream-json/streamers/StreamArray.js';
 import Database from 'better-sqlite3';
 
-const { parser } = streamJson as { parser: any };
-const { pick } = pickPkg as { pick: any };
-const { streamArray } = streamArrayPkg as { streamArray: any };
+// Type definitions for stream-json (external library types)
+type StreamJsonParser = (...args: unknown[]) => NodeJS.ReadWriteStream;
+type StreamJsonPick = (args: { filter: string }) => NodeJS.ReadWriteStream;
+type StreamJsonStreamArray = (...args: unknown[]) => NodeJS.ReadWriteStream;
+
+const { parser } = streamJson as { parser: StreamJsonParser };
+const { pick } = pickPkg as { pick: StreamJsonPick };
+const { streamArray } = streamArrayPkg as { streamArray: StreamJsonStreamArray };
 
 interface CvrMark {
   IsVote?: boolean;
@@ -73,17 +78,62 @@ function resolveCvrFiles(inputDir: string): string[] {
   return cvrFiles;
 }
 
-async function main(): Promise<void> {
-  const inputDir = process.argv[2];
-  const outputDb = process.argv[3] || 'cvr-data.db';
+// Find CVR export directory in the election folder
+function findCvrExportDir(electionFolder: string): string {
+  const electionDir = path.resolve(process.cwd(), 'data', 'incoming-vote-data', electionFolder);
+  if (!fs.existsSync(electionDir)) {
+    throw new Error(`Election folder not found: ${electionDir}`);
+  }
 
-  if (!inputDir) {
-    console.error('Usage: tsx scripts/load-cvr-to-sqlite.ts /path/to/CVR_Export [output.db]');
+  // Look for CVR export directories
+  const entries = fs.readdirSync(electionDir, { withFileTypes: true });
+  const cvrDirs = entries
+    .filter((entry) => entry.isDirectory())
+    .filter((entry) => {
+      const name = entry.name;
+      return (
+        name.startsWith('CVR_Export') ||
+        name.startsWith('CVR Export') ||
+        name.toLowerCase().includes('cvr export')
+      );
+    })
+    .map((entry) => path.join(electionDir, entry.name));
+
+  if (cvrDirs.length === 0) {
+    throw new Error(
+      `No CVR export directory found in ${electionDir}. Expected a directory starting with "CVR_Export" or "CVR Export".`
+    );
+  }
+
+  if (cvrDirs.length > 1) {
+    console.warn(
+      `Multiple CVR export directories found. Using the first one: ${path.basename(cvrDirs[0])}`
+    );
+  }
+
+  return cvrDirs[0];
+}
+
+async function main(): Promise<void> {
+  const electionFolder = process.argv[2];
+  const outputDb = process.argv[3] || 'data/database/cvr-data.db';
+
+  if (!electionFolder) {
+    console.error('Usage: tsx scripts/load-cvr-to-sqlite.ts <election-folder> [output.db]');
+    console.error('Example: tsx scripts/load-cvr-to-sqlite.ts 2024-11');
+    console.error('Looks for CVR export data in: data/incoming-vote-data/<election-folder>/');
     process.exit(1);
   }
 
-  const absoluteInputDir = path.resolve(inputDir);
+  // Find the CVR export directory
+  const absoluteInputDir = findCvrExportDir(electionFolder);
   const dbPath = path.resolve(outputDb);
+
+  // Ensure the directory exists
+  const dbDir = path.dirname(dbPath);
+  if (!fs.existsSync(dbDir)) {
+    fs.mkdirSync(dbDir, { recursive: true });
+  }
 
   console.log('Creating SQLite database...');
   const db = new Database(dbPath);

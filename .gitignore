@@ -20,6 +20,12 @@ scripts/*.js
 # OS
 .DS_Store
 Thumbs.db
-cvr-data.db
-cvr-data.db-shm
-cvr-data.db-wal
+
+# Database files
+data/database/*.db
+data/database/*.db-shm
+data/database/*.db-wal
+
+# Incoming vote data (not committed to git)
+data/incoming-vote-data/**
+!data/incoming-vote-data/README.md

@@ -10,9 +10,14 @@ import streamJson from 'stream-json';
 import pickPkg from 'stream-json/filters/Pick.js';
 import streamArrayPkg from 'stream-json/streamers/StreamArray.js';
 
-const { parser } = streamJson as { parser: any };
-const { pick } = pickPkg as { pick: any };
-const { streamArray } = streamArrayPkg as { streamArray: any };
+// Type definitions for stream-json (external library types)
+type StreamJsonParser = (...args: unknown[]) => NodeJS.ReadWriteStream;
+type StreamJsonPick = (args: { filter: string }) => NodeJS.ReadWriteStream;
+type StreamJsonStreamArray = (...args: unknown[]) => NodeJS.ReadWriteStream;
+
+const { parser } = streamJson as { parser: StreamJsonParser };
+const { pick } = pickPkg as { pick: StreamJsonPick };
+const { streamArray } = streamArrayPkg as { streamArray: StreamJsonStreamArray };
 
 interface CvrMark {
   IsVote?: boolean;
