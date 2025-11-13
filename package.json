@@ -17,7 +17,10 @@
     "typecheck": "tsc --noEmit",
     "quality": "npm run typecheck && npm run lint && npm run format:check",
     "import:results": "tsx scripts/results-import.ts",
-    "enrich:geojson": "tsx scripts/enrich-geojson.ts"
+    "enrich:geojson": "tsx scripts/enrich-geojson.ts",
+    "load:sqlite": "tsx scripts/load-cvr-to-sqlite.ts",
+    "analyze:cross-contest": "tsx scripts/analyze-cross-contest.ts",
+    "analyze:sqlite": "tsx scripts/analyze-cross-contest-sqlite.ts"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",
@@ -37,6 +40,8 @@
     "typescript-eslint": "^8.46.3"
   },
   "dependencies": {
+    "@types/better-sqlite3": "^7.6.13",
+    "better-sqlite3": "^12.4.1",
     "stream-json": "^1.8.0"
   },
   "type": "module"
