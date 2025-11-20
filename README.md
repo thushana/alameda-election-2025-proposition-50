@@ -2,7 +2,7 @@
 
 ![Alameda Election Map Preview](preview.jpg)
 
-An interactive map showing Proposition 50 vote results by precinct for Alameda County in the November 2025 Election. The data in it comes from a ACVote's Nov 10th, 2025 @ 5:14 PM data release.
+An interactive map showing Proposition 50 vote results by precinct for Alameda County in the November 2025 Election. The data in it comes from a ACVote's Nov 14th, 2025 @ 2:45 PM data release.
 
 [Proposition 50](https://voterguide.sos.ca.gov/quick-reference-guide/50.htm) was approved by voters on November 4, 2025, with 64% support, temporarily replacing the state's independent redistricting commission's congressional maps with Democrat-drawn districts through 2030. The measure, promoted by Governor Newsom as a response to Trump-backed Republican redistricting in Texas, could flip up to five GOP-held House seats to Democrats in the 2026 midterms.
 
@@ -17,9 +17,9 @@ I wanted to do this for last year's election but – _incomprehensibly_ – they
 - In November 2024, the Harris/Trump breakdown was 79.6%/20.4%, suggesting a +4.3% shift leftwards from 2024 to 2025 for Alameda voters who turned out.
 - Alameda as a whole, and most city precincts, voted at higher levels of "Yes" than the county average. The three precincts in Bay Farm voted _below_ the county average for "Yes".
 - Compared to other cities, Alameda vote percent for "Yes" was behind [Berkeley (94.3%)](https://thushana.github.io/alameda-election-2025-proposition-50/#city/berkeley), [Emeryville (92%)](https://thushana.github.io/alameda-election-2025-proposition-50/#city/emeryville), [Oakland (91.8%)](https://thushana.github.io/alameda-election-2025-proposition-50/#city/oakland) and [Albany (90.8%)](https://thushana.github.io/alameda-election-2025-proposition-50/#city/albany). Alameda is just slightly above [Piedmont (83.6%)](https://thushana.github.io/alameda-election-2025-proposition-50/#city/piedmont).
-- Turnout in this election in Alameda was 27,207 voters. That's 51.4% of the 52,931 registered voters in Alameda for this special off-cycle election. This is ~70% of the 2024 General Election turnout, which was 38,349 or 72.5% of estimated registered voters. (There is no easily accessible city-level registered voter data for last year. Countywide registration was 1% smaller in 2024; if we apply that to a city level, there were an estimated 52,661 registered voters.) Alameda's turnout was notably better than the [43.4% statewide registered voter turnout](https://electionresults.sos.ca.gov/returns/maps/voter-turnout).
-- Mail-in votes dominated the returns at 94.6%. 
-- Interestingly, there's a noticeable delta between in-person votes vs. mailed, with those voting in-person significantly more likely to vote "No" at 24.5% (vs. 15.7% for mail-in).
+- Turnout in this election in Alameda was 32,294 voters. That's 61.0% of the 52,931 registered voters in Alameda for this special off-cycle election. This is ~84.2% of the 2024 General Election turnout, which was 38,349 and 72.5% of estimated registered voters. (There is no easily accessible city-level registered voter data for last year. Countywide registration was 1% smaller in 2024; if we apply that to a city level, there were an estimated 52,661 registered voters.) Alameda's turnout was notably better than the [50.0% statewide registered voter turnout](https://electionresults.sos.ca.gov/returns/maps/voter-turnout).
+- Mail-in votes dominated the returns at 95.0%. 
+- Interestingly, there's a noticeable delta between in-person votes vs. mailed, with those voting in-person significantly more likely to vote "No" at 23.2% (vs. 15.7% for mail-in).
 
 If you see something off, feel free to [email me](mailto:thushan@thushan.net).
 

@@ -20,3 +20,6 @@ scripts/*.js
 # OS
 .DS_Store
 Thumbs.db
+
+# Incoming vote data
+data/incoming-vote-data/2025-11/
