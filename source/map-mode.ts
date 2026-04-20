@@ -6,8 +6,8 @@ import type { LayerGroup, CircleMarker } from 'leaflet';
 import { state } from './state.js';
 import { getL } from './leaflet-helper.js';
 import { parseHashParams } from './url-manager.js';
-import { getVoteCount, getYesPercentage, getCentroid } from './data-helpers.js';
-import { getColor, getCircleRadius } from './map-styling.js';
+import { getVoteCount, getCentroid } from './data-helpers.js';
+import { getPrecinctFillColor, getCircleRadius } from './map-styling.js';
 import { highlightFeature, resetHighlight, togglePrecinctSelection } from './map-events.js';
 import { updateModeURL } from './url-manager.js';
 import type { GeoJSONData, MapMode } from './types.js';
@@ -46,7 +46,6 @@ export function createProportionalSymbols(data: GeoJSONData): void {
   data.features.forEach((feature) => {
     const props = feature.properties;
     const voteCount = getVoteCount(props);
-    const yesPct = getYesPercentage(props);
 
     const centroid = getCentroid(feature);
     if (!centroid) {
@@ -59,7 +58,7 @@ export function createProportionalSymbols(data: GeoJSONData): void {
     }
 
     const radius = getCircleRadius(voteCount);
-    const color = getColor(yesPct);
+    const color = getPrecinctFillColor(props);
 
     const circle = leaflet.circleMarker([centroid[0], centroid[1]], {
       radius: radius,

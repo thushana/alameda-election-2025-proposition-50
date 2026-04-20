@@ -6,7 +6,7 @@ import type { CircleMarker, Layer } from 'leaflet';
 import { COLORS, OPACITY } from './constants.js';
 import { state } from './state.js';
 import { getL } from './leaflet-helper.js';
-import { getYesPercentage, getVoteCount } from './data-helpers.js';
+import { getVoteCount } from './data-helpers.js';
 import { setCircleStyle, setPolygonStyle, resetLayerStyle } from './map-styling.js';
 import { updateInfoSection } from './ui-info-section.js';
 import { updateAggregatedTotals } from './selection.js';
@@ -65,20 +65,19 @@ export function resetHighlight(e: any): void {
   });
 
   const props = layer.feature ? layer.feature.properties : {};
-  const yesPct = getYesPercentage(props);
 
   if (isSelected) {
     // Keep selected style
     if (isCircle) {
       const voteCount = getVoteCount(props);
-      setCircleStyle(layer as CircleMarker, yesPct, voteCount, true);
+      setCircleStyle(layer as CircleMarker, props, voteCount, true);
     } else {
-      setPolygonStyle(layer, yesPct, true);
+      setPolygonStyle(layer, props, true);
     }
   } else {
     if (isCircle) {
       const voteCount = getVoteCount(props);
-      setCircleStyle(layer as CircleMarker, yesPct, voteCount, false);
+      setCircleStyle(layer as CircleMarker, props, voteCount, false);
     } else if (state.geojsonLayer) {
       state.geojsonLayer.resetStyle(layer);
     }
@@ -116,9 +115,7 @@ export function zoomToFeature(e: any): void {
       // Clear existing selection and set to just this precinct
       state.selectedPrecincts.forEach((item) => {
         if (item.layer && item.feature) {
-          const itemProps = item.feature.properties;
-          const itemYesPct = getYesPercentage(itemProps);
-          resetLayerStyle(item.layer, itemYesPct);
+          resetLayerStyle(item.layer);
         }
       });
 
@@ -128,14 +125,13 @@ export function zoomToFeature(e: any): void {
       // Select just this precinct
       state.selectedPrecincts.length = 0;
       state.selectedPrecincts.push({ feature: feature, layer: target });
-      const yesPct = getYesPercentage(props);
       const isCircle = target instanceof leaflet.CircleMarker;
 
       if (isCircle) {
         const voteCount = getVoteCount(props);
-        setCircleStyle(target as CircleMarker, yesPct, voteCount, true);
+        setCircleStyle(target as CircleMarker, props, voteCount, true);
       } else {
-        setPolygonStyle(target, yesPct, true);
+        setPolygonStyle(target, props, true);
       }
 
       // Bring to front
@@ -223,7 +219,6 @@ export function togglePrecinctSelection(e: any): void {
     });
 
     const props = feature.properties;
-    const yesPct = getYesPercentage(props);
     const isCircle = layer instanceof leaflet.CircleMarker;
 
     if (index === -1) {
@@ -232,9 +227,9 @@ export function togglePrecinctSelection(e: any): void {
 
       if (isCircle) {
         const voteCount = getVoteCount(props);
-        setCircleStyle(layer as CircleMarker, yesPct, voteCount, true);
+        setCircleStyle(layer as CircleMarker, props, voteCount, true);
       } else {
-        setPolygonStyle(layer, yesPct, true);
+        setPolygonStyle(layer, props, true);
       }
 
       // Bring to front to ensure visibility
@@ -248,7 +243,7 @@ export function togglePrecinctSelection(e: any): void {
 
       if (isCircle) {
         const voteCount = getVoteCount(props);
-        setCircleStyle(layer as CircleMarker, yesPct, voteCount, false);
+        setCircleStyle(layer as CircleMarker, props, voteCount, false);
       } else {
         state.geojsonLayer.resetStyle(layer);
       }

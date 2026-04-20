@@ -8,9 +8,20 @@ import { safeGet } from './data-helpers.js';
 import { generateVoteMethodBarGraph, generateMethodBreakdownBarGraph } from './ui-bar-graphs.js';
 import type { FeatureProperties, VoteData, ContestResults } from './types.js';
 
+/** Shows which contest the stats refer to when multi-contest JSON is loaded (race picker is in the header). */
+function getActiveContestContextHTML(): string {
+  if (!state.selectedContestId || !state.contests[state.selectedContestId]) {
+    return '';
+  }
+  const name = state.contests[state.selectedContestId].contestName;
+  const safe = name.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
+  return `<div class="info-contest-context" style="font-size:12px;font-weight:500;letter-spacing:0.2px;color:rgba(0,0,0,0.6);margin:0 0 6px 0;">${safe}</div>`;
+}
+
 // Helper function to generate county totals HTML
 export function generateCountyTotalsHTML(): string {
   return `
+    ${getActiveContestContextHTML()}
     <div class="precinct-name">Alameda County</div>
     <div class="data-columns">
       <div class="data-column">
@@ -398,6 +409,7 @@ export function updateInfoSection(props: FeatureProperties | null): void {
       content = generateCountyTotalsHTML();
     } else {
       // Generate content for precinct or aggregated data
+      const contestContext = getActiveContestContextHTML();
       const title = getTitleFromProps(props);
       const voteData = extractVoteData(props);
       const contestData = getContestData(props);
@@ -411,6 +423,7 @@ export function updateInfoSection(props: FeatureProperties | null): void {
       if (showCandidateList) {
         // Multi-candidate race - show candidate list
         content = `
+          ${contestContext}
           <div class="precinct-name">${title}</div>
           ${generateCandidateListHTML(contestData)}
           ${generateVoteMethodBreakdownHTML(props, voteData)}
@@ -418,6 +431,7 @@ export function updateInfoSection(props: FeatureProperties | null): void {
       } else {
         // Yes/No or 2-candidate race - show traditional format
         content = `
+          ${contestContext}
           <div class="precinct-name">${title}</div>
           ${generateDataColumnsHTML(voteData)}
           ${generateMainBarGraphHTML(voteData)}

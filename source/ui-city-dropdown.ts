@@ -3,7 +3,6 @@
 // ============================================================================
 
 import { state } from './state.js';
-import { getYesPercentage } from './data-helpers.js';
 import { resetLayerStyle, getColor } from './map-styling.js';
 import { updateURL } from './url-manager.js';
 import { updateInfoSection } from './ui-info-section.js';
@@ -192,9 +191,7 @@ export function selectCity(cityKey: string | null): void {
     // Clear city selection - show all precincts
     state.selectedPrecincts.forEach((item) => {
       if (item.layer && item.feature) {
-        const props = item.feature.properties;
-        const yesPct = getYesPercentage(props);
-        resetLayerStyle(item.layer, yesPct);
+        resetLayerStyle(item.layer);
       }
     });
     state.selectedPrecincts.length = 0;

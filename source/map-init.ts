@@ -5,7 +5,6 @@
 import { state } from './state.js';
 import { getL } from './leaflet-helper.js';
 import { setPolygonStyle } from './map-styling.js';
-import { getYesPercentage } from './data-helpers.js';
 import type { GeoJSONFeature } from './types.js';
 
 // Update all polygon styles based on current zoom level
@@ -24,7 +23,6 @@ function updatePolygonStylesOnZoom(): void {
     if (layer instanceof leaflet.CircleMarker) return;
 
     const props = feature.properties;
-    const yesPct = getYesPercentage(props);
 
     // Check if this layer is selected
     const isSelected = state.selectedPrecincts.some((item) => {
@@ -32,7 +30,7 @@ function updatePolygonStylesOnZoom(): void {
     });
 
     // Update style with current zoom level
-    setPolygonStyle(layer, yesPct, isSelected);
+    setPolygonStyle(layer, props, isSelected);
   });
 }
 

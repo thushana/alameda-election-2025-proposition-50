@@ -2,8 +2,27 @@
 // DATA HELPERS
 // ============================================================================
 
-import type { FeatureProperties, GeoJSONFeature } from './types.js';
+import type { FeatureProperties, GeoJSONFeature, ContestResults } from './types.js';
 import { state } from './state.js';
+
+/** True only for classic two-option YES vs NO measures */
+export function isYesNoContest(contest: ContestResults): boolean {
+  if (contest.candidates.length !== 2) return false;
+  const upper = contest.candidates.map((c) => c.candidateName.toUpperCase());
+  const hasYes = upper.some((n) => n.includes('YES'));
+  const hasNo = upper.some((n) => n.includes('NO'));
+  return hasYes && hasNo;
+}
+
+/** Highest vote-getter in this precinct (ties: lower candidate id wins) */
+export function getLeadingCandidateId(contest: ContestResults): number | null {
+  if (!contest.candidates.length) return null;
+  const sorted = [...contest.candidates].sort((a, b) => {
+    if (b.votes !== a.votes) return b.votes - a.votes;
+    return a.candidateId - b.candidateId;
+  });
+  return sorted[0].candidateId;
+}
 
 // Helper function to extract precinct ID from properties
 export function getPrecinctId(props: FeatureProperties): string | number | null {

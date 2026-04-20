@@ -61,4 +61,10 @@ export const state = {
   selectedElection: null as string | null, // e.g., "2024-11"
   contests: {} as Record<number, ContestInfo>,
   countyTotalsByContest: {} as Record<number, CountyTotals>,
+
+  /** When true, map uses MULTI_LEADER_PALETTE by leading candidate instead of YES% red/green scale */
+  mapUsesMultiCandidateColors: false,
+  /** Candidate IDs sorted by county-wide votes (desc); palette index matches this order */
+  multiCandidateColorOrder: null as number[] | null,
+  multiCandidateNames: {} as Record<number, string>,
 };

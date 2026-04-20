@@ -3,8 +3,13 @@
 // ============================================================================
 
 import type { CircleMarker, PathOptions } from 'leaflet';
-import { COLORS, OPACITY } from './constants.js';
-import { getYesPercentage, getVoteCount } from './data-helpers.js';
+import { COLORS, MULTI_LEADER_PALETTE, OPACITY } from './constants.js';
+import {
+  getLeadingCandidateId,
+  getVoteCount,
+  getYesPercentage,
+  isYesNoContest,
+} from './data-helpers.js';
 import type { FeatureProperties, GeoJSONFeature } from './types.js';
 
 import { maxVotes } from './map-mode.js';
@@ -46,9 +51,13 @@ export function getStrokeWeight(isSelected: boolean, zoom?: number | null): numb
   }
 }
 
-// Color scale for YES percentage
+// Color scale for YES percentage (binary YES/NO contests only)
 // 0-50% as red shades, 50-100% as green shades
 export function getColor(yesPct: number | null | undefined): string {
+  return getYesNoIntensityColor(yesPct);
+}
+
+export function getYesNoIntensityColor(yesPct: number | null | undefined): string {
   if (yesPct === null || yesPct === undefined || yesPct === 0) {
     return COLORS.NO_DATA;
   }
@@ -72,16 +81,51 @@ export function getColor(yesPct: number | null | undefined): string {
               : COLORS.GREEN_50;
 }
 
+/** Whether the precinct has vote data for the active visualization */
+export function hasPrecinctVoteData(props: FeatureProperties): boolean {
+  if (state.selectedContestId && props.contests?.[state.selectedContestId]) {
+    return props.contests[state.selectedContestId].totalVotes > 0;
+  }
+  const yesPct = getYesPercentage(props);
+  return yesPct !== null && yesPct !== undefined;
+}
+
+/** Fill color for choropleth / bubbles: YES/NO ramp or leader hue for multi-candidate contests */
+export function getPrecinctFillColor(props: FeatureProperties): string {
+  if (!state.selectedContestId || !props.contests?.[state.selectedContestId]) {
+    const yesPct =
+      props.percentage && props.percentage.yes !== undefined ? props.percentage.yes : null;
+    return getYesNoIntensityColor(yesPct);
+  }
+
+  const contest = props.contests[state.selectedContestId];
+  if (!contest || contest.totalVotes <= 0) {
+    return COLORS.NO_DATA;
+  }
+
+  if (state.mapUsesMultiCandidateColors && !isYesNoContest(contest)) {
+    const leaderId = getLeadingCandidateId(contest);
+    if (leaderId === null) return COLORS.NO_DATA;
+    const idx = state.multiCandidateColorOrder?.indexOf(leaderId) ?? -1;
+    if (idx < 0) return COLORS.NO_DATA;
+    return MULTI_LEADER_PALETTE[idx % MULTI_LEADER_PALETTE.length];
+  }
+
+  const yesPct = getYesPercentage(props);
+  return getYesNoIntensityColor(yesPct);
+}
+
 // Style function
 export function style(feature: GeoJSONFeature): PathOptions {
   const props = feature.properties;
-  const yesPct = getYesPercentage(props);
+  const fillColor = getPrecinctFillColor(props);
+  const hasData = hasPrecinctVoteData(props);
   return {
-    fillColor: getColor(yesPct),
+    fillColor,
     weight: getStrokeWeight(false),
     opacity: 1,
-    color: yesPct === null ? COLORS.BORDER_NO_DATA : COLORS.BORDER_DEFAULT,
-    dashArray: yesPct === null ? '5,5' : '3',
+    color: hasData ? COLORS.BORDER_DEFAULT : COLORS.BORDER_NO_DATA,
+    dashArray: hasData ? '3' : '5,5',
     fillOpacity: OPACITY.FILL_DEFAULT,
   };
 }
@@ -89,11 +133,12 @@ export function style(feature: GeoJSONFeature): PathOptions {
 // Helper function to set circle style
 export function setCircleStyle(
   circle: CircleMarker,
-  yesPct: number | null,
+  props: FeatureProperties,
   voteCount: number,
   isSelected: boolean
 ): void {
-  const style: {
+  const fillColor = getPrecinctFillColor(props);
+  const styleOpts: {
     radius: number;
     fillColor: string;
     color: string;
@@ -102,43 +147,48 @@ export function setCircleStyle(
     fillOpacity: number;
   } = {
     radius: getCircleRadius(voteCount),
-    fillColor: getColor(yesPct),
+    fillColor,
     fillOpacity: isSelected ? OPACITY.FILL_SELECTED : OPACITY.FILL_DEFAULT,
     weight: isSelected ? 3 : 1,
     color: isSelected ? COLORS.BORDER_SELECTED : COLORS.BORDER_DEFAULT,
     opacity: 0.8,
   };
-  circle.setStyle(style);
+  circle.setStyle(styleOpts);
 }
 
 // Helper function to set polygon style
 // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Leaflet layer API
-export function setPolygonStyle(layer: any, yesPct: number | null, isSelected: boolean): void {
-  const style: PathOptions = {
-    fillColor: getColor(yesPct),
+export function setPolygonStyle(layer: any, props: FeatureProperties, isSelected: boolean): void {
+  const fillColor = getPrecinctFillColor(props);
+  const hasData = hasPrecinctVoteData(props);
+  const styleOpts: PathOptions = {
+    fillColor,
     fillOpacity: isSelected ? OPACITY.FILL_SELECTED : OPACITY.FILL_DEFAULT,
     weight: getStrokeWeight(isSelected),
     color: isSelected
       ? COLORS.BORDER_SELECTED
-      : yesPct === null
-        ? COLORS.BORDER_NO_DATA
-        : COLORS.BORDER_DEFAULT,
-    dashArray: isSelected ? '' : yesPct === null ? '5,5' : '3',
+      : hasData
+        ? COLORS.BORDER_DEFAULT
+        : COLORS.BORDER_NO_DATA,
+    dashArray: isSelected ? '' : hasData ? '3' : '5,5',
     opacity: 1,
   };
-  layer.setStyle(style);
+  layer.setStyle(styleOpts);
 }
 
 // Helper function to reset layer style (for polygons)
 // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Leaflet layer API
-export function resetLayerStyle(layer: any, yesPct: number | null): void {
+export function resetLayerStyle(layer: any): void {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Leaflet global API
   if (layer instanceof (window as any).L.CircleMarker) {
-    const voteCount = getVoteCount(
-      (layer as CircleMarker & { feature: { properties: FeatureProperties } }).feature.properties
-    );
-    setCircleStyle(layer as CircleMarker, yesPct, voteCount, false);
+    const feature = (layer as CircleMarker & { feature: { properties: FeatureProperties } })
+      .feature;
+    const props = feature?.properties ?? {};
+    const voteCount = getVoteCount(props);
+    setCircleStyle(layer as CircleMarker, props, voteCount, false);
   } else {
-    setPolygonStyle(layer, yesPct, false);
+    const feature = layer.feature as GeoJSONFeature | undefined;
+    const props = feature?.properties ?? {};
+    setPolygonStyle(layer, props, false);
   }
 }

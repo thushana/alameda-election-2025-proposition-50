@@ -28,6 +28,21 @@ export const COLORS: Colors = {
   METHOD_IN_PERSON: '#CFD8DC',
 };
 
+/** Distinct hues for precincts colored by vote leader (avoid partisan red/green ramps). Order pairs with legend. */
+export const MULTI_LEADER_PALETTE = [
+  '#6a51a3',
+  '#3182bd',
+  '#ff7f0e',
+  '#17becf',
+  '#9467bd',
+  '#8c564b',
+  '#e377c2',
+  '#7570b3',
+  '#fdae61',
+  '#d95f02',
+  '#757575',
+];
+
 // Sizes and spacing
 export const SIZES: Sizes = {
   BAR_GRAPH_HEIGHT: '12px',

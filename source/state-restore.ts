@@ -7,7 +7,7 @@ import { state } from './state.js';
 import { getL } from './leaflet-helper.js';
 import { parseHashParams, buildHashParams, updateURL } from './url-manager.js';
 import { normalizeCityName, denormalizeCityName, getDisplayCityName } from './city-helpers.js';
-import { safeGet, getYesPercentage, getVoteCount, getPrecinctId } from './data-helpers.js';
+import { safeGet, getVoteCount, getPrecinctId } from './data-helpers.js';
 import { setCircleStyle, setPolygonStyle, resetLayerStyle } from './map-styling.js';
 import { updateAggregatedTotals } from './selection.js';
 import { updateCityButtonText } from './ui-city-dropdown.js';
@@ -36,9 +36,7 @@ export function restoreSelectionFromURL(): void {
   // Reset visual styles of previously selected precincts
   state.selectedPrecincts.forEach((item) => {
     if (item.layer && item.feature) {
-      const props = item.feature.properties;
-      const yesPct = getYesPercentage(props);
-      resetLayerStyle(item.layer, yesPct);
+      resetLayerStyle(item.layer);
     }
   });
 
@@ -90,14 +88,13 @@ export function restoreSelectionFromURL(): void {
           state.selectedPrecincts.push({ feature: feature, layer: layer });
 
           // Set style with black border
-          const yesPct = getYesPercentage(props);
           const isCircle = layer instanceof leaflet.CircleMarker;
 
           if (isCircle) {
             const voteCount = getVoteCount(props);
-            setCircleStyle(layer as CircleMarker, yesPct, voteCount, true);
+            setCircleStyle(layer as CircleMarker, props, voteCount, true);
           } else {
-            setPolygonStyle(layer, yesPct, true);
+            setPolygonStyle(layer, props, true);
           }
 
           // Bring to front to ensure visibility
@@ -196,14 +193,13 @@ export function restoreSelectionFromURL(): void {
         state.selectedPrecincts.push({ feature: feature, layer: layer });
 
         // Set style with black border
-        const yesPct = getYesPercentage(props);
         const isCircle = layer instanceof leaflet.CircleMarker;
 
         if (isCircle) {
           const voteCount = getVoteCount(props);
-          setCircleStyle(layer as CircleMarker, yesPct, voteCount, true);
+          setCircleStyle(layer as CircleMarker, props, voteCount, true);
         } else {
-          setPolygonStyle(layer, yesPct, true);
+          setPolygonStyle(layer, props, true);
         }
 
         // Bring to front to ensure visibility
@@ -233,7 +229,6 @@ document.addEventListener('keydown', async (e: KeyboardEvent) => {
     state.selectedPrecincts.forEach((item) => {
       if (item.layer && item.feature) {
         const props = item.feature.properties;
-        const yesPct = getYesPercentage(props);
 
         if (mapMode === 'shaded' && state.geojsonLayer) {
           state.geojsonLayer.resetStyle(item.layer);
@@ -242,7 +237,7 @@ document.addEventListener('keydown', async (e: KeyboardEvent) => {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Leaflet layer API
           if ((item.layer as any).setStyle) {
             const voteCount = getVoteCount(props);
-            setCircleStyle(item.layer as CircleMarker, yesPct, voteCount, false);
+            setCircleStyle(item.layer as CircleMarker, props, voteCount, false);
           }
         }
       }

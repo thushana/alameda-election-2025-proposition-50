@@ -8,7 +8,7 @@
     "clean": "rm -rf js scripts/*.js *.tsbuildinfo",
     "precommit": "npm run build",
     "serve": "http-server -p 8000 -c-1",
-    "dev": "concurrently \"npm run watch\" \"npm run serve\"",
+    "dev": "npx concurrently \"npm run watch\" \"npm run serve\"",
     "dev:kill": "lsof -ti:8000 | xargs kill -9 2>/dev/null || true; pkill -f 'tsc --watch' 2>/dev/null || true; pkill -f 'http-server' 2>/dev/null || true; echo 'Killed all dev servers'",
     "lint": "eslint source/**/*.ts scripts/**/*.ts",
     "lint:fix": "eslint source/**/*.ts scripts/**/*.ts --fix",

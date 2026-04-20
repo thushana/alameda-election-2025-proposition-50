@@ -7,7 +7,7 @@ import { getL } from './leaflet-helper.js';
 import { mapMode, createProportionalSymbols } from './map-mode.js';
 import { style } from './map-styling.js';
 import { onEachFeature } from './map-events.js';
-import { getPrecinctId } from './data-helpers.js';
+import { getPrecinctId, isYesNoContest } from './data-helpers.js';
 import { calculateCityStats } from './city-stats.js';
 import { buildCityDropdown } from './ui-city-dropdown.js';
 import { updateInfoSection } from './ui-info-section.js';
@@ -23,6 +23,50 @@ import { restoreSelectionFromURL } from './state-restore.js';
 import { toggleMapMode } from './map-mode.js';
 import type { GeoJSONData, ResultData } from './types.js';
 import type { LatLngBounds } from 'leaflet';
+import { refreshMapLegend } from './ui-legend.js';
+
+/** Legend + map coloring mode: YES/NO ramp vs distinct hues by leading candidate */
+function syncContestLegendWithResults(resultsData: ResultData[], contestId: number | null): void {
+  state.mapUsesMultiCandidateColors = false;
+  state.multiCandidateColorOrder = null;
+  state.multiCandidateNames = {};
+
+  if (!contestId || !resultsData?.length) {
+    refreshMapLegend();
+    return;
+  }
+
+  const sampleRow = resultsData.find((r) => r.contests?.[contestId]);
+  const contest = sampleRow?.contests?.[contestId];
+  if (!contest) {
+    refreshMapLegend();
+    return;
+  }
+
+  if (isYesNoContest(contest)) {
+    refreshMapLegend();
+    return;
+  }
+
+  state.mapUsesMultiCandidateColors = true;
+  const totals: Record<number, number> = {};
+  const names: Record<number, string> = {};
+
+  for (const row of resultsData) {
+    const c = row.contests?.[contestId];
+    if (!c?.candidates?.length) continue;
+    for (const cand of c.candidates) {
+      totals[cand.candidateId] = (totals[cand.candidateId] ?? 0) + cand.votes;
+      if (!names[cand.candidateId]) names[cand.candidateId] = cand.candidateName;
+    }
+  }
+
+  state.multiCandidateColorOrder = Object.keys(totals)
+    .map(Number)
+    .sort((a, b) => totals[b] - totals[a] || a - b);
+  state.multiCandidateNames = names;
+  refreshMapLegend();
+}
 
 // Initialize GeoJSON layer when Leaflet is available
 function initGeoJSONLayer() {
@@ -51,6 +95,10 @@ function initGeoJSONLayer() {
 function loadData() {
   const leaflet = getL();
   const hashParams = parseHashParams();
+
+  state.mapUsesMultiCandidateColors = false;
+  state.multiCandidateColorOrder = null;
+  state.multiCandidateNames = {};
 
   // Determine which results file and precinct file to load
   let resultsFilename = 'data/results/results.json'; // Default for backward compatibility
@@ -419,6 +467,8 @@ function loadData() {
           contestButton.style.display = 'none';
         }
       }
+
+      syncContestLegendWithResults(resultsData, state.selectedContestId);
 
       // Add data based on current mode
       if (!state.geojsonLayer) return;
