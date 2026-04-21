@@ -14,7 +14,7 @@ import { updateInfoSection } from './ui-info-section.js';
 import { updateCityButtonText } from './ui-city-dropdown.js';
 import { buildContestDropdown } from './ui-contest-selector.js';
 import { updateElectionButtonText, updatePageHeader } from './ui-election-selector.js';
-import { parseHashParams, buildHashParams } from './url-manager.js';
+import { parseHashParams, buildHashParams, getMapDataSignature } from './url-manager.js';
 import type { ContestInfo } from './types.js';
 import { normalizeCityName, getDisplayCityName } from './city-helpers.js';
 import { safeGet } from './data-helpers.js';
@@ -68,6 +68,24 @@ function syncContestLegendWithResults(resultsData: ResultData[], contestId: numb
   refreshMapLegend();
 }
 
+/** Clear selection, circles, and GeoJSON layers before applying a new fetch (election/contest/city reload) */
+async function resetMapBeforeDataApply(): Promise<void> {
+  state.selectedPrecincts.length = 0;
+  state.currentCityName = null;
+  state.baseDistrictBounds = null;
+  state.lastRestoreSignature = '';
+
+  const { removeProportionalSymbols, mapMode: currentMapMode } = await import('./map-mode.js');
+  removeProportionalSymbols();
+
+  if (state.map && state.geojsonLayer) {
+    state.geojsonLayer.clearLayers();
+    if (currentMapMode === 'shaded' && !state.map.hasLayer(state.geojsonLayer)) {
+      state.geojsonLayer.addTo(state.map);
+    }
+  }
+}
+
 // Initialize GeoJSON layer when Leaflet is available
 function initGeoJSONLayer() {
   try {
@@ -113,6 +131,12 @@ function loadData() {
     state.selectedElection = null;
   }
 
+  if (state.loadDataInProgress) {
+    state.loadDataPending = true;
+    return;
+  }
+  state.loadDataInProgress = true;
+
   Promise.all([
     fetch(precinctFilename).then((response) => {
       if (!response.ok) {
@@ -155,7 +179,9 @@ function loadData() {
       return response.json();
     }),
   ])
-    .then((results: [GeoJSONData, ResultData[]]) => {
+    .then(async (results: [GeoJSONData, ResultData[]]) => {
+      await resetMapBeforeDataApply();
+
       const data = results[0];
       const resultsData = results[1];
       const hashParams = parseHashParams(); // Parse hash params early for use throughout
@@ -617,23 +643,23 @@ function loadData() {
       // Update city button text after initial load
       updateCityButtonText();
 
+      state.appliedMapDataSignature = getMapDataSignature(parseHashParams());
+
       // Don't set initial hash - only update URL when user actually changes mode
       // This preserves URLs like #city/alameda without adding mode/shaded/
 
       // Listen for hash changes (back/forward navigation)
       if (!state.hashListenerBound) {
         window.addEventListener('hashchange', async () => {
+          if (state.loadDataInProgress) {
+            state.loadDataPending = true;
+            return;
+          }
+
           const hashParams = parseHashParams();
           const newMode = hashParams.mode === 'proportional' ? 'proportional' : 'shaded';
 
-          // Check if election or contest changed - if so, reload data
-          const electionChanged = hashParams.election !== state.selectedElection;
-          const contestChanged =
-            hashParams.contest !== state.selectedContestId &&
-            (hashParams.contest !== null || state.selectedContestId !== null);
-
-          if (electionChanged || contestChanged) {
-            // Reload data for new election/contest
+          if (getMapDataSignature(hashParams) !== state.appliedMapDataSignature) {
             loadData();
             return;
           }
@@ -659,6 +685,13 @@ function loadData() {
           error.message +
           '\n\nMake sure precincts_consolidated.geojson and data/results/results.json are in the correct locations and that you are accessing the page through a web server (not file://).'
       );
+    })
+    .finally(() => {
+      state.loadDataInProgress = false;
+      if (state.loadDataPending) {
+        state.loadDataPending = false;
+        loadData();
+      }
     });
 }
 

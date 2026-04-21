@@ -91,6 +91,14 @@ export function createProportionalSymbols(data: GeoJSONData): void {
   console.log(`Added ${circles.length} circles to map`);
 }
 
+/** Remove proportional circles before clearing GeoJSON (election/contest reload) */
+export function removeProportionalSymbols(): void {
+  if (circleLayer && state.map) {
+    state.map.removeLayer(circleLayer);
+  }
+  circleLayer = null;
+}
+
 // Toggle map mode
 export function toggleMapMode(): void {
   if (!state.map || !state.geojsonLayer) return;

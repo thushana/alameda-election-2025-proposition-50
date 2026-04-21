@@ -67,4 +67,13 @@ export const state = {
   /** Candidate IDs sorted by county-wide votes (desc); palette index matches this order */
   multiCandidateColorOrder: null as number[] | null,
   multiCandidateNames: {} as Record<number, string>,
+
+  /** Last election|contest URL signature applied by loadData (avoids skipping reload when UI updates state before hash) */
+  appliedMapDataSignature: '' as string,
+
+  /** Prevents re-entrant loadData (e.g. hash set to default city mid-load) */
+  loadDataInProgress: false,
+
+  /** If hash changes during loadData, run one more load after the current one finishes */
+  loadDataPending: false,
 };

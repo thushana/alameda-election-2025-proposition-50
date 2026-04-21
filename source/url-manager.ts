@@ -64,6 +64,14 @@ export function parseHashParams(): HashParams {
   return params;
 }
 
+/** Stable key for election + contest + city so hash changes reload data even when state was pre-updated in UI handlers */
+export function getMapDataSignature(params: HashParams): string {
+  const contestPart =
+    params.contest === null || params.contest === undefined ? '' : String(params.contest);
+  const cityPart = params.city ?? '';
+  return `${params.election ?? ''}|${contestPart}|${cityPart}`;
+}
+
 export function buildHashParams(params: HashParams): string {
   const pathParts: string[] = [];
 
