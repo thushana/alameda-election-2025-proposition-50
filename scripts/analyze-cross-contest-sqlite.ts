@@ -3,10 +3,40 @@
 // ============================================================================
 // Analyzes how voters who voted for candidates in one contest voted in another contest
 // Uses SQLite database created by load-cvr-to-sqlite.ts
+//
+// Defaults (Nov 2024 General): source contest 40 = "Members, City Council - Alameda",
+// target contest 1 = President/Vice President. Only sessions with a vote in BOTH contests
+// are cross-tabulated. For contest 40, ballots are Alameda city only, so this is effectively
+// Alameda City Council voters (not all-county).
+//
+// Usage:
+//   npm run load:sqlite -- 2024-11 data/database/cvr-2024-11.db
+//   npm run analyze:sqlite -- data/database/cvr-2024-11.db 40 1
+//   tsx scripts/analyze-cross-contest-sqlite.ts [dbPath] [sourceContestId] [targetContestId] [sourceCandidateId] [manifestDir]
+//   sourceCandidateId: omit to print breakdown for every City Council candidate.
+//   manifestDir: directory containing CandidateManifest.json (names in output). Optional:
+//   set CVR_MANIFEST_DIR, or place manifests under data/incoming-vote-data/<election>/...
 
 import * as fs from 'fs';
 import * as path from 'path';
 import Database from 'better-sqlite3';
+
+/** CVR export root contains CandidateManifest.json at top level; election folders may nest it one deep */
+function resolveManifestRoot(dir: string | null | undefined): string | null {
+  if (!dir || !fs.existsSync(dir)) return null;
+  const direct = path.join(dir, 'CandidateManifest.json');
+  if (fs.existsSync(direct)) return dir;
+  try {
+    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+      if (!entry.isDirectory()) continue;
+      const sub = path.join(dir, entry.name);
+      if (fs.existsSync(path.join(sub, 'CandidateManifest.json'))) return sub;
+    }
+  } catch {
+    return null;
+  }
+  return null;
+}
 
 async function main(): Promise<void> {
   const dbPath = process.argv[2] || 'data/database/cvr-data.db';
@@ -25,15 +55,23 @@ async function main(): Promise<void> {
 
   // Load candidate names from manifest - try multiple locations
   const candidateMap = new Map<number, string>();
-  const manifestDirs = [
-    manifestDir,
-    '/Users/thushan/Downloads/elections/2024-11/CVR Export - November 5, 2024 General Election',
-    path.join(path.dirname(dbPath), '..', 'CVR Export - November 5, 2024 General Election'),
-    './CVR Export - November 5, 2024 General Election',
-  ].filter(Boolean);
+  const envManifest = process.env.CVR_MANIFEST_DIR;
+  const manifestRoots = [
+    ...new Set(
+      [
+        resolveManifestRoot(manifestDir),
+        resolveManifestRoot(envManifest),
+        resolveManifestRoot(path.join(path.dirname(dbPath), '..')),
+        resolveManifestRoot(path.join(process.cwd(), 'data', 'incoming-vote-data', '2024-11')),
+        resolveManifestRoot(path.join(process.cwd(), 'data', 'incoming-vote-data', '2025-11')),
+        resolveManifestRoot(path.join(process.cwd(), 'data', 'incoming-vote-data')),
+        resolveManifestRoot('./CVR Export - November 5, 2024 General Election'),
+      ].filter((d): d is string => Boolean(d))
+    ),
+  ];
 
   let manifestLoaded = false;
-  for (const dir of manifestDirs) {
+  for (const dir of manifestRoots) {
     if (!dir || !fs.existsSync(dir)) continue;
 
     try {
@@ -70,7 +108,7 @@ async function main(): Promise<void> {
   if (!manifestLoaded) {
     console.warn('Warning: Could not load candidate manifest. Candidate names will show as IDs.');
     console.warn(
-      '  Provide manifest directory as 6th argument, or place manifest files in expected location.'
+      '  Pass CVR export directory as 6th argv, set CVR_MANIFEST_DIR, or put manifests under data/incoming-vote-data/<election>/.'
     );
   }
 
