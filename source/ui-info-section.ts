@@ -4,9 +4,25 @@
 
 import { state } from './state.js';
 import { SIZES, OPACITY } from './constants.js';
-import { safeGet } from './data-helpers.js';
+import { safeGet, isYesNoContest } from './data-helpers.js';
+import { aggregateContestFromGeoJSON } from './city-stats.js';
+import { normalizeCityName, denormalizeCityName } from './city-helpers.js';
+import { parseHashParams } from './url-manager.js';
 import { generateVoteMethodBarGraph, generateMethodBreakdownBarGraph } from './ui-bar-graphs.js';
 import type { FeatureProperties, VoteData, ContestResults } from './types.js';
+
+/** When historical election results are merged into the default precinct file, city totals are incomplete. */
+function getPrecinctGeometryBannerHTML(): string {
+  if (!state.precinctGeometryFallback) {
+    return '';
+  }
+  const election = state.selectedElection ?? '';
+  const expected = election
+    ? `precincts-${election}.geojson`
+    : 'the election-specific precinct GeoJSON';
+  const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
+  return `<div class="precinct-geo-fallback-banner" style="font-size:11px;line-height:1.35;color:#5c4500;background:#fff8e6;border:1px solid #e8d4a8;border-radius:6px;padding:8px 10px;margin:0 0 10px 0;">Totals here include only precincts drawn in the map file that loaded. ${esc(expected)} was not found, so the app used precincts_consolidated.geojson. Add the full precinct file for that election to match the Registrar's certified jurisdiction totals.</div>`;
+}
 
 /** Shows which contest the stats refer to when multi-contest JSON is loaded (race picker is in the header). */
 function getActiveContestContextHTML(): string {
@@ -18,9 +34,55 @@ function getActiveContestContextHTML(): string {
   return `<div class="info-contest-context" style="font-size:12px;font-weight:500;letter-spacing:0.2px;color:rgba(0,0,0,0.6);margin:0 0 6px 0;">${safe}</div>`;
 }
 
+/** County or city contest totals when nothing is hovered / no selection */
+function generateNoPrecinctSelectionHTML(): string {
+  const snapshot = state.geoJSONDataSnapshot;
+  const contestId = state.selectedContestId;
+  if (!snapshot || contestId == null || !state.contests[contestId]) {
+    return generateCountyTotalsHTML();
+  }
+
+  let sampleContest: ContestResults | undefined;
+  for (const f of snapshot.features) {
+    const c = f.properties.contests?.[contestId];
+    if (c) {
+      sampleContest = c;
+      break;
+    }
+  }
+  if (!sampleContest) {
+    return generateCountyTotalsHTML();
+  }
+
+  if (isYesNoContest(sampleContest)) {
+    return generateCountyTotalsHTML();
+  }
+
+  const hashParams = parseHashParams();
+  const normalizedCityKey = hashParams.city ? normalizeCityName(hashParams.city) : null;
+  const aggregated = aggregateContestFromGeoJSON(snapshot, contestId, normalizedCityKey);
+  if (!aggregated || aggregated.totalVotes === 0) {
+    return generateCountyTotalsHTML();
+  }
+
+  const titleRaw =
+    normalizedCityKey && hashParams.city
+      ? `City of ${denormalizeCityName(hashParams.city) ?? ''}`
+      : 'Alameda County';
+  const titleSafe = titleRaw.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
+
+  return `
+    ${getPrecinctGeometryBannerHTML()}
+    ${getActiveContestContextHTML()}
+    <div class="precinct-name">${titleSafe}</div>
+    ${generateCandidateListHTML(aggregated)}
+  `;
+}
+
 // Helper function to generate county totals HTML
 export function generateCountyTotalsHTML(): string {
   return `
+    ${getPrecinctGeometryBannerHTML()}
     ${getActiveContestContextHTML()}
     <div class="precinct-name">Alameda County</div>
     <div class="data-columns">
@@ -405,9 +467,9 @@ export function updateInfoSection(props: FeatureProperties | null): void {
     let content: string;
 
     if (!props) {
-      // Show county totals
-      content = generateCountyTotalsHTML();
+      content = generateNoPrecinctSelectionHTML();
     } else {
+      const geoBanner = getPrecinctGeometryBannerHTML();
       // Generate content for precinct or aggregated data
       const contestContext = getActiveContestContextHTML();
       const title = getTitleFromProps(props);
@@ -423,6 +485,7 @@ export function updateInfoSection(props: FeatureProperties | null): void {
       if (showCandidateList) {
         // Multi-candidate race - show candidate list
         content = `
+          ${geoBanner}
           ${contestContext}
           <div class="precinct-name">${title}</div>
           ${generateCandidateListHTML(contestData)}
@@ -431,6 +494,7 @@ export function updateInfoSection(props: FeatureProperties | null): void {
       } else {
         // Yes/No or 2-candidate race - show traditional format
         content = `
+          ${geoBanner}
           ${contestContext}
           <div class="precinct-name">${title}</div>
           ${generateDataColumnsHTML(voteData)}

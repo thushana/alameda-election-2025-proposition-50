@@ -5,7 +5,7 @@
 import type { CircleMarker } from 'leaflet';
 import { state } from './state.js';
 import { getL } from './leaflet-helper.js';
-import { parseHashParams, buildHashParams, updateURL } from './url-manager.js';
+import { parseHashParams, buildHashParams, updateURL, getRestoreSignature } from './url-manager.js';
 import { normalizeCityName, denormalizeCityName, getDisplayCityName } from './city-helpers.js';
 import { safeGet, getVoteCount, getPrecinctId } from './data-helpers.js';
 import { setCircleStyle, setPolygonStyle, resetLayerStyle } from './map-styling.js';
@@ -23,7 +23,7 @@ export function restoreSelectionFromURL(): void {
   }
   // Guard against repeated identical calls
   const sigObj = parseHashParams();
-  const sig = JSON.stringify(sigObj);
+  const sig = getRestoreSignature(sigObj);
   if (sig === state.lastRestoreSignature) {
     return;
   }
@@ -69,6 +69,9 @@ export function restoreSelectionFromURL(): void {
         return;
       }
 
+      // eachLayer can visit more than one layer per precinct (e.g. polygon + circle); count once
+      const seenPrecinctIds = new Set<string>();
+
       // Find all precincts matching the city name
       // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Leaflet layer iteration API
       layerSource.eachLayer((layer: any) => {
@@ -85,6 +88,11 @@ export function restoreSelectionFromURL(): void {
         const normalizedFeatureCity = normalizeCityName(displayCity);
 
         if (normalizedFeatureCity === normalizedCityName) {
+          const pid = getPrecinctId(props);
+          const pk = pid !== null && pid !== undefined && String(pid) !== '' ? String(pid) : '';
+          if (pk !== '' && seenPrecinctIds.has(pk)) return;
+          if (pk !== '') seenPrecinctIds.add(pk);
+
           state.selectedPrecincts.push({ feature: feature, layer: layer });
 
           // Set style with black border
@@ -144,6 +152,7 @@ export function restoreSelectionFromURL(): void {
 
         state.restoreInProgress = false;
       } else {
+        updateInfoSection(null);
         state.restoreInProgress = false;
       }
     }, 1000);
@@ -178,6 +187,8 @@ export function restoreSelectionFromURL(): void {
       return;
     }
 
+    const seenPrecinctIds = new Set<string>();
+
     // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Leaflet layer iteration API
     layerSource.eachLayer((layer: any) => {
       const feature = layer.feature as GeoJSONFeature;
@@ -190,6 +201,9 @@ export function restoreSelectionFromURL(): void {
       const precinctIdStr = precinctId ? precinctId.toString() : null;
 
       if (precinctIdStr && precinctIds.indexOf(precinctIdStr) !== -1) {
+        if (seenPrecinctIds.has(precinctIdStr)) return;
+        seenPrecinctIds.add(precinctIdStr);
+
         state.selectedPrecincts.push({ feature: feature, layer: layer });
 
         // Set style with black border
@@ -216,6 +230,7 @@ export function restoreSelectionFromURL(): void {
       // Just restore the styling
       state.restoreInProgress = false;
     } else {
+      updateInfoSection(null);
       state.restoreInProgress = false;
     }
   }, 1000);

@@ -117,6 +117,8 @@ function loadData() {
   state.mapUsesMultiCandidateColors = false;
   state.multiCandidateColorOrder = null;
   state.multiCandidateNames = {};
+  state.geoJSONDataSnapshot = null;
+  state.precinctGeometryFallback = false;
 
   // Determine which results file and precinct file to load
   let resultsFilename = 'data/results/results.json'; // Default for backward compatibility
@@ -137,11 +139,14 @@ function loadData() {
   }
   state.loadDataInProgress = true;
 
+  let precinctFetchUsedConsolidatedFallback = false;
+
   Promise.all([
     fetch(precinctFilename).then((response) => {
       if (!response.ok) {
         // Fallback to default if election-specific file doesn't exist
         if (precinctFilename !== 'precincts_consolidated.geojson') {
+          precinctFetchUsedConsolidatedFallback = true;
           console.warn(
             `Could not load ${precinctFilename}, falling back to precincts_consolidated.geojson`
           );
@@ -185,6 +190,9 @@ function loadData() {
       const data = results[0];
       const resultsData = results[1];
       const hashParams = parseHashParams(); // Parse hash params early for use throughout
+
+      state.precinctGeometryFallback =
+        Boolean(hashParams.election) && precinctFetchUsedConsolidatedFallback;
 
       if (!resultsData || !Array.isArray(resultsData)) {
         throw new Error(`${resultsFilename} is invalid or empty`);
@@ -296,6 +304,8 @@ function loadData() {
           }
         });
       }
+
+      state.geoJSONDataSnapshot = data;
 
       // Calculate city statistics
       state.cityStats = calculateCityStats(data);

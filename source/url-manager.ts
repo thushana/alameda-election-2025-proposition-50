@@ -64,6 +64,17 @@ export function parseHashParams(): HashParams {
   return params;
 }
 
+/** Stable restore guard (avoid JSON.stringify key-order churn and overlapping timers) */
+export function getRestoreSignature(params: HashParams): string {
+  return [
+    params.election ?? '',
+    String(params.contest ?? ''),
+    params.city ?? '',
+    params.precincts ?? '',
+    params.mode ?? '',
+  ].join('\x1e');
+}
+
 /** Stable key for election + contest + city so hash changes reload data even when state was pre-updated in UI handlers */
 export function getMapDataSignature(params: HashParams): string {
   const contestPart =

@@ -4,7 +4,24 @@
 
 import { state } from './state.js';
 import { updateInfoSection } from './ui-info-section.js';
+import { aggregateContestVotesFromFeatures } from './city-stats.js';
+import { isYesNoContest, getPrecinctId } from './data-helpers.js';
 import type { FeatureProperties, VoteMethod } from './types.js';
+
+function uniqueSelectedPrecincts(): typeof state.selectedPrecincts {
+  const seen = new Set<string>();
+  const out: typeof state.selectedPrecincts = [];
+  for (const item of state.selectedPrecincts) {
+    const pid = getPrecinctId(item.feature.properties);
+    const key = pid !== null && pid !== undefined && String(pid) !== '' ? String(pid) : '';
+    if (key !== '') {
+      if (seen.has(key)) continue;
+      seen.add(key);
+    }
+    out.push(item);
+  }
+  return out;
+}
 
 // Calculate and display aggregated totals
 export function updateAggregatedTotals(): void {
@@ -13,11 +30,13 @@ export function updateAggregatedTotals(): void {
     return;
   }
 
+  const selected = uniqueSelectedPrecincts();
+
   const aggregated = {
     yes: 0,
     no: 0,
     total: 0,
-    count: state.selectedPrecincts.length,
+    count: selected.length,
   };
 
   // Aggregate vote_method data
@@ -32,7 +51,7 @@ export function updateAggregatedTotals(): void {
     total: 0,
   };
 
-  state.selectedPrecincts.forEach((item) => {
+  selected.forEach((item) => {
     const props = item.feature.properties;
     if (props.votes) {
       if (props.votes.yes) aggregated.yes += props.votes.yes;
@@ -116,6 +135,24 @@ export function updateAggregatedTotals(): void {
   // Add vote_method if available
   if (voteMethod) {
     aggregatedProps.vote_method = voteMethod;
+  }
+
+  // Multi-candidate contests: aggregate full candidate totals (legacy votes yes/no alone is wrong)
+  if (state.selectedContestId !== null && state.selectedContestId !== undefined) {
+    const cid = state.selectedContestId;
+    const propsList = selected.map((item) => item.feature.properties);
+    const sample = propsList.find((p) => p.contests?.[cid]);
+    const sampleContest = sample?.contests?.[cid];
+    if (sampleContest && !isYesNoContest(sampleContest)) {
+      const agg = aggregateContestVotesFromFeatures(
+        propsList,
+        cid,
+        state.contests[cid]?.contestName ?? sampleContest.contestName
+      );
+      if (agg) {
+        aggregatedProps.contests = { [cid]: agg };
+      }
+    }
   }
 
   updateInfoSection(aggregatedProps);

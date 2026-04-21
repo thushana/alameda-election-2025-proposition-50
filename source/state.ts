@@ -3,7 +3,13 @@
 // ============================================================================
 
 import type { Map, GeoJSON as LeafletGeoJSON, LatLngBounds } from 'leaflet';
-import type { SelectedPrecinct, CityStats, CountyTotals, ContestInfo } from './types.js';
+import type {
+  SelectedPrecinct,
+  CityStats,
+  CountyTotals,
+  ContestInfo,
+  GeoJSONData,
+} from './types.js';
 
 // State object - all state is mutable through this object
 export const state = {
@@ -76,4 +82,14 @@ export const state = {
 
   /** If hash changes during loadData, run one more load after the current one finishes */
   loadDataPending: false,
+
+  /** Last merged precinct GeoJSON + results (for city/county contest summaries when no hover) */
+  geoJSONDataSnapshot: null as GeoJSONData | null,
+
+  /**
+   * True when the URL asked for an election-specific precinct file (e.g. precincts-2024-11.geojson)
+   * but the app loaded precincts_consolidated.geojson instead. City/county contest totals then only
+   * include precincts that exist in that fallback file, not the full certified jurisdiction.
+   */
+  precinctGeometryFallback: false,
 };
